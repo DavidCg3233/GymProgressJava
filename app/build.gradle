@@ -4,7 +4,7 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.0.13'
 }
 
-group = 'org.gymprogress' // O "com.gymprogress" si prefieres
+group = 'org.gymprogress'
 version = '1.0'
 
 repositories {
@@ -30,7 +30,6 @@ javafx {
 }
 
 application {
-    // Apuntaremos a nuestra clase de PRUEBA por ahora
-    // (Luego lo cambiaremos a org.gymprogress.Main)
+    // ¡¡LA RUTA CORRECTA!!
     mainClass = 'org.gymprogress.Main'
 }

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- ¡¡META TAGS ANTI-CACHÉ!! -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Dashboard - GymProgress</title>
+    
+    <!-- Librería de Iconos (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+
+    <style>
+        /*
+         * ======================================
+         * CSS (Estilo basado en tu paleta oscura)
+         * ======================================
+         */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        :root {
+            --bg-dark: #0F172A;     /* Fondo principal (Azul oscuro/negro) */
+            --bg-card: #1E293B;     /* Fondo de las tarjetas (Azul-gris) */
+            --border-color: #334155; /* Borde sutil */
+            --text-light: #E2E8F0;   /* Texto principal (Casi blanco) */
+            --text-muted: #94A3B8;   /* Texto secundario (Gris-azul) */
+            --primary: #3B82F6;      /* Acento principal (Azul) */
+            --primary-hover: #2563EB; /* Acento hover */
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Barra Lateral de Navegación --- */
+        nav {
+            width: 250px;
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+        nav .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0 0.5rem 2rem 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        nav .logo img {
+            width: 40px;
+            height: 40px;
+        }
+        nav .logo h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        nav ul {
+            list-style: none;
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        nav ul li a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        nav ul li a:hover {
+            background-color: var(--border-color);
+            color: var(--text-light);
+        }
+        nav ul li a.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        nav ul li a i { font-size: 1.5rem; }
+
+        /* --- Contenido Principal --- */
+        main {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto; /* Permite scroll si el contenido es mucho */
+        }
+
+        /* --- Encabezado --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        header h2 { font-weight: 700; font-size: 1.75rem; }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .user-profile span {
+            font-weight: 500;
+            color: var(--text-light);
+        }
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+        }
+
+        /* --- Contenedor de Tarjetas (Grid) --- */
+        .grid-container {
+            display: grid;
+            /* Dos columnas de tamaño flexible */
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* --- Estilo de Tarjeta Individual --- */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-header h3 {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        /* --- Botones --- */
+        button.primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s ease;
+        }
+        button.primary:hover {
+            background-color: var(--primary-hover);
+        }
+        button.primary i {
+            font-size: 1.1rem;
+        }
+        
+        /* --- Lista de Rutinas (RF03) --- */
+        #rutinasList {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        #rutinasList li {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        #rutinasList li h4 {
+            color: var(--text-light);
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        #rutinasList li p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        #noRutinasMessage {
+            color: var(--text-muted);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- ===================================== -->
+    <!--      BARRA LATERAL (NAV)          -->
+    <!-- ===================================== -->
+    <nav>
+        <div class="logo">
+            <img src="img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="Logo GymProgress">
+            <h1>GymProgress</h1>
+        </div>
+        <ul>
+            <li><a href="#" class="active"><i class="ph-fill ph-house"></i> Dashboard</a></li>
+            <li><a href="#"><i class="ph ph-barbell"></i> Rutinas</a></li>
+            <li><a href="#"><i class="ph ph-chart-line-up"></i> Progreso</a></li>
+            <li><a href="#"><i class="ph ph-user"></i> Perfil</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===================================== -->
+    <!--      CONTENIDO PRINCIPAL (MAIN)     -->
+    <!-- ===================================== -->
+    <main>
+        <!-- --- Encabezado --- -->
+        <header>
+            <h2>Dashboard</h2>
+            <div class="user-profile">
+                <!-- El ID "username-display" se usa en JS -->
+                <span id="username-display">Cargando...</span>
+                <!-- Placeholder para la imagen de perfil -->
+                <img src="https://placehold.co/100x100/3B82F6/FFFFFF?text=U" alt="Perfil">
+            </div>
+        </header>
+
+        <!-- --- Contenedor de Tarjetas --- -->
+        <div class="grid-container">
+            
+            <!-- --- Tarjeta de Rutinas (RF03) --- -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Mis Rutinas (RF03)</h3>
+                    <!-- El ID "btn-crear-rutina" se usa en JS -->
+                    <button class="primary" id="btn-crear-rutina">
+                        <i class="ph-fill ph-plus-circle"></i>
+                        Crear Rutina
+                    </button>
+                </div>
+                <div class="card-content">
+                    <!-- El ID "rutinas-list" se usa en JS -->
+                    <ul id="rutinas-list">
+                        <!-- Las rutinas se cargarán aquí por JS -->
+                    </ul>
+                    <!-- El ID "no-rutinas-message" se usa en JS -->
+                    <p id="no-rutinas-message" style="display: none;">
+                        No tienes rutinas. ¡Crea una para comenzar!
+                    </p>
+                </div>
+            </div>
+
+            <!-- --- Tarjeta de Progreso Rápido (RF04) --- -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Registro Rápido (RF04)</h3>
+                </div>
+                <div class="card-content">
+                    <form id="formProgresoRapido">
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">
+                            (Aquí irá el formulario para registrar tu peso del día)
+                        </p>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 
+      * ======================================
+      * JAVASCRIPT (Lógica del Dashboard - ¡CORREGIDO!)
+      * ======================================
+      -->
+    <script>
+        // Variable global para evitar que se ejecute múltiples veces
+        let javaBridgeInicializado = false;
+
+        /**
+         * Esta función se llama UNA VEZ que el puente Java está listo.
+         * Define todas las variables y listeners.
+         */
+        function initializeApp() {
+            if (javaBridgeInicializado) return; // Si ya se inicializó, no hacer nada
+            javaBridgeInicializado = true;
+
+            // Avisa a Java que el JS del dashboard está listo
+            window.javaBridge.logDesdeJS("dashboard.js: Inicializando aplicación");
+
+            // --- 1. Definir elementos del DOM ---
+            const usernameDisplay = document.getElementById("username-display");
+            const btnCrearRutina = document.getElementById("btn-crear-rutina");
+            const rutinasList = document.getElementById("rutinas-list");
+            const noRutinasMessage = document.getElementById("no-rutinas-message");
+
+            // --- 2. CARGAR NOMBRE DE USUARIO (Solución Error 1) ---
+            try {
+                // Llama a la función de Java (que ya existe)
+                const username = window.javaBridge.getNombreUsuarioLogueado();
+                
+                if (username && usernameDisplay) {
+                    usernameDisplay.textContent = username;
+                } else {
+                    usernameDisplay.textContent = "Usuario";
+                    window.javaBridge.logDesdeJS("Error: No se pudo obtener el nombre de usuario desde Java (devuelto null).");
+                }
+            } catch (e) {
+                console.error("Error al obtener nombre de usuario:", e);
+                window.javaBridge.logDesdeJS("Error JS al llamar getNombreUsuarioLogueado(): " + e.message);
+            }
+
+            // --- 3. CARGAR RUTINAS (Solución Error 2) ---
+            
+            // Declaramos la función en 'window' para que Java pueda llamarla
+            window.cargarMisRutinas = function() {
+                window.javaBridge.logDesdeJS("dashboard.js: Cargando rutinas...");
+                try {
+                    // Llama a la función Java con el nombre CORREGIDO
+                    const rutinasJSON = window.javaBridge.getRutinasDelUsuarioJSON();
+                    const rutinas = JSON.parse(rutinasJSON);
+                    
+                    window.javaBridge.logDesdeJS(`dashboard.js: Recibidas ${rutinas.length} rutinas.`);
+
+                    // Limpiar lista
+                    rutinasList.innerHTML = "";
+
+                    if (rutinas.length === 0) {
+                        noRutinasMessage.style.display = "block";
+                    } else {
+                        noRutinasMessage.style.display = "none";
+                        
+                        rutinas.forEach(rutina => {
+                            const li = document.createElement("li");
+                            li.innerHTML = `
+                                <h4>${escapeHTML(rutina.nombreRutina)}</h4>
+                                <p>ID: ${rutina.codigoRutina} | Creada: ${rutina.fechaCreacion}</p>
+                            `;
+                            rutinasList.appendChild(li);
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error al cargar rutinas:", e);
+                    window.javaBridge.logDesdeJS("Error JS al llamar getRutinasDelUsuarioJSON(): " + e.message);
+                }
+            }
+            
+            // Llamar a la función al cargar la página
+            window.cargarMisRutinas();
+
+
+            // --- 4. BOTÓN CREAR RUTINA (Solución Error 3) ---
+            if (btnCrearRutina) {
+                btnCrearRutina.addEventListener("click", () => {
+                    
+                    console.log("dashboard.js: Solicitando a Java que muestre los diálogos de creación...");
+                    window.javaBridge.logDesdeJS("dashboard.js: Botón 'Crear Rutina' presionado.");
+
+                    // ¡¡NO USAMOS PROMPT()!!
+                    // Llamamos a la función Java que creamos para esto.
+                    // Java se encargará de mostrar los diálogos y de llamar
+                    // a 'window.cargarMisRutinas()' cuando termine.
+                    window.javaBridge.solicitarCreacionRutina();
+                });
+            } else {
+                 window.javaBridge.logDesdeJS("Error JS: No se encontró #btn-crear-rutina");
+            }
+        } // Fin de initializeApp()
+
+        /**
+         * Utilidad para escapar HTML y evitar XSS
+         */
+        function escapeHTML(str) {
+            if (!str) return "";
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+        }
+
+        /**
+         * Esta es la función que Java llama desde el MainAppController
+         * (window.setMember("javaBridge", ...))
+         * O podemos usar un 'poller' (chequeo) para más seguridad.
+         */
+        
+        // --- Mecanismo de Polling (Recomendado) ---
+        // Chequea cada 100ms si Java ya inyectó el puente
+        const bridgeCheckInterval = setInterval(() => {
+            // Usamos 'logDesdeJS' como señal de que el puente está 100% listo
+            if (window.javaBridge && typeof window.javaBridge.logDesdeJS === 'function') {
+                
+                // ¡Lo encontró!
+                clearInterval(bridgeCheckInterval); // Detiene el chequeo
+                
+                // Llama a la lógica principal SÓLO AHORA
+                initializeApp(); 
+            }
+        }, 100); // Chequea 10 veces por segundo
+
+        // (Opcional) Un 'fallback' por si Java llama a 'javaBridgeReady()'
+        // (Tal como lo configuramos en MainAppController)
+        window.javaBridgeReady = () => {
+            console.log("javaBridgeReady() fue llamado por Java.");
+            clearInterval(bridgeCheckInterval);
+            initializeApp();
+        };
+    </script>
+</body>
+</html>

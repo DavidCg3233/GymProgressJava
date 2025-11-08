@@ -55,7 +55,7 @@ public class UsuarioDAO {
         }
     }
 
-    public boolean registrarUsuarioCompleto(Usuario usuario, Cliente cliente, Progreso progreso) {
+    public boolean registrarNuevoUsuarioCompleto(Usuario usuario, Cliente cliente, Progreso progreso) {
         
         if (conn == null) {
             System.err.println("DAO (Registro): No se puede ejecutar la transacción, la conexión es NULL.");
