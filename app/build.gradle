@@ -1,0 +1,36 @@
+plugins {
+    id 'application'
+    // Usaremos el plugin de JavaFX
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+}
+
+group = 'org.gymprogress' // O "com.gymprogress" si prefieres
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+// Aquí definimos TODAS las librerías que el proyecto necesita
+dependencies {
+    // 1. Dependencias de JavaFX (para la ventana)
+    implementation 'org.openjfx:javafx-controls:21'
+    implementation 'org.openjfx:javafx-fxml:21'
+
+    // 2. Dependencia CLAVE para el puente (HTML -> Java)
+    implementation 'org.openjfx:javafx-web:21'
+
+    // 3. Dependencia de MySQL (para la Conexión)
+    implementation 'mysql:mysql-connector-java:8.0.33'
+}
+
+javafx {
+    version = "21"
+    modules = [ 'javafx.controls', 'javafx.fxml' , 'javafx.web']
+}
+
+application {
+    // Apuntaremos a nuestra clase de PRUEBA por ahora
+    // (Luego lo cambiaremos a org.gymprogress.Main)
+    mainClass = 'org.gymprogress.Main'
+}

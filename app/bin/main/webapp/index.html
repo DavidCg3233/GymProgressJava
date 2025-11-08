@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- ¡¡META TAGS ANTI-CACHÉ!! -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>GymProgress - Acceso</title>
+    
+    <!-- ¡¡INICIO DE CSS INTEGRADO!! -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8; /* Fondo azul claro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: auto; 
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-sizing: border-box;
+            margin: 20px 0; 
+        }
+        .form-row { display: flex; gap: 15px; }
+        .form-group { flex: 1; display: flex; flex-direction: column; }
+        .logo { display: block; margin: 0 auto 15px auto; width: 150px; }
+        h2 { text-align: center; color: #333; font-weight: 700; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        form { display: flex; flex-direction: column; gap: 15px; }
+        label { font-weight: 500; color: #444; margin-bottom: -5px; }
+        input[type="text"], input[type="email"], input[type="password"],
+        input[type="date"], input[type="number"], select {
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #0d6efd; 
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #0b5ed7; }
+        .toggle-link { text-align: center; margin-top: 20px; color: #555; font-size: 14px; }
+        .toggle-link a { color: #0d6efd; text-decoration: none; font-weight: 500; cursor: pointer; }
+    </style>
+    <!-- ¡¡FIN DE CSS INTEGRADO!! -->
+</head>
+<body>
+
+    <!-- ======== RF02: FORMULARIO DE LOGIN (Visible por defecto) ======== -->
+    <div class="card" id="loginCard">
+        <h2 style="text-align: center;">GYM PROGRESS</h2>
+        <h2>Iniciar Sesión</h2>
+        <p class="subtitle">Rastrea tu progreso físico y alcanza tus metas</p>
+
+        <form id="formLogin">
+            <div class="form-group">
+                <label for="loginEmail">Correo Electrónico</label>
+                <input type="email" id="loginEmail" placeholder="tu.correo@ejemplo.com" required>
+            </div>
+            <div class="form-group"> 
+                <label for="loginPass">Contraseña</label>
+                <input type="password" id="loginPass" placeholder="Ingresa tu contraseña" required>
+            </div>
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+
+        <p class="toggle-link">
+            ¿No tienes una cuenta? <a id="showRegisterLink">Crear una</a>
+        </p>
+    </div>
+
+    <!-- ======== RF01: FORMULARIO DE REGISTRO (Oculto por defecto) ======== -->
+    <div class="card" id="registerCard" style="display: none;">
+        
+        <h2>Crea tu Cuenta</h2>
+        <p class="subtitle">Comienza a rastrear tu progreso físico hoy</p>
+
+        <form id="formRegistro">
+            <!-- CAMPOS DE LA BD: 'usuario' -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="regUsuario">Nombre de Usuario</label>
+                    <input type="text" id="regUsuario" placeholder="ej. davidc" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Correo Electrónico</label>
+                    <input type="email" id="regEmail" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="regPass">Contraseña</label>
+                <input type="password" id="regPass" required>
+            </div>
+            <hr>
+            <!-- CAMPOS DE LA BD: 'cliente' -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="regNombre1">Primer Nombre</label>
+                    <input type="text" id="regNombre1" required>
+                </div>
+                <div class="form-group">
+                    <label for="regNombre2">Segundo Nombre</label>
+                    <input type="text" id="regNombre2">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="regApellido1">Primer Apellido</label>
+                    <input type="text" id="regApellido1" required>
+                </div>
+                <div class="form-group">
+                    <label for="regApellido2">Segundo Apellido</label>
+                    <input type="text" id="regApellido2">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="regFechaNac">Fecha de Nacimiento</label>
+                    <input type="date" id="regFechaNac" required>
+                </div>
+                <div class="form-group">
+                    <label for="regSexo">Sexo</label>
+                    <select id="regSexo" required>
+                        <option value="1">Masculino</option>
+                        <option value="2">Femenino</option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            <!-- CAMPOS DE LA BD: 'progreso' (Inicial) -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="regPeso">Peso Inicial (kg)</label>
+                    <input type="number" step="0.1" id="regPeso" placeholder="ej. 80.5" required>
+                </div>
+                <div class="form-group">
+                    <label for="regAltura">Altura (m)</label>
+                    <input type="number" step="0.01" id="regAltura" placeholder="ej. 1.75" required>
+                </div>
+            </div>
+            <button type="submit">Crear Cuenta</button>
+        </form>
+
+        <p class="toggle-link">
+            ¿Ya tienes una cuenta? <a id="showLoginLink">Iniciar sesión</a>
+        </p>
+    </div>
+    
+    <!-- ¡¡INICIO DE JAVASCRIPT INTEGRADO (v4.1)!! -->
+    <script>
+        console.log("index.html (v4.1): Archivo cargado. Iniciando chequeo de puente...");
+
+        function initializeApp() {
+            console.log("¡Puente detectado! 'initializeApp()' ejecutado.");
+            
+            try {
+                window.javaBridge.saludarDesdeJS("Hola Java, soy JavaScript (v4.1) y el puente funciona!");
+            } catch (e) {
+                console.error("Error al llamar a saludarDesdeJS", e);
+            }
+
+            // --- Lógica de Toggle (Mostrar/Ocultar Forms) ---
+            const loginCard = document.getElementById("loginCard");
+            const registerCard = document.getElementById("registerCard");
+            const showRegisterLink = document.getElementById("showRegisterLink");
+            const showLoginLink = document.getElementById("showLoginLink");
+
+            showRegisterLink.addEventListener("click", () => {
+                loginCard.style.display = "none";
+                registerCard.style.display = "block";
+            });
+
+            showLoginLink.addEventListener("click", () => {
+                registerCard.style.display = "none";
+                loginCard.style.display = "block";
+            });
+
+            // --- Lógica de Login (RF02) ---
+            const formLogin = document.getElementById("formLogin");
+            formLogin.addEventListener("submit", (e) => {
+                e.preventDefault(); 
+                const email = document.getElementById("loginEmail").value;
+                const pass = document.getElementById("loginPass").value;
+                
+                try {
+                    const nombreUsuario = window.javaBridge.login(email, pass);
+                    if (nombreUsuario && nombreUsuario.length > 0) {
+                        alert(`¡Bienvenido de nuevo, ${nombreUsuario}!`);
+                        // window.location.href = "dashboard.html"; 
+                    } else {
+                        alert("Error: Email o contraseña incorrectos.");
+                    }
+                } catch (err) {
+                    console.error("Error al llamar a javaBridge.login()", err);
+                    alert("Error fatal al contactar el backend.");
+                }
+            });
+
+            // --- Lógica de Registro (RF01) ---
+            const formRegistro = document.getElementById("formRegistro");
+            formRegistro.addEventListener("submit", (e) => {
+                e.preventDefault();
+                try {
+                    // =========================================================
+                    // ¡¡AQUÍ ESTÁ LA VALIDACIÓN DE JAVASCRIPT!!
+                    // (Esta es la que faltaba en tu v3.0)
+                    // =========================================================
+                    const fechaNac = document.getElementById("regFechaNac").value;
+                    if (fechaNac === null || fechaNac === "") {
+                         alert("Error: Por favor, selecciona tu fecha de nacimiento.");
+                         return; // Detiene el envío y previene el "crash"
+                    }
+                    // =========================================================
+                    
+                    const nombreUsuario = document.getElementById("regUsuario").value;
+                    const email = document.getElementById("regEmail").value;
+                    const pass = document.getElementById("regPass").value;
+                    const nombre1 = document.getElementById("regNombre1").value;
+                    const nombre2 = document.getElementById("regNombre2").value; 
+                    const apellido1 = document.getElementById("regApellido1").value;
+                    const apellido2 = document.getElementById("regApellido2").value; 
+                    const sexo = parseInt(document.getElementById("regSexo").value);
+                    const peso = parseFloat(document.getElementById("regPeso").value);
+                    const altura = parseFloat(document.getElementById("regAltura").value);
+
+                    const exito = window.javaBridge.registrarUsuario(
+                        nombreUsuario, email, pass,
+                        nombre1, nombre2,
+                        apellido1, apellido2,
+                        sexo, fechaNac, 
+                        peso, altura
+                    );
+
+                    if (exito) {
+                        alert("¡Registro exitoso! Por favor, inicia sesión.");
+                        showLoginLink.click();
+                        formRegistro.reset();
+                        formLogin.reset();
+                    } else {
+                        alert("Error en el registro. Es posible que el email o nombre de usuario ya existan.");
+                    }
+                } catch (err) {
+                    console.error("Error al llamar a javaBridge.registrarUsuario()", err);
+                    alert("Error fatal al contactar el backend.");
+                }
+            });
+        }
+
+        // --- EL MECANISMO DE POLLING (La "Búsqueda") ---
+        const bridgeCheckInterval = setInterval(() => {
+            console.log("app.js (integrado): Chequeando puente...");
+            if (window.javaBridge) {
+                clearInterval(bridgeCheckInterval); 
+                initializeApp();
+            }
+        }, 100); 
+
+    </script>
+    <!-- ¡¡FIN DE JAVASCRIPT INTEGRADO!! -->
+</body>
+</html>
