@@ -9,6 +9,9 @@ public class Rutina {
     private String nombreRutina;
     private String descripcion;
     private Date fechaCreacion;
+    
+    // --- ¡¡NUEVO CAMPO!! ---
+    private String diaSemana; // Corresponde a la columna 'dia_semana'
 
     // Getters y Setters
     public int getCodigoRutina() {
@@ -40,5 +43,13 @@ public class Rutina {
     }
     public void setFechaCreacion(Date fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    // --- ¡¡NUEVOS MÉTODOS!! ---
+    public String getDiaSemana() {
+        return diaSemana;
+    }
+    public void setDiaSemana(String diaSemana) {
+        this.diaSemana = diaSemana;
     }
 }

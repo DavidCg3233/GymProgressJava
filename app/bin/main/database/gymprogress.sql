@@ -129,3 +129,5 @@ CREATE TABLE reporte (
                              ON DELETE RESTRICT
                              ON UPDATE CASCADE
 ) ENGINE=InnoDB;
+ALTER TABLE rutina
+ADD COLUMN dia_semana VARCHAR(20) NULL;
