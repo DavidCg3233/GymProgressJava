@@ -113,7 +113,27 @@ public class RutinaDAO {
             return filasAfectadas > 0;
         }
     }
-    
+     public List<Rutina> getRutinasRecientes(int codigoUsuario, int limit) throws SQLException {
+        if (conn == null) throw new SQLException("La conexión a la base de datos es nula.");
+        
+        List<Rutina> rutinas = new ArrayList<>();
+        String sql = "SELECT * FROM rutina WHERE codigo_usuario = ? ORDER BY fecha_creacion DESC LIMIT ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, codigoUsuario);
+            stmt.setInt(2, limit);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Rutina r = new Rutina();
+                    r.setNombreRutina(rs.getString("nombre_rutina"));
+                    r.setDiaSemana(rs.getString("dia_semana"));
+                    rutinas.add(r);
+                }
+            }
+        }
+        return rutinas;
+    }
     /**
      * ¡¡NUEVO MÉTODO!!
      * RF03 (Eliminar): Elimina una rutina de la base de datos.

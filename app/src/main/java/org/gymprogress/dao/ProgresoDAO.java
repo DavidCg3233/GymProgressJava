@@ -116,4 +116,26 @@ public class ProgresoDAO {
             }
         }
     }
+    public List<Progreso> getProgresoReciente(int codigoUsuario, int limit) throws SQLException {
+        if (conn == null) throw new SQLException("La conexión a la base de datos es nula.");
+        
+        List<Progreso> historial = new ArrayList<>();
+        // ¡ORDER BY fecha DESC es crucial para la actividad reciente!
+        String sql = "SELECT * FROM progreso WHERE codigo_usuario = ? ORDER BY fecha DESC LIMIT ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, codigoUsuario);
+            stmt.setInt(2, limit);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Progreso p = new Progreso();
+                    p.setFecha(rs.getDate("fecha"));
+                    p.setPesoCorporal(rs.getDouble("peso_corporal"));
+                    historial.add(p);
+                }
+            }
+        }
+        return historial;
+    }
 }

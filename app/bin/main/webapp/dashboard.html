@@ -5,281 +5,102 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Dashboard - GymProgress</title>
+    <title>Panel Principal - GymProgress</title>
+    
+    <!-- CSS Compartido -->
+    <link rel="stylesheet" href="css/main.css">
     
     <!-- Librería de Iconos (Phosphor Icons) -->
     <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
     
-    <!-- Librería de Gráficas (Chart.js) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <!-- CSS Específico para esta página -->
     <style>
-        /*
-         * ======================================
-         * CSS (Estilo basado en tu paleta oscura)
-         * ======================================
-         */
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-
-        :root {
-            --bg-dark: #0F172A;     
-            --bg-card: #1E293B;     
-            --bg-modal: #293548;
-            --border-color: #334155; 
-            --text-light: #E2E8F0;   
-            --text-muted: #94A3B8;   
-            --primary: #3B82F6;      
-            --primary-hover: #2563EB; 
-            --danger: #EF4444;       
-            --danger-hover: #DC2626;
-            --success: #10B981; /* Verde Acento */
-            --success-light: rgba(16, 185, 129, 0.1);
-            --danger-light: rgba(239, 68, 68, 0.1);
-        }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* --- Barra Lateral de Navegación --- */
-        nav {
-            width: 250px;
-            background-color: var(--bg-card);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem 1rem;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-        nav .logo { display: flex; align-items: center; gap: 0.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
-        nav .logo img { width: 40px; height: 40px; }
-        nav .logo h1 { font-size: 1.25rem; font-weight: 700; }
-        nav ul { list-style: none; margin-top: 2rem; display: flex; flex-direction: column; gap: 0.5rem; }
-        nav ul li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; text-decoration: none; color: var(--text-muted); font-weight: 500; transition: all 0.2s ease; }
-        nav ul li a:hover { background-color: var(--border-color); color: var(--text-light); }
-        nav ul li a.active { background-color: var(--primary); color: white; }
-        nav ul li a i { font-size: 1.5rem; }
-
-        /* --- Contenido Principal --- */
-        main {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto; 
-        }
-
-        /* --- Encabezado General (Reutilizable) --- */
-        .manager-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .manager-header .header-title h1 { font-size: 2rem; font-weight: 700; }
-        .manager-header .header-title p { color: var(--text-muted); font-size: 1rem; margin-top: 0.25rem; }
-        .user-profile { display: flex; align-items: center; gap: 0.75rem; }
-        .user-profile span { font-weight: 500; }
-        .user-profile img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--primary); }
-
-        /* --- Botones --- */
-        .btn {
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease;
-        }
-        .btn-primary { background-color: var(--primary); color: white; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-danger { background-color: var(--danger); color: white; }
-        .btn-danger:hover { background-color: var(--danger-hover); }
-        .btn-secondary { background-color: var(--border-color); color: var(--text-light); }
-        .btn-secondary:hover { background-color: #475569; }
-        .btn-ghost { background-color: transparent; color: var(--text-muted); }
-        .btn-ghost:hover { background-color: var(--border-color); color: var(--text-light); }
-        .btn-icon { padding: 0.5rem; }
-        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
-        
-        /* --- Sección de Rutinas (RF03) --- */
-        .routine-section {
-             margin-bottom: 3rem; /* Espacio entre secciones */
-        }
-        #routine-card-grid {
+        .stats-grid-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 1.5rem;
-        }
-        .routine-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .routine-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
-        .routine-card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: flex-start; }
-        .routine-card-header .title-day { display: flex; flex-direction: column; gap: 0.25rem; }
-        .routine-card-header h3 { font-weight: 700; font-size: 1.25rem; }
-        .badge { background-color: var(--border-color); color: var(--text-light); padding: 0.25rem 0.6rem; border-radius: 99px; font-size: 0.75rem; font-weight: 500; width: fit-content; }
-        .routine-card-actions { display: flex; gap: 0.25rem; }
-        .routine-card-body { padding: 1.5rem; }
-        .routine-card-body .exercises-summary { display: flex; flex-direction: column; gap: 0.75rem; }
-        .routine-card-body .exercise-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; background-color: var(--bg-dark); padding: 0.75rem 1rem; border-radius: 6px; }
-        .exercise-item .name { font-weight: 500; }
-        .exercise-item .sets-reps { color: var(--text-muted); }
-        .exercise-item .weight { font-weight: 500; color: var(--success); }
-        .exercise-placeholder { color: var(--text-muted); font-style: italic; font-size: 0.9rem; }
-        .exercise-ellipsis { color: var(--text-muted); font-size: 0.8rem; text-align: center; margin-top: 0.75rem; }
-        #no-routines-placeholder { 
-            display: none; 
-            background-color: var(--bg-card); 
-            border: 1px dashed var(--border-color); 
-            border-radius: 12px; 
-            padding: 4rem 2rem; 
-            text-align: center; 
-            grid-column: 1 / -1; 
-            flex-direction: column; /* Añadido para centrar verticalmente */
-            align-items: center; /* Añadido para centrar horizontalmente */
-            justify-content: center; /* Añadido para centrar verticalmente */
-        }
-        #no-routines-placeholder i { font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; }
-        #no-routines-placeholder h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
-        #no-routines-placeholder p { color: var(--text-muted); margin-bottom: 1.5rem; }
-
-        /* --- CSS: Modales (Genérico) --- */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            /* display: flex; */ /* Controlado por JS */
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: var(--bg-modal);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            width: 90%;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h2 { font-size: 1.5rem; font-weight: 700; }
-        .modal-header .close-modal-btn { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
-        .modal-header .close-modal-btn:hover { color: var(--text-light); }
-        .modal-body { padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.5rem; }
-        .modal-footer { padding: 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 0.75rem; }
-
-        /* --- CSS: Formulario de Rutina (RF03) --- */
-        #workout-modal-content { max-width: 700px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .form-group label { font-weight: 500; color: var(--text-muted); font-size: 0.9rem; }
-        .form-group input, .form-group select { padding: 0.75rem; border: 1px solid var(--border-color); background-color: var(--bg-dark); color: var(--text-light); border-radius: 8px; font-size: 1rem; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
-        .exercises-section-header { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.5rem; }
-        .exercises-section-header label { font-size: 1.25rem; font-weight: 700; }
-        #exercise-list-container { display: flex; flex-direction: column; gap: 1rem; max-height: 300px; overflow-y: auto; padding: 0.25rem; margin-top: 1rem; }
-        .exercise-row { display: grid; grid-template-columns: 3fr 1fr 1fr 1fr auto; gap: 0.75rem; align-items: flex-end; border: 1px solid var(--border-color); background-color: var(--bg-card); padding: 1rem; border-radius: 8px; }
-        .exercise-row .form-group { gap: 0.25rem; }
-        .exercise-row .form-group label { font-size: 0.75rem; }
-        
-        /* --- CSS: Formulario de Progreso (RF04) --- */
-        #progress-modal-content { max-width: 450px; } /* Modal más pequeño */
-        #progress-modal-content .form-group p { /* Texto de ayuda para la altura */
-            color: var(--text-muted); 
-            font-size: 0.75rem; 
-            margin-top: 4px;
-        }
-
-        /* --- CSS: Progreso (RF04 / RF05) --- */
-        .progress-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
         .stat-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
-        .stat-card-header { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.5rem; }
-        .stat-card-body { font-size: 2rem; font-weight: 700; }
-        .stat-card-footer { margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
-        .stat-card-footer .trend { display: flex; align-items: center; font-weight: 500; }
-        .stat-card-footer .trend.up { color: var(--danger); }
-        .stat-card-footer .trend.down { color: var(--success); }
-        .stat-card-footer .trend i { font-size: 1rem; }
+        .stat-card i {
+            font-size: 2rem;
+            padding: 0.75rem;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            color: var(--text-light);
+        }
+        .stat-card .stat-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+        .stat-card .stat-info h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .stat-card .stat-info .trend {
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .stat-card .stat-info .trend.up { color: var(--success); }
+        .stat-card .stat-info .trend.down { color: var(--danger); }
+        .stat-card .stat-info .trend.neutral { color: var(--text-muted); }
 
-        .progress-chart-grid {
+        .overview-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 2fr 1fr;
             gap: 1.5rem;
-            margin-bottom: 1.5rem;
         }
-        @media (max-width: 1200px) { .progress-chart-grid { grid-template-columns: 1fr; } }
-        
-        .chart-container {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-        .chart-container h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .chart-container p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
-        .chart-container canvas { /* Asegura que Chart.js no se desborde */
-            max-width: 100%;
+        @media (max-width: 1200px) {
+            .overview-grid { grid-template-columns: 1fr; }
         }
 
-        .history-list {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 1.5rem;
+        .activity-feed-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
         }
-        .history-list h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
-        .history-list p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
-        #history-list-container { display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto; }
-        .history-item {
+        .activity-feed-item:first-child { padding-top: 0; }
+        .activity-feed-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .activity-feed-item .icon {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            background-color: var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .activity-feed-item .info .action { font-weight: 500; }
+        .activity-feed-item .info .detail { color: var(--text-muted); font-size: 0.9rem; }
+        .activity-feed-item .info .date { color: var(--text-muted); font-size: 0.8rem; margin-top: 0.25rem; }
+
+        .upcoming-routine-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 1rem;
             background-color: var(--bg-dark);
             border: 1px solid var(--border-color);
-            padding: 1rem;
             border-radius: 8px;
+            margin-bottom: 0.75rem;
         }
-        .history-item .weight { font-weight: 700; font-size: 1.1rem; }
-        .history-item .date { color: var(--text-muted); font-size: 0.9rem; }
-        .history-item .bmi-info .value { font-weight: 500; }
-        .history-item .bmi-info .category { font-size: 0.9rem; }
-        
-        /* Colores de Categoría IMC */
-        .bmi-normal { color: var(--success); }
-        .bmi-sobrepeso { color: #F59E0B; } /* Amarillo/Naranja */
-        .bmi-bajo-peso { color: var(--primary); } /* Azul */
-        .bmi-obesidad { color: var(--danger); } /* Rojo */
-
+        .upcoming-routine-item h4 { font-size: 1rem; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -293,10 +114,16 @@
             <h1>GymProgress</h1>
         </div>
         <ul>
-            <li><a href="#" class="active"><i class="ph-fill ph-house"></i> Dashboard</a></li>
-            <li><a href="#"><i class="ph ph-barbell"></i> Rutinas</a></li>
-            <li><a href="#"><i class="ph ph-chart-line-up"></i> Progreso</a></li>
-            <li><a href="#"><i class="ph ph-user"></i> Perfil</a></li>
+            <li><a class="active" onclick="window.javaBridge.navegar('dashboard.html')"><i class="ph-fill ph-house"></i> Panel Principal</a></li>
+            <li><a onclick="window.javaBridge.navegar('rutinas.html')"><i class="ph ph-barbell"></i> Entrenamientos</a></li>
+            <li><a onclick="window.javaBridge.navegar('progreso.html')"><i class="ph ph-chart-line-up"></i> Progreso</a></li>
+            <li><a onclick="window.javaBridge.navegar('estadisticas.html')"><i class="ph ph-chart-bar"></i> Estadísticas</a></li>
+            <li><a onclick="window.javaBridge.navegar('perfil.html')"><i class="ph ph-user"></i> Perfil</a></li>
+        </ul>
+        
+        <!-- ¡¡BOTÓN DE CERRAR SESIÓN!! -->
+        <ul style="margin-top: auto;">
+             <li><a onclick="window.javaBridge.navegar('index.html')" style="color: var(--danger);"><i class="ph ph-sign-out"></i> Cerrar Sesión</a></li>
         </ul>
     </nav>
 
@@ -307,225 +134,84 @@
         <!-- --- Encabezado --- -->
         <div class="manager-header">
             <div class="header-title">
-                <h1>Dashboard</h1>
-                <p>Bienvenido, <span id="username-display">Cargando...</span></p>
+                <h1>Panel Principal</h1>
+                <p>Bienvenido de vuelta, <span id="username-display">Cargando...</span></p>
             </div>
             <div class="user-profile">
                 <img src="https://placehold.co/100x100/3B82F6/FFFFFF?text=U" alt="Perfil">
             </div>
         </div>
 
-        <!-- ===================================== -->
-        <!--      SECCIÓN RUTINAS (RF03)         -->
-        <!-- ===================================== -->
-        <section class="routine-section">
-            <div class="manager-header" style="border-bottom: none; margin-bottom: 1rem;">
-                <div class="header-title">
-                    <h1 style="font-size: 1.75rem;">Rutinas de Entrenamiento</h1>
+        <!-- --- Cuadrícula de Estadísticas (Basado en dashboard-overview.tsx) --- -->
+        <div class="stats-grid-overview">
+            <div class="stat-card">
+                <i class="ph-fill ph-activity" style="background-color: var(--primary);"></i>
+                <div class="stat-info">
+                    <p>Peso Actual</p>
+                    <h3 id="stat-peso">-- kg</h3>
+                    <span class="trend neutral" id="stat-peso-trend">-- kg</span>
                 </div>
-                <button class="btn btn-primary" id="btn-new-workout">
-                    <i class="ph-fill ph-plus-circle"></i>
-                    Nuevo Entrenamiento
-                </button>
             </div>
+            <div class="stat-card">
+                <i class="ph-fill ph-trend-up" style="background-color: var(--success);"></i>
+                <div class="stat-info">
+                    <p>IMC</p>
+                    <h3 id="stat-imc">--</h3>
+                    <span class="trend neutral" id="stat-imc-category">--</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="ph-fill ph-barbell" style="background-color: var(--warning);"></i>
+                <div class="stat-info">
+                    <p>Rutinas Activas</p>
+                    <h3 id="stat-rutinas">--</h3>
+                    <span class="trend neutral">rutinas en tu plan</span>
+                </div>
+            </div>
+        </div>
 
-            <div id="routine-card-grid"> <!-- ... (Grid de Rutinas) ... --> </div>
+        <!-- --- Cuadrícula Principal (Basado en dashboard-overview.tsx) --- -->
+        <div class="overview-grid">
             
-            <!-- ¡¡HTML CORREGIDO!! (Arregla el bug del JS) -->
-            <div id="no-routines-placeholder" style="display: none;">
-                <i class="ph ph-calendar"></i>
-                <h3>Aún no hay entrenamientos</h3>
-                <p>Comienza a construir tu rutina fitness creando tu primer entrenamiento.</p>
-                <!-- ¡¡ESTE ES EL BOTÓN QUE FALTABA!! -->
-                <button class="btn btn-primary" id="btn-new-workout-placeholder">
-                    <i class="ph-fill ph-plus-circle"></i>
-                    Crear Entrenamiento
-                </button>
-            </div>
-        </section>
-
-        <!-- ===================================== -->
-        <!--      SECCIÓN PROGRESO (RF04/RF05)   -->
-        <!-- ===================================== -->
-        <section class="progress-section">
-            <div class="manager-header">
-                <div class="header-title">
-                    <h1 style="font-size: 1.75rem;">Seguimiento de Progreso</h1>
+            <!-- Columna Izquierda: Actividad Reciente -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Actividad Reciente</h3>
                 </div>
-                <button class="btn btn-primary" id="btn-new-progress">
-                    <i class="ph-fill ph-plus-circle"></i>
-                    Registrar Peso
-                </button>
-            </div>
-            
-            <div class="progress-stats-grid" id="progress-stats-grid">
-                <div class="stat-card">
-                    <div class="stat-card-header">Peso Actual</div>
-                    <div class="stat-card-body" id="stat-current-weight">-- kg</div>
-                    <div class="stat-card-footer">
-                        <span class="trend" id="stat-weight-change-trend"></span>
-                        <span id="stat-weight-change-label"></span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">IMC Actual</div>
-                    <div class="stat-card-body" id="stat-current-bmi">--</div>
-                    <div class="stat-card-footer">
-                        <span class="trend" id="stat-bmi-category">N/A</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">Peso Objetivo</div>
-                    <div class="stat-card-body">70.0 kg</div>
-                    <div class="stat-card-footer">
-                        <span id="stat-target-remaining">-- kg</span>
-                        <span> restantes</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="progress-chart-grid">
-                <div class="chart-container">
-                    <h3>Progreso de Peso</h3>
-                    <p>Tu tendencia de peso a lo largo del tiempo.</p>
-                    <canvas id="weight-chart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <h3>Progreso de IMC</h3>
-                    <p>Tu tendencia de IMC a lo largo del tiempo.</p>
-                    <canvas id="bmi-chart"></canvas>
+                <div class="card-body" id="feed-actividad">
+                    <!-- El JS llenará esto -->
+                    <p class="text-placeholder" id="no-activity-placeholder">No hay actividad reciente.</p>
                 </div>
             </div>
             
-            <div class="history-list">
-                <h3>Historial de Peso</h3>
-                <p>Mediciones recientes de peso.</p>
-                <div id="history-list-container">
-                    <p class="exercise-placeholder" id="no-history-placeholder">No hay registros de progreso. ¡Añade uno para comenzar!</p>
+            <!-- Columna Derecha: Próximas Rutinas -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Tus Próximas Rutinas</h3>
+                </div>
+                <div class="card-body" id="feed-rutinas">
+                    <!-- El JS llenará esto -->
+                    <p class="text-placeholder" id="no-upcoming-routines-placeholder">No tienes rutinas creadas.</p>
                 </div>
             </div>
-        </section>
-
+        </div>
     </main>
 
     <!-- 
       * ======================================
-      * MODAL: RUTINAS (RF03)
-      * ======================================
-      -->
-    <div class="modal-overlay" id="workout-modal-overlay" style="display: none;">
-        <div class="modal-content" id="workout-modal-content">
-            <div class="modal-header">
-                <h2 id="modal-title">Crear Nuevo Entrenamiento</h2>
-                <button class="close-modal-btn" id="close-modal-btn-routine"><i class="ph ph-x"></i></button>
-            </div>
-            <form id="workout-form">
-                <div class="modal-body">
-                    <input type="hidden" id="workout-id">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="workout-name">Nombre del Entrenamiento</label>
-                            <input type="text" id="workout-name" placeholder="Ej. Fuerza Tren Superior" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="workout-day">Día de la Semana</label>
-                            <select id="workout-day">
-                                <option value="">Seleccionar día</option>
-                                <option value="Lunes">Lunes</option>
-                                <option value="Martes">Martes</option>
-                                <option value="Miércoles">Miércoles</option>
-                                <option value="Jueves">Jueves</option>
-                                <option value="Viernes">Viernes</option>
-                                <option value="Sábado">Sábado</option>
-                                <option value="Domingo">Domingo</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="exercises-section">
-                        <div class="exercises-section-header">
-                            <label>Ejercicios</label>
-                            <button type="button" class="btn btn-secondary btn-sm" id="btn-add-exercise">
-                                <i class="ph ph-plus"></i> Añadir Ejercicio
-                            </button>
-                        </div>
-                        <div id="exercise-list-container" style="margin-top: 1rem;"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="btn-cancel-modal-routine">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar Entrenamiento</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 
-      * ======================================
-      * MODAL: PROGRESO (RF04)
-      * (¡¡CON CAMPO DE ALTURA!!)
-      * ======================================
-      -->
-    <div class="modal-overlay" id="progress-modal-overlay" style="display: none;">
-        <div class="modal-content" id="progress-modal-content">
-            <div class="modal-header">
-                <h2>Registra tu Peso</h2>
-                <button class="close-modal-btn" id="close-modal-btn-progress"><i class="ph ph-x"></i></button>
-            </div>
-            <form id="progress-form">
-                <div class="modal-body">
-                    <p>
-                        Registra tu peso actual. La altura se tomará de tu último registro si dejas el campo en blanco.
-                    </p>
-                    
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="progress-weight">Peso (kg)</label>
-                            <input type="number" step="0.1" id="progress-weight" placeholder="72.5" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="progress-date">Fecha</label>
-                            <input type="date" id="progress-date" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="progress-altura">Altura (m) (Opcional)</label>
-                        <input type="number" step="0.01" id="progress-altura" placeholder="Ej. 1.75 (dejar vacío para usar la última altura)">
-                        <p>* Deja esto en blanco si tu altura no ha cambiado.</p>
-                    </div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="btn-cancel-modal-progress">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Registrar Peso</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- 
-      * ======================================
-      * JAVASCRIPT (¡¡FINAL Y CORREGIDO!!)
+      * JAVASCRIPT (¡¡NUEVO!!)
       * ======================================
       -->
     <script>
-        // Variable global para evitar que se ejecute múltiples veces
         let javaBridgeInicializado = false;
-        let cacheRutinas = [];
-        let weightChartInstance = null;
-        let bmiChartInstance = null;
 
-        /**
-         * Función principal de inicialización
-         */
         function initializeApp() {
             if (javaBridgeInicializado) return;
             javaBridgeInicializado = true;
 
-            window.javaBridge.logDesdeJS("dashboard.js: Inicializando aplicación (v3.1 - Corrección de Bugs)");
-
-            // --- 1. CARGAR NOMBRE DE USUARIO (Genérico) ---
+            window.javaBridge.logDesdeJS("dashboard.js (Panel Principal): Inicializando...");
+            
+            // --- 1. Cargar Nombre de Usuario ---
             try {
                 const username = window.javaBridge.getNombreUsuarioLogueado();
                 document.getElementById("username-display").textContent = username || "Usuario";
@@ -533,420 +219,103 @@
                 console.error("Error al obtener nombre de usuario:", e);
                 window.javaBridge.logDesdeJS("Error JS al llamar getNombreUsuarioLogueado(): " + e.message);
             }
-
-            // --- 2. INICIALIZAR MÓDULOS ---
-            // ¡¡LA CORRECCIÓN DE BUG!! - El orden importa
-            // Se debe ejecutar sin errores para que el siguiente init() funcione.
+            
+            // --- 2. Cargar Datos del Panel ---
+            cargarDatosDelPanel();
+        }
+        
+        function cargarDatosDelPanel() {
             try {
-                initRoutineManager(); // Configura todo el RF03
+                const jsonStr = window.javaBridge.getDashboardOverviewJSON();
+                const data = JSON.parse(jsonStr);
+
+                if (data.stats) {
+                    renderStats(data.stats);
+                }
+                if (data.rutinasActivas) {
+                    renderRutinas(data.rutinasActivas);
+                }
+                if (data.actividadReciente) {
+                    renderActividad(data.actividadReciente);
+                }
+                
             } catch (e) {
-                console.error("Error fatal inicializando RoutineManager:", e);
-                window.javaBridge.logDesdeJS("Error JS (FATAL) en initRoutineManager(): " + e.message);
+                console.error("Error al cargar datos del panel:", e);
+                window.javaBridge.logDesdeJS("Error JS al llamar getDashboardOverviewJSON(): " + e.message);
             }
-            
-            try {
-                initProgressTracker(); // Configura todo el RF04/RF05
-            } catch (e) {
-                console.error("Error fatal inicializando ProgressTracker:", e);
-                window.javaBridge.logDesdeJS("Error JS (FATAL) en initProgressTracker(): " + e.message);
-            }
-            
-        } // Fin de initializeApp()
-        
-        
-        // =================================================================
-        // MÓDULO 1: GESTOR DE RUTINAS (RF03)
-        // =================================================================
-        function initRoutineManager() {
-            window.javaBridge.logDesdeJS("RF03: Inicializando Gestor de Rutinas...");
-
-            // --- Elementos del DOM (Rutinas) ---
-            const routineCardGrid = document.getElementById("routine-card-grid");
-            const noRoutinesPlaceholder = document.getElementById("no-routines-placeholder");
-            const btnNewWorkout = document.getElementById("btn-new-workout");
-            const btnNewWorkoutPlaceholder = document.getElementById("btn-new-workout-placeholder"); // ¡¡Este es el que causaba el bug!!
-            const modalOverlay = document.getElementById("workout-modal-overlay");
-            const modalTitle = document.getElementById("modal-title");
-            const btnCloseModal = document.getElementById("close-modal-btn-routine");
-            const btnCancelModal = document.getElementById("btn-cancel-modal-routine");
-            const workoutForm = document.getElementById("workout-form");
-            const workoutIdInput = document.getElementById("workout-id");
-            const workoutNameInput = document.getElementById("workout-name");
-            const workoutDaySelect = document.getElementById("workout-day");
-            const btnAddExercise = document.getElementById("btn-add-exercise");
-            const exerciseListContainer = document.getElementById("exercise-list-container");
-
-            // --- Funciones de Renderizado (Rutinas) ---
-            function renderRoutineCards(routines) {
-                cacheRutinas = routines;
-                routineCardGrid.innerHTML = "";
-                if (routines.length === 0) {
-                    noRoutinesPlaceholder.style.display = "flex";
-                    routineCardGrid.style.display = "none";
-                } else {
-                    noRoutinesPlaceholder.style.display = "none";
-                    routineCardGrid.style.display = "grid";
-                    routines.forEach(rutina => {
-                        const card = document.createElement("div");
-                        card.className = "routine-card";
-                        let exercisesHtml = '<p class="exercise-placeholder">Sin ejercicios añadidos.</p>';
-                        if (rutina.ejercicios && rutina.ejercicios.length > 0) {
-                            exercisesHtml = rutina.ejercicios.slice(0, 3).map(ex => `
-                                <div class="exercise-item">
-                                    <span class="name">${escapeHTML(ex.nombre)}</span>
-                                    <span class="sets-reps">
-                                        ${ex.series}x${ex.repeticiones}
-                                        ${ex.peso > 0 ? `<span class="weight">@ ${ex.peso}kg</span>` : ''}
-                                    </span>
-                                </div>`).join('');
-                            if (rutina.ejercicios.length > 3) {
-                                exercisesHtml += `<p class="exercise-ellipsis">+${rutina.ejercicios.length - 3} ejercicios más</p>`;
-                            }
-                        }
-                        card.innerHTML = `
-                            <div class="routine-card-header">
-                                <div class="title-day">
-                                    <h3>${escapeHTML(rutina.nombreRutina)}</h3>
-                                    <span class="badge">${escapeHTML(rutina.diaSemana) || 'Sin día'}</span>
-                                </div>
-                                <div class="routine-card-actions">
-                                    <button class="btn btn-ghost btn-icon btn-edit-routine" data-routine-id="${rutina.codigoRutina}">
-                                        <i class="ph ph-pencil-simple" data-routine-id="${rutina.codigoRutina}"></i>
-                                    </button>
-                                    <button class="btn btn-ghost btn-icon btn-delete-routine" data-routine-id="${rutina.codigoRutina}">
-                                        <i class="ph ph-trash" style="color: var(--danger);" data-routine-id="${rutina.codigoRutina}"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="routine-card-body"><div class="exercises-summary">${exercisesHtml}</div></div>`;
-                        routineCardGrid.appendChild(card);
-                    });
-                }
-            }
-            
-            // --- Función de Carga de Datos (Rutinas) ---
-            window.cargarMisRutinas = function() {
-                window.javaBridge.logDesdeJS("RF03: Cargando rutinas (con ejercicios)...");
-                try {
-                    const rutinasJSON = window.javaBridge.getRutinasDelUsuarioJSON();
-                    const rutinas = JSON.parse(rutinasJSON); 
-                    window.javaBridge.logDesdeJS(`RF03: Recibidas ${rutinas.length} rutinas.`);
-                    renderRoutineCards(rutinas);
-                } catch (e) {
-                    console.error("Error al cargar rutinas:", e);
-                    window.javaBridge.logDesdeJS("Error JS (RF03) al llamar getRutinasDelUsuarioJSON(): " + e.message);
-                    renderRoutineCards([]);
-                }
-            }
-            
-            // --- Lógica del Modal (Rutinas) ---
-            function openModalForCreate() {
-                resetWorkoutForm();
-                modalTitle.textContent = "Crear Nuevo Entrenamiento";
-                workoutIdInput.value = "0"; // 0 para "Crear"
-                addExerciseRow();
-                modalOverlay.style.display = "flex";
-            }
-            function openModalForEdit(routineId) {
-                resetWorkoutForm();
-                modalTitle.textContent = "Editar Entrenamiento";
-                const routine = cacheRutinas.find(r => r.codigoRutina == routineId);
-                if (!routine) { alert("Error: No se encontró la rutina."); return; }
-                
-                workoutIdInput.value = routine.codigoRutina;
-                workoutNameInput.value = routine.nombreRutina;
-                workoutDaySelect.value = routine.diaSemana || "";
-                
-                if (routine.ejercicios && routine.ejercicios.length > 0) {
-                    routine.ejercicios.forEach(ex => addExerciseRow(ex));
-                } else {
-                    addExerciseRow();
-                }
-                modalOverlay.style.display = "flex";
-            }
-            function closeWorkoutModal() { modalOverlay.style.display = "none"; }
-            function resetWorkoutForm() { workoutForm.reset(); exerciseListContainer.innerHTML = ""; }
-            function addExerciseRow(exercise = null) {
-                const row = document.createElement("div");
-                row.className = "exercise-row";
-                const nombre = exercise ? exercise.nombre : "";
-                const series = exercise ? exercise.series : 3;
-                const repeticiones = exercise ? exercise.repeticiones : 10;
-                const peso = exercise ? exercise.peso : 0;
-                row.innerHTML = `
-                    <div class="form-group"><label>Ejercicio</label><input type="text" data-field="nombre" placeholder="Ej. Press de Banca" value="${escapeHTML(nombre)}" required></div>
-                    <div class="form-group"><label>Series</label><input type="number" data-field="series" min="1" value="${series}" required></div>
-                    <div class="form-group"><label>Reps</label><input type="number" data-field="repeticiones" min="1" value="${repeticiones}" required></div>
-                    <div class="form-group"><label>Peso (kg)</label><input type="number" data-field="peso" min="0" step="0.5" value="${peso}" required></div>
-                    <button type="button" class="btn btn-ghost btn-icon btn-delete-exercise"><i class="ph ph-trash" style="color: var(--danger);"></i></button>`;
-                exerciseListContainer.appendChild(row);
-            }
-            
-            // --- Event Listeners (Rutinas) ---
-            btnNewWorkout.addEventListener("click", openModalForCreate);
-            btnNewWorkoutPlaceholder.addEventListener("click", openModalForCreate); // <-- ¡¡AHORA FUNCIONA!!
-            btnCloseModal.addEventListener("click", closeWorkoutModal);
-            btnCancelModal.addEventListener("click", closeWorkoutModal);
-            btnAddExercise.addEventListener("click", () => addExerciseRow());
-            
-            exerciseListContainer.addEventListener("click", (e) => {
-                if (e.target.closest(".btn-delete-exercise")) {
-                    if (exerciseListContainer.children.length > 1) {
-                        e.target.closest(".exercise-row").remove();
-                    } else {
-                        alert("Una rutina debe tener al menos un ejercicio.");
-                    }
-                }
-            });
-            
-            routineCardGrid.addEventListener("click", (e) => {
-                const routineId = e.target.dataset.routineId;
-                if (!routineId) return;
-                if (e.target.classList.contains('btn-edit-routine') || e.target.closest('.btn-edit-routine')) {
-                    openModalForEdit(routineId);
-                }
-                if (e.target.classList.contains('btn-delete-routine') || e.target.closest('.btn-delete-routine')) {
-                    const routine = cacheRutinas.find(r => r.codigoRutina == routineId);
-                    // ¡¡MENSAJE DE BORRADO CORREGIDO!!
-                    const routineName = routine ? routine.nombreRutina : `ID: ${routineId}`;
-                    if (confirm(`¿Estás seguro de que quieres eliminar la rutina "${routineName}"?`)) {
-                         try {
-                            const exito = window.javaBridge.eliminarRutina(parseInt(routineId, 10));
-                            if (exito) { cargarMisRutinas(); } else { alert("Error: No se pudo eliminar la rutina."); }
-                         } catch(err) { alert("Error al llamar a javaBridge.eliminarRutina(): " + err.message); }
-                    }
-                }
-            });
-
-            workoutForm.addEventListener("submit", (e) => {
-                e.preventDefault();
-                const workoutData = {
-                    codigoRutina: parseInt(workoutIdInput.value, 10) || 0, 
-                    nombreRutina: workoutNameInput.value,
-                    diaSemana: workoutDaySelect.value,
-                    ejercicios: []
-                };
-                const exerciseRows = exerciseListContainer.querySelectorAll(".exercise-row");
-                if (exerciseRows.length === 0) { alert("Por favor, añade al menos un ejercicio."); return; }
-                
-                let valid = true;
-                exerciseRows.forEach(row => {
-                    const ejercicio = {
-                        nombre: row.querySelector("[data-field='nombre']").value,
-                        series: parseInt(row.querySelector("[data-field='series']").value, 10),
-                        repeticiones: parseInt(row.querySelector("[data-field='repeticiones']").value, 10),
-                        peso: parseFloat(row.querySelector("[data-field='peso']").value)
-                    };
-                    if (!ejercicio.nombre) valid = false;
-                    workoutData.ejercicios.push(ejercicio);
-                });
-                
-                if (!valid) { alert("El nombre de un ejercicio no puede estar vacío."); return; }
-                
-                window.javaBridge.logDesdeJS(`RF03: Enviando objeto a Java...`);
-                try {
-                    const exito = window.javaBridge.guardarRutinaCompleta(workoutData);
-                    if (exito) {
-                        closeWorkoutModal();
-                        cargarMisRutinas();
-                    } else { alert("Error: Java devolvió 'false' al guardar la rutina."); }
-                } catch(err) { alert("Error fatal al llamar a javaBridge.guardarRutinaCompleta(): " + err.message); }
-            });
-            
-            // --- Carga Inicial (Rutinas) ---
-            window.cargarMisRutinas();
-        }
-
-        // =================================================================
-        // MÓDULO 2: SEGUIMIENTO DE PROGRESO (RF04 / RF05)
-        // =================================================================
-        function initProgressTracker() {
-            window.javaBridge.logDesdeJS("RF04: Inicializando Seguimiento de Progreso...");
-            
-            // --- Elementos del DOM (Progreso) ---
-            const btnNewProgress = document.getElementById("btn-new-progress");
-            const modalOverlay = document.getElementById("progress-modal-overlay");
-            const btnCloseModal = document.getElementById("close-modal-btn-progress");
-            const btnCancelModal = document.getElementById("btn-cancel-modal-progress");
-            const progressForm = document.getElementById("progress-form");
-            const progressWeightInput = document.getElementById("progress-weight");
-            const progressDateInput = document.getElementById("progress-date");
-            const progressAlturaInput = document.getElementById("progress-altura"); // <-- ¡¡NUEVO!!
-            
-            const statWeight = document.getElementById("stat-current-weight");
-            const statWeightTrend = document.getElementById("stat-weight-change-trend");
-            const statWeightLabel = document.getElementById("stat-weight-change-label");
-            const statBMI = document.getElementById("stat-current-bmi");
-            const statBMICat = document.getElementById("stat-bmi-category");
-            const statTarget = document.getElementById("stat-target-remaining");
-            
-            const weightChartCtx = document.getElementById("weight-chart").getContext("2d");
-            const bmiChartCtx = document.getElementById("bmi-chart").getContext("2d");
-            const historyContainer = document.getElementById("history-list-container");
-            const noHistoryPlaceholder = document.getElementById("no-history-placeholder");
-
-            // --- Funciones de Renderizado (Progreso) ---
-            
-            function renderStats(stats) {
-                if (!stats) {
-                    window.javaBridge.logDesdeJS("RF04: No hay estadísticas para renderizar.");
-                    statWeight.textContent = "-- kg";
-                    statBMI.textContent = "--";
-                    statTarget.textContent = "-- kg";
-                    statBMICat.textContent = "N/A";
-                    statWeightTrend.innerHTML = "";
-                    statWeightLabel.textContent = "Sin datos";
-                    return;
-                }
-                
-                statWeight.textContent = `${stats.currentWeight.toFixed(1)} kg`;
-                statBMI.textContent = stats.currentBMI.toFixed(1);
-                
-                statBMICat.textContent = stats.bmiCategory;
-                statBMICat.className = `trend ${getBmiColorClass(stats.bmiCategory)}`;
-                
-                let trendIcon = '';
-                let trendClass = '';
-                if (stats.weightChange < 0) {
-                    trendIcon = '<i class="ph-fill ph-trending-down"></i>';
-                    trendClass = 'down';
-                } else if (stats.weightChange > 0) {
-                    trendIcon = '<i class="ph-fill ph-trending-up"></i>';
-                    trendClass = 'up';
-                }
-                statWeightTrend.innerHTML = `${trendIcon} ${Math.abs(stats.weightChange).toFixed(1)} kg`;
-                statWeightTrend.className = `trend ${trendClass}`;
-                statWeightLabel.textContent = stats.weightChange === 0 ? "sin cambios" : "desde la última vez";
-                
-                statTarget.textContent = `${(stats.currentWeight - 70.0).toFixed(1)} kg`;
-            }
-
-            function renderCharts(chartData) {
-                const labels = chartData.map(d => d.date);
-                const weightData = chartData.map(d => d.weight);
-                const bmiData = chartData.map(d => d.bmi);
-
-                if (weightChartInstance) weightChartInstance.destroy();
-                if (bmiChartInstance) bmiChartInstance.destroy();
-
-                const chartOptions = {
-                    responsive: true, maintainAspectRatio: true,
-                    scales: { 
-                        x: { ticks: { color: 'var(--text-muted)' }, grid: { color: 'var(--border-color)' } },
-                        y: { ticks: { color: 'var(--text-muted)' }, grid: { color: 'var(--border-color)' } }
-                    },
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: 'var(--bg-card)', bodyColor: 'var(--text-light)', titleColor: 'var(--text-muted)' } }
-                };
-
-                weightChartInstance = new Chart(weightChartCtx, {
-                    type: 'line',
-                    data: { labels, datasets: [{ data: weightData, borderColor: 'var(--primary)', tension: 0.1, borderWidth: 3, pointBackgroundColor: 'var(--primary)' }] },
-                    options: chartOptions
-                });
-                
-                bmiChartInstance = new Chart(bmiChartCtx, {
-                    type: 'line',
-                    data: { labels, datasets: [{ data: bmiData, borderColor: 'var(--success)', tension: 0.1, borderWidth: 3, pointBackgroundColor: 'var(--success)' }] },
-                    options: chartOptions
-                });
-            }
-
-            function renderHistory(history) {
-                historyContainer.innerHTML = ""; 
-                if (history.length === 0) {
-                    noHistoryPlaceholder.style.display = "block";
-                } else {
-                    noHistoryPlaceholder.style.display = "none";
-                    // Revertir el historial para mostrar el más reciente primero
-                    history.slice().reverse().forEach(item => {
-                        const div = document.createElement("div");
-                        div.className = "history-item";
-                        const categoryClass = getBmiColorClass(item.bmiCategory);
-                        
-                        div.innerHTML = `
-                            <div>
-                                <p class="weight">${item.weight.toFixed(1)} kg</p>
-                                <p class="date">${item.date}</p>
-                            </div>
-                            <div class="bmi-info" style="text-align: right;">
-                                <p class="value">IMC: ${item.bmi.toFixed(1)}</p>
-                                <p class="category ${categoryClass}">${item.bmiCategory}</p>
-                            </div>`;
-                        historyContainer.appendChild(div);
-                    });
-                }
-            }
-
-            // --- Función de Carga de Datos (Progreso) ---
-            window.cargarMiProgreso = function() {
-                window.javaBridge.logDesdeJS("RF04: Cargando datos de progreso...");
-                try {
-                    const progresoJSON = window.javaBridge.getDatosDeProgresoJSON();
-                    const data = JSON.parse(progresoJSON);
-                    
-                    renderStats(data.stats); // data.stats puede ser null, renderStats lo maneja
-                    renderCharts(data.chartData || []);
-                    renderHistory(data.history || []);
-
-                } catch (e) {
-                    console.error("Error al cargar progreso:", e);
-                    window.javaBridge.logDesdeJS("Error JS (RF04) al llamar getDatosDeProgresoJSON(): " + e.message);
-                }
-            }
-            
-            // --- Lógica del Modal (Progreso) ---
-            function openProgressModal() {
-                progressForm.reset();
-                progressDateInput.valueAsDate = new Date(); // Fecha de hoy
-                modalOverlay.style.display = "flex";
-            }
-            function closeProgressModal() {
-                modalOverlay.style.display = "none";
-            }
-
-            // --- Event Listeners (Progreso) ---
-            btnNewProgress.addEventListener("click", openProgressModal); // <-- ¡¡AHORA FUNCIONA!!
-            btnCloseModal.addEventListener("click", closeProgressModal);
-            btnCancelModal.addEventListener("click", closeProgressModal);
-            
-            progressForm.addEventListener("submit", (e) => {
-                e.preventDefault();
-                const peso = parseFloat(progressWeightInput.value);
-                const fecha = progressDateInput.value; // "YYYY-MM-DD"
-                const altura = parseFloat(progressAlturaInput.value) || 0; // 0 si está vacío
-
-                if (!peso || !fecha || peso <= 0) {
-                    alert("Por favor, ingresa un peso y fecha válidos.");
-                    return;
-                }
-                
-                window.javaBridge.logDesdeJS(`RF04: Registrando nuevo peso: ${peso} en ${fecha} (Altura opcional: ${altura})`);
-                try {
-                    // ¡¡SIGNATURA ACTUALIZADA!!
-                    const exito = window.javaBridge.registrarNuevoProgreso(peso, fecha, altura);
-                    if (exito) {
-                        closeProgressModal();
-                        cargarMiProgreso(); // Recargar todos los datos
-                    } else {
-                        alert("Error: Java devolvió 'false' al registrar el peso.\n\nAsegúrate de haber registrado tu altura inicial (esto se hace en el formulario de registro de usuario).");
-                    }
-                } catch(err) {
-                    alert("Error fatal al llamar a javaBridge.registrarNuevoProgreso(): " + err.message);
-                }
-            });
-
-            // --- Carga Inicial (Progreso) ---
-            window.cargarMiProgreso();
         }
         
-        // =================================================================
-        // HELPERS (GENÉRICOS)
-        // =================================================================
+        // --- Funciones de Renderizado ---
         
-        function escapeHTML(str) {
-            if (str === null || str === undefined) return "";
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        function renderStats(stats) {
+            document.getElementById("stat-peso").textContent = `${stats.currentWeight.toFixed(1)} kg`;
+            document.getElementById("stat-imc").textContent = stats.currentBMI.toFixed(1);
+            
+            const imcCatEl = document.getElementById("stat-imc-category");
+            imcCatEl.textContent = stats.bmiCategory;
+            imcCatEl.className = `trend ${getBmiColorClass(stats.bmiCategory)}`;
+            
+            const pesoTrendEl = document.getElementById("stat-peso-trend");
+            let trendClass = "neutral";
+            let trendIcon = "";
+            if (stats.weightChange < 0) {
+                trendClass = "down";
+                trendIcon = `<i class="ph-fill ph-trending-down"></i>`;
+            } else if (stats.weightChange > 0) {
+                trendClass = "up";
+                trendIcon = `<i class="ph-fill ph-trending-up"></i>`;
+            }
+            pesoTrendEl.innerHTML = `${trendIcon} ${Math.abs(stats.weightChange).toFixed(1)} kg`;
+            pesoTrendEl.className = `trend ${trendClass}`;
         }
+        
+        function renderRutinas(rutinas) {
+            const container = document.getElementById("feed-rutinas");
+            container.innerHTML = ""; // Limpiar placeholder
+            if (rutinas.length === 0) {
+                container.innerHTML = '<p class="text-placeholder">No tienes rutinas creadas.</p>';
+                return;
+            }
+            
+            document.getElementById("stat-rutinas").textContent = rutinas.length;
+            
+            rutinas.forEach(r => {
+                const item = document.createElement("div");
+                item.className = "upcoming-routine-item";
+                item.innerHTML = `
+                    <div>
+                        <h4>${escapeHTML(r.nombre)}</h4>
+                        <span class="badge" style="margin-top: 0.25rem;">${escapeHTML(r.dia)}</span>
+                    </div>
+                    <i class="ph ph-caret-right" style="color: var(--text-muted);"></i>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderActividad(actividad) {
+            const container = document.getElementById("feed-actividad");
+            container.innerHTML = ""; // Limpiar placeholder
+            if (actividad.length === 0) {
+                container.innerHTML = '<p class="text-placeholder">No hay actividad reciente.</p>';
+                return;
+            }
+            
+            actividad.forEach(a => {
+                const item = document.createElement("div");
+                item.className = "activity-feed-item";
+                item.innerHTML = `
+                    <div class="icon"><i class="ph-fill ph-chart-line-up"></i></div>
+                    <div class="info">
+                        <p class="action">${escapeHTML(a.accion)}</p>
+                        <p class="detail">${escapeHTML(a.detalle)}</p>
+                        <p class="date">${escapeHTML(a.fecha)}</p>
+                    </div>`;
+                container.appendChild(item);
+            });
+        }
+        
+        // --- Helpers ---
         
         function getBmiColorClass(category) {
             switch(category) {
@@ -954,11 +323,16 @@
                 case "Sobrepeso": return "bmi-sobrepeso";
                 case "Bajo Peso": return "bmi-bajo-peso";
                 case "Obesidad": return "bmi-obesidad";
-                default: return "";
+                default: return "neutral";
             }
         }
+        
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return "";
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
 
-        // --- Mecanismo de Polling (Recomendado) ---
+        // --- Mecanismo de Polling ---
         const bridgeCheckInterval = setInterval(() => {
             if (window.javaBridge && typeof window.javaBridge.logDesdeJS === 'function') {
                 clearInterval(bridgeCheckInterval); 
@@ -970,7 +344,6 @@
             clearInterval(bridgeCheckInterval);
             initializeApp();
         };
-
     </script>
 </body>
 </html>

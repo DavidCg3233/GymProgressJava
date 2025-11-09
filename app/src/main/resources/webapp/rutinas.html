@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Entrenamientos - GymProgress</title>
+    
+    <!-- CSS Compartido -->
+    <link rel="stylesheet" href="css/main.css">
+    
+    <!-- Librería de Iconos (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    
+    <!-- CSS Específico para esta página (Gestor de Rutinas) -->
+    <style>
+        #routine-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        .routine-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .routine-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+        .routine-card-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: flex-start; }
+        .routine-card-header .title-day { display: flex; flex-direction: column; gap: 0.25rem; }
+        .routine-card-header h3 { font-weight: 700; font-size: 1.25rem; }
+        .routine-card-actions { display: flex; gap: 0.25rem; }
+        .routine-card-body { padding: 1.5rem; }
+        .routine-card-body .exercises-summary { display: flex; flex-direction: column; gap: 0.75rem; }
+        .routine-card-body .exercise-item { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; background-color: var(--bg-dark); padding: 0.75rem 1rem; border-radius: 6px; }
+        .exercise-item .name { font-weight: 500; }
+        .exercise-item .sets-reps { color: var(--text-muted); }
+        .exercise-item .weight { font-weight: 500; color: var(--success); }
+        .exercise-ellipsis { color: var(--text-muted); font-size: 0.8rem; text-align: center; margin-top: 0.75rem; }
+        
+        #no-routines-placeholder { 
+            display: none; 
+            background-color: var(--bg-card); 
+            border: 1px dashed var(--border-color); 
+            border-radius: 12px; 
+            padding: 4rem 2rem; 
+            text-align: center; 
+            grid-column: 1 / -1; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #no-routines-placeholder i { font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; }
+        #no-routines-placeholder h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+        #no-routines-placeholder p { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+        /* CSS para el Modal de Rutina */
+        #workout-modal-content { max-width: 700px; }
+        .exercises-section-header { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.5rem; }
+        .exercises-section-header label { font-size: 1.25rem; font-weight: 700; }
+        #exercise-list-container { display: flex; flex-direction: column; gap: 1rem; max-height: 300px; overflow-y: auto; padding: 0.25rem; margin-top: 1rem; }
+        .exercise-row { display: grid; grid-template-columns: 3fr 1fr 1fr 1fr auto; gap: 0.75rem; align-items: flex-end; border: 1px solid var(--border-color); background-color: var(--bg-card); padding: 1rem; border-radius: 8px; }
+        .exercise-row .form-group { gap: 0.25rem; }
+        .exercise-row .form-group label { font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+
+    <!-- ===================================== -->
+    <!--      BARRA LATERAL (NAV)          -->
+    <!-- ===================================== -->
+    <nav>
+        <div class="logo">
+            <img src="img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="Logo GymProgress">
+            <h1>GymProgress</h1>
+        </div>
+        <ul>
+            <li><a onclick="window.javaBridge.navegar('dashboard.html')"><i class="ph ph-house"></i> Panel Principal</a></li>
+            <li><a class="active" onclick="window.javaBridge.navegar('rutinas.html')"><i class="ph-fill ph-barbell"></i> Entrenamientos</a></li>
+            <li><a onclick="window.javaBridge.navegar('progreso.html')"><i class="ph ph-chart-line-up"></i> Progreso</a></li>
+            <li><a onclick="window.javaBridge.navegar('estadisticas.html')"><i class="ph ph-chart-bar"></i> Estadísticas</a></li>
+            <li><a onclick="window.javaBridge.navegar('perfil.html')"><i class="ph ph-user"></i> Perfil</a></li>
+        </ul>
+        <ul style="margin-top: auto;">
+             <li><a onclick="window.javaBridge.navegar('index.html')" style="color: var(--danger);"><i class="ph ph-sign-out"></i> Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===================================== -->
+    <!--      CONTENIDO PRINCIPAL (MAIN)     -->
+    <!-- ===================================== -->
+    <main>
+        <!-- --- Encabezado --- -->
+        <div class="manager-header">
+            <div class="header-title">
+                <h1>Gestor de Entrenamientos</h1>
+                <p>Bienvenido, <span id="username-display">Cargando...</span></p>
+            </div>
+            <button class="btn btn-primary" id="btn-new-workout">
+                <i class="ph-fill ph-plus-circle"></i>
+                Nuevo Entrenamiento
+            </button>
+        </div>
+
+        <!-- --- Cuadrícula de Rutinas (RF03) --- -->
+        <div id="routine-card-grid"> <!-- Las tarjetas se renderizan aquí --> </div>
+        
+        <!-- --- Placeholder si no hay rutinas --- -->
+        <div id="no-routines-placeholder">
+            <i class="ph ph-calendar"></i>
+            <h3>Aún no hay entrenamientos</h3>
+            <p>Comienza a construir tu rutina fitness creando tu primer entrenamiento.</p>
+            <button class="btn btn-primary" id="btn-new-workout-placeholder">
+                <i class="ph-fill ph-plus-circle"></i>
+                Crear Entrenamiento
+            </button>
+        </div>
+    </main>
+
+    <!-- 
+      * ======================================
+      * MODAL: RUTINAS (RF03)
+      * ======================================
+      -->
+    <div class="modal-overlay" id="workout-modal-overlay" style="display: none;">
+        <div class="modal-content" id="workout-modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Crear Nuevo Entrenamiento</h2>
+                <button class="close-modal-btn" id="close-modal-btn-routine"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="workout-form">
+                <div class="modal-body">
+                    <input type="hidden" id="workout-id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="workout-name">Nombre del Entrenamiento</label>
+                            <input type="text" id="workout-name" placeholder="Ej. Fuerza Tren Superior" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="workout-day">Día de la Semana</label>
+                            <select id="workout-day">
+                                <option value="">Seleccionar día</option>
+                                <option value="Lunes">Lunes</option>
+                                <option value="Martes">Martes</option>
+                                <option value="Miércoles">Miércoles</option>
+                                <option value="Jueves">Jueves</option>
+                                <option value="Viernes">Viernes</option>
+                                <option value="Sábado">Sábado</option>
+                                <option value="Domingo">Domingo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="exercises-section">
+                        <div class="exercises-section-header">
+                            <label>Ejercicios</label>
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-add-exercise">
+                                <i class="ph ph-plus"></i> Añadir Ejercicio
+                            </button>
+                        </div>
+                        <div id="exercise-list-container" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-modal-routine">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Entrenamiento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 
+      * ======================================
+      * JAVASCRIPT (Solo para RF03)
+      * ======================================
+      -->
+    <script>
+        let javaBridgeInicializado = false;
+        let cacheRutinas = [];
+
+        function initializeApp() {
+            if (javaBridgeInicializado) return;
+            javaBridgeInicializado = true;
+            window.javaBridge.logDesdeJS("rutinas.js: Inicializando Gestor de Rutinas...");
+
+            // --- Cargar Nombre de Usuario ---
+            try {
+                const username = window.javaBridge.getNombreUsuarioLogueado();
+                document.getElementById("username-display").textContent = username || "Usuario";
+            } catch (e) {
+                console.error("Error al obtener nombre:", e);
+                window.javaBridge.logDesdeJS("Error JS al llamar getNombreUsuarioLogueado(): " + e.message);
+            }
+
+            // --- Inicializar Módulo de Rutinas ---
+            try {
+                initRoutineManager();
+            } catch (e) {
+                console.error("Error fatal inicializando RoutineManager:", e);
+                window.javaBridge.logDesdeJS("Error JS (FATAL) en initRoutineManager(): " + e.message);
+            }
+        }
+        
+        // --- MÓDULO DE GESTOR DE RUTINAS (RF03) ---
+        function initRoutineManager() {
+            const routineCardGrid = document.getElementById("routine-card-grid");
+            const noRoutinesPlaceholder = document.getElementById("no-routines-placeholder");
+            const btnNewWorkout = document.getElementById("btn-new-workout");
+            const btnNewWorkoutPlaceholder = document.getElementById("btn-new-workout-placeholder");
+            const modalOverlay = document.getElementById("workout-modal-overlay");
+            const modalTitle = document.getElementById("modal-title");
+            const btnCloseModal = document.getElementById("close-modal-btn-routine");
+            const btnCancelModal = document.getElementById("btn-cancel-modal-routine");
+            const workoutForm = document.getElementById("workout-form");
+            const workoutIdInput = document.getElementById("workout-id");
+            const workoutNameInput = document.getElementById("workout-name");
+            const workoutDaySelect = document.getElementById("workout-day");
+            const btnAddExercise = document.getElementById("btn-add-exercise");
+            const exerciseListContainer = document.getElementById("exercise-list-container");
+
+            function renderRoutineCards(routines) {
+                cacheRutinas = routines;
+                routineCardGrid.innerHTML = "";
+                if (routines.length === 0) {
+                    noRoutinesPlaceholder.style.display = "flex";
+                    routineCardGrid.style.display = "none";
+                } else {
+                    noRoutinesPlaceholder.style.display = "none";
+                    routineCardGrid.style.display = "grid";
+                    routines.forEach(rutina => {
+                        const card = document.createElement("div");
+                        card.className = "routine-card";
+                        let exercisesHtml = '<p class="text-placeholder">Sin ejercicios añadidos.</p>';
+                        if (rutina.ejercicios && rutina.ejercicios.length > 0) {
+                            exercisesHtml = rutina.ejercicios.slice(0, 3).map(ex => `
+                                <div class="exercise-item">
+                                    <span class="name">${escapeHTML(ex.nombre)}</span>
+                                    <span class="sets-reps">
+                                        ${ex.series}x${ex.repeticiones}
+                                        ${ex.peso > 0 ? `<span class="weight">@ ${ex.peso}kg</span>` : ''}
+                                    </span>
+                                </div>`).join('');
+                            if (rutina.ejercicios.length > 3) {
+                                exercisesHtml += `<p class="exercise-ellipsis">+${rutina.ejercicios.length - 3} ejercicios más</p>`;
+                            }
+                        }
+                        card.innerHTML = `
+                            <div class="routine-card-header">
+                                <div class="title-day">
+                                    <h3>${escapeHTML(rutina.nombreRutina)}</h3>
+                                    <span class="badge">${escapeHTML(rutina.diaSemana) || 'Sin día'}</span>
+                                </div>
+                                <div class="routine-card-actions">
+                                    <button class="btn btn-ghost btn-icon btn-edit-routine" data-routine-id="${rutina.codigoRutina}">
+                                        <i class="ph ph-pencil-simple" data-routine-id="${rutina.codigoRutina}"></i>
+                                    </button>
+                                    <button class="btn btn-ghost btn-icon btn-delete-routine" data-routine-id="${rutina.codigoRutina}">
+                                        <i class="ph ph-trash" style="color: var(--danger);" data-routine-id="${rutina.codigoRutina}"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="routine-card-body"><div class="exercises-summary">${exercisesHtml}</div></div>`;
+                        routineCardGrid.appendChild(card);
+                    });
+                }
+            }
+            
+            window.cargarMisRutinas = function() {
+                window.javaBridge.logDesdeJS("RF03: Cargando rutinas (con ejercicios)...");
+                try {
+                    const rutinasJSON = window.javaBridge.getRutinasDelUsuarioJSON();
+                    const rutinas = JSON.parse(rutinasJSON); 
+                    window.javaBridge.logDesdeJS(`RF03: Recibidas ${rutinas.length} rutinas.`);
+                    renderRoutineCards(rutinas);
+                } catch (e) {
+                    console.error("Error al cargar rutinas:", e);
+                    window.javaBridge.logDesdeJS("Error JS (RF03) al llamar getRutinasDelUsuarioJSON(): " + e.message);
+                    renderRoutineCards([]);
+                }
+            }
+            
+            function openModalForCreate() {
+                resetWorkoutForm();
+                modalTitle.textContent = "Crear Nuevo Entrenamiento";
+                workoutIdInput.value = "0";
+                addExerciseRow();
+                modalOverlay.style.display = "flex";
+            }
+            function openModalForEdit(routineId) {
+                resetWorkoutForm();
+                modalTitle.textContent = "Editar Entrenamiento";
+                const routine = cacheRutinas.find(r => r.codigoRutina == routineId);
+                if (!routine) { alert("Error: No se encontró la rutina."); return; }
+                
+                workoutIdInput.value = routine.codigoRutina;
+                workoutNameInput.value = routine.nombreRutina;
+                workoutDaySelect.value = routine.diaSemana || "";
+                
+                if (routine.ejercicios && routine.ejercicios.length > 0) {
+                    routine.ejercicios.forEach(ex => addExerciseRow(ex));
+                } else { addExerciseRow(); }
+                modalOverlay.style.display = "flex";
+            }
+            function closeWorkoutModal() { modalOverlay.style.display = "none"; }
+            function resetWorkoutForm() { workoutForm.reset(); exerciseListContainer.innerHTML = ""; }
+            function addExerciseRow(exercise = null) {
+                const row = document.createElement("div");
+                row.className = "exercise-row";
+                const nombre = exercise ? exercise.nombre : "";
+                const series = exercise ? exercise.series : 3;
+                const repeticiones = exercise ? exercise.repeticiones : 10;
+                const peso = exercise ? exercise.peso : 0;
+                row.innerHTML = `
+                    <div class="form-group"><label>Ejercicio</label><input type="text" data-field="nombre" placeholder="Ej. Press de Banca" value="${escapeHTML(nombre)}" required></div>
+                    <div class="form-group"><label>Series</label><input type="number" data-field="series" min="1" value="${series}" required></div>
+                    <div class="form-group"><label>Reps</label><input type="number" data-field="repeticiones" min="1" value="${repeticiones}" required></div>
+                    <div class="form-group"><label>Peso (kg)</label><input type="number" data-field="peso" min="0" step="0.5" value="${peso}" required></div>
+                    <button type="button" class="btn btn-ghost btn-icon btn-delete-exercise"><i class="ph ph-trash" style="color: var(--danger);"></i></button>`;
+                exerciseListContainer.appendChild(row);
+            }
+            
+            btnNewWorkout.addEventListener("click", openModalForCreate);
+            btnNewWorkoutPlaceholder.addEventListener("click", openModalForCreate);
+            btnCloseModal.addEventListener("click", closeWorkoutModal);
+            btnCancelModal.addEventListener("click", closeWorkoutModal);
+            btnAddExercise.addEventListener("click", () => addExerciseRow());
+            
+            exerciseListContainer.addEventListener("click", (e) => {
+                if (e.target.closest(".btn-delete-exercise")) {
+                    if (exerciseListContainer.children.length > 1) {
+                        e.target.closest(".exercise-row").remove();
+                    } else { alert("Una rutina debe tener al menos un ejercicio."); }
+                }
+            });
+            
+            routineCardGrid.addEventListener("click", (e) => {
+                const routineId = e.target.dataset.routineId;
+                if (!routineId) return;
+                if (e.target.classList.contains('btn-edit-routine') || e.target.closest('.btn-edit-routine')) {
+                    openModalForEdit(routineId);
+                }
+                if (e.target.classList.contains('btn-delete-routine') || e.target.closest('.btn-delete-routine')) {
+                    const routine = cacheRutinas.find(r => r.codigoRutina == routineId);
+                    const routineName = routine ? routine.nombreRutina : `ID: ${routineId}`;
+                    // Usamos el confirm() de JavaFX
+                    if (window.javaBridge.confirm(`¿Estás seguro de que quieres eliminar la rutina "${routineName}"?`)) {
+                         try {
+                            const exito = window.javaBridge.eliminarRutina(parseInt(routineId, 10));
+                            if (exito) { cargarMisRutinas(); } else { alert("Error: No se pudo eliminar la rutina."); }
+                         } catch(err) { alert("Error al llamar a javaBridge.eliminarRutina(): " + err.message); }
+                    }
+                }
+            });
+
+            workoutForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const workoutData = {
+                    codigoRutina: parseInt(workoutIdInput.value, 10) || 0, 
+                    nombreRutina: workoutNameInput.value,
+                    diaSemana: workoutDaySelect.value,
+                    ejercicios: []
+                };
+                const exerciseRows = exerciseListContainer.querySelectorAll(".exercise-row");
+                if (exerciseRows.length === 0) { alert("Por favor, añade al menos un ejercicio."); return; }
+                
+                let valid = true;
+                exerciseRows.forEach(row => {
+                    const ejercicio = {
+                        nombre: row.querySelector("[data-field='nombre']").value,
+                        series: parseInt(row.querySelector("[data-field='series']").value, 10),
+                        repeticiones: parseInt(row.querySelector("[data-field='repeticiones']").value, 10),
+                        peso: parseFloat(row.querySelector("[data-field='peso']").value)
+                    };
+                    if (!ejercicio.nombre) valid = false;
+                    workoutData.ejercicios.push(ejercicio);
+                });
+                
+                if (!valid) { alert("El nombre de un ejercicio no puede estar vacío."); return; }
+                
+                window.javaBridge.logDesdeJS(`RF03: Enviando objeto a Java...`);
+                try {
+                    const exito = window.javaBridge.guardarRutinaCompleta(workoutData);
+                    if (exito) {
+                        closeWorkoutModal();
+                        cargarMisRutinas();
+                    } else { alert("Error: Java devolvió 'false' al guardar la rutina."); }
+                } catch(err) { alert("Error fatal al llamar a javaBridge.guardarRutinaCompleta(): " + err.message); }
+            });
+            
+            window.cargarMisRutinas();
+        }
+        
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return "";
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        // --- Mecanismo de Polling ---
+        const bridgeCheckInterval = setInterval(() => {
+            if (window.javaBridge && typeof window.javaBridge.logDesdeJS === 'function') {
+                clearInterval(bridgeCheckInterval); 
+                initializeApp(); 
+            }
+        }, 100);
+        
+        window.javaBridgeReady = () => {
+            clearInterval(bridgeCheckInterval);
+            initializeApp();
+        };
+    </script>
+</body>
+</html>

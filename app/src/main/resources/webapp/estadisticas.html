@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Estadísticas - GymProgress</title>
+    
+    <!-- CSS Compartido -->
+    <link rel="stylesheet" href="css/main.css">
+    
+    <!-- Librería de Iconos (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    
+    <!-- Librería de Gráficas (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- CSS Específico para esta página -->
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+        .pr-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .pr-list-item:first-child { padding-top: 0; }
+        .pr-list-item:last-child { border-bottom: none; }
+        .pr-list-item .name { font-weight: 500; font-size: 1.1rem; }
+        .pr-list-item .weight { font-weight: 700; font-size: 1.1rem; color: var(--success); }
+    </style>
+</head>
+<body>
+
+    <!-- ===================================== -->
+    <!--      BARRA LATERAL (NAV)          -->
+    <!-- ===================================== -->
+    <nav>
+        <div class="logo">
+            <img src="img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="Logo GymProgress">
+            <h1>GymProgress</h1>
+        </div>
+        <ul>
+            <li><a onclick="window.javaBridge.navegar('dashboard.html')"><i class="ph ph-house"></i> Panel Principal</a></li>
+            <li><a onclick="window.javaBridge.navegar('rutinas.html')"><i class="ph ph-barbell"></i> Entrenamientos</a></li>
+            <li><a onclick="window.javaBridge.navegar('progreso.html')"><i class="ph ph-chart-line-up"></i> Progreso</a></li>
+            <li><a class="active" onclick="window.javaBridge.navegar('estadisticas.html')"><i class="ph-fill ph-chart-bar"></i> Estadísticas</a></li>
+            <li><a onclick="window.javaBridge.navegar('perfil.html')"><i class="ph ph-user"></i> Perfil</a></li>
+        </ul>
+        
+        <!-- ¡¡BOTÓN DE CERRAR SESIÓN!! -->
+        <ul style="margin-top: auto;">
+             <li><a onclick="window.javaBridge.navegar('index.html')" style="color: var(--danger);"><i class="ph ph-sign-out"></i> Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===================================== -->
+    <!--      CONTENIDO PRINCIPAL (MAIN)     -->
+    <!-- ===================================== -->
+    <main>
+        <!-- --- Encabezado --- -->
+        <div class="manager-header">
+            <div class="header-title">
+                <h1>Estadísticas</h1>
+                <p>Analiza tu rendimiento y récords personales.</p>
+            </div>
+            <div class="user-profile">
+                <img src="https://placehold.co/100x100/3B82F6/FFFFFF?text=U" alt="Perfil">
+            </div>
+        </div>
+
+        <!-- --- Cuadrícula de Gráficas y PRs --- -->
+        <div class="stats-grid">
+            
+            <!-- Récords Personales -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Récords Personales (PRs)</h3>
+                    <p>Tu peso máximo levantado por ejercicio.</p>
+                </div>
+                <div class="card-body" id="records-personales-container">
+                    <!-- JS llenará esto -->
+                    <p class="text-placeholder" id="no-prs-placeholder">No se han encontrado récords. ¡Registra tus levantamientos!</p>
+                </div>
+            </div>
+
+            <!-- Distribución de Ejercicios -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Distribución de Ejercicios</h3>
+                    <p>Total de ejercicios realizados por grupo muscular.</p>
+                </div>
+                <div class="card-body" style="height: 350px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="distribucion-chart"></canvas>
+                    <p class="text-placeholder" id="no-dist-placeholder" style="display: none;">Sin datos.</p>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Gráfica de Entrenamientos por Mes -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Entrenamientos por Mes</h3>
+                <p>Número de rutinas creadas en los últimos 6 meses.</p>
+            </div>
+            <div class="card-body" style="height: 400px;">
+                <canvas id="entrenamientos-chart"></canvas>
+                <p class="text-placeholder" id="no-entrenamientos-placeholder" style="display: none;">Sin datos.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- 
+      * ======================================
+      * JAVASCRIPT (¡¡NUEVO!!)
+      * ======================================
+      -->
+    <script>
+        let javaBridgeInicializado = false;
+
+        function initializeApp() {
+            if (javaBridgeInicializado) return;
+            javaBridgeInicializado = true;
+
+            window.javaBridge.logDesdeJS("estadisticas.js: Inicializando...");
+            cargarDatosDeEstadisticas();
+        }
+        
+        function cargarDatosDeEstadisticas() {
+            try {
+                const jsonStr = window.javaBridge.getStatisticsDataJSON();
+                const data = JSON.parse(jsonStr);
+
+                renderRecordsPersonales(data.recordsPersonales);
+                renderGraficaEntrenamientos(data.entrenamientosPorMes);
+                renderGraficaDistribucion(data.distribucionEjercicios);
+                
+            } catch (e) {
+                console.error("Error al cargar datos de estadísticas:", e);
+                window.javaBridge.logDesdeJS("Error JS al llamar getStatisticsDataJSON(): " + e.message);
+            }
+        }
+        
+        // --- Funciones de Renderizado ---
+        
+        function renderRecordsPersonales(records) {
+            const container = document.getElementById("records-personales-container");
+            container.innerHTML = ""; // Limpiar
+            if (!records || records.length === 0) {
+                container.innerHTML = '<p class="text-placeholder">No se han encontrado récords.</p>';
+                return;
+            }
+            records.forEach(r => {
+                const item = document.createElement("div");
+                item.className = "pr-list-item";
+                item.innerHTML = `
+                    <span class="name">${escapeHTML(r.ejercicio)}</span>
+                    <span class="weight">${escapeHTML(r.peso)}</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+        
+        function renderGraficaEntrenamientos(data) {
+            const container = document.getElementById("entrenamientos-chart");
+            if (!data || data.length === 0) {
+                document.getElementById("no-entrenamientos-placeholder").style.display = "block";
+                return;
+            }
+            
+            new Chart(container.getContext("2d"), {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.mes),
+                    datasets: [{
+                        label: 'Entrenamientos',
+                        data: data.map(d => d.total),
+                        backgroundColor: 'var(--primary)',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { 
+                        y: { beginAtZero: true, ticks: { color: 'var(--text-muted)', stepSize: 1 }, grid: { color: 'var(--border-color)' } },
+                        x: { ticks: { color: 'var(--text-muted)' }, grid: { display: false } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        
+        function renderGraficaDistribucion(data) {
+            const container = document.getElementById("distribucion-chart");
+            if (!data || data.length === 0) {
+                document.getElementById("no-dist-placeholder").style.display = "block";
+                return;
+            }
+
+            // Colores (puedes añadir más)
+            const colors = [
+                'var(--primary)', 
+                'var(--success)', 
+                'var(--warning)', 
+                'var(--danger)', 
+                '#334155'
+            ];
+
+            new Chart(container.getContext("2d"), {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.grupo),
+                    datasets: [{
+                        data: data.map(d => d.total),
+                        backgroundColor: colors.slice(0, data.length)
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { 
+                            position: 'right', 
+                            labels: { color: 'var(--text-light)' } 
+                        } 
+                    }
+                }
+            });
+        }
+
+        // --- Helpers ---
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return "";
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        // --- Mecanismo de Polling ---
+        const bridgeCheckInterval = setInterval(() => {
+            if (window.javaBridge && typeof window.javaBridge.logDesdeJS === 'function') {
+                clearInterval(bridgeCheckInterval); 
+                initializeApp(); 
+            }
+        }, 100);
+        
+        window.javaBridgeReady = () => {
+            clearInterval(bridgeCheckInterval);
+            initializeApp();
+        };
+    </script>
+</body>
+</html>

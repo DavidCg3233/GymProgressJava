@@ -24,8 +24,8 @@
             --border-color: #334155; /* Borde sutil */
             --text-light: #E2E8F0;   /* Texto principal (Casi blanco) */
             --text-muted: #94A3B8;   /* Texto secundario (Gris-azul) */
-            --primary: #3B82F6;    /* Azul primario (Botones) */
-            --accent: #10B981;     /* Verde Acento (Éxito, Borde Activo) */
+            --primary: #3B82F6;      /* Azul primario (Botones) */
+            --accent: #10B981;       /* Verde Acento (Éxito, Borde Activo) */
         }
 
         body {
@@ -153,7 +153,8 @@
     <!-- ======== RF02: FORMULARIO DE LOGIN (Visible por defecto) ======== -->
     <div class="card" id="login-container">
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="../img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="GymProgress Logo" style="width: 150px; height: auto;">
+            <!-- La ruta de la imagen es relativa a la página HTML que la carga -->
+            <img src="img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="GymProgress Logo" style="width: 150px; height: auto;">
         </div>
         <h2>Iniciar Sesión</h2>
         <p class="subtitle">Rastrea tu progreso físico y alcanza tus metas</p>
@@ -178,7 +179,7 @@
     <!-- ======== RF01: FORMULARIO DE REGISTRO (Oculto por defecto) ======== -->
     <div class="card" id="register-container" style="display: none;">
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="../img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="GymProgress Logo" style="width: 150px; height: auto;">
+            <img src="img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="GymProgress Logo" style="width: 150px; height: auto;">
         </div>
         <h2>Crea tu Cuenta</h2>
         <p class="subtitle">Comienza a rastrear tu progreso físico hoy</p>
@@ -269,14 +270,9 @@
     <!-- 
     ========================================
     ¡¡INICIO DE JAVASCRIPT INTEGRADO!!
-    (v5.0 - Lógica de Navegación)
+    (v5.1 - Lógica de Navegación Refactorizada)
     ========================================
     -->
-    <!-- 
-  * ======================================
-  * JAVASCRIPT (Lógica de Login/Registro - ¡CORREGIDO!)
-  * ======================================
-  -->
 <script>
     // Variable global para evitar que se ejecute múltiples veces
     let javaBridgeInicializado = false;
@@ -354,7 +350,12 @@
                     if (nombreUsuario) {
                         window.javaBridge.logDesdeJS(`Login exitoso, bienvenido ${nombreUsuario}`);
                         sessionStorage.setItem('username', nombreUsuario);
-                        window.location.href = 'dashboard.html';
+                        
+                        // ¡¡MODIFICACIÓN CLAVE!!
+                        // Usamos la nueva función de navegación del MainAppController
+                        // en lugar de un 'location.href' que recarga toda la app.
+                        window.javaBridge.navegar('dashboard.html');
+                        
                     } else {
                         alert("Usuario o contraseña incorrectos.");
                     }

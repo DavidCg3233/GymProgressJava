@@ -1,5 +1,5 @@
 // Archivo: MainAppController.java
-// (Versión 6 - FINAL CON RF03 y RF04/RF05)
+// (Versión 8 - Lógica de Panel Principal y Estadísticas IMPLEMENTADA)
 
 package org.gymprogress.controller;
 
@@ -10,38 +10,30 @@ import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
 
 // DAOs
-import org.gymprogress.dao.RutinaDAO; 
-import org.gymprogress.dao.UsuarioDAO;
-import org.gymprogress.dao.EjercicioDAO;
-import org.gymprogress.dao.RutinaEjercicioDAO;
-import org.gymprogress.dao.ProgresoDAO; // <-- ¡NUEVO!
-import org.gymprogress.dao.ConexionDB;
+import org.gymprogress.dao.*; // Importar todos los DAOs
 
 // Models
-import org.gymprogress.model.Cliente;
-import org.gymprogress.model.Progreso;
-import org.gymprogress.model.Rutina; 
-import org.gymprogress.model.Usuario;
-import org.gymprogress.model.RutinaEjercicioDTO;
+import org.gymprogress.model.*; // Importar todos los Modelos
 
 // Utils
-import org.gymprogress.utils.CalculoIMC; // <-- ¡NUEVO!
+import org.gymprogress.utils.CalculoIMC;
 
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter; // <-- ¡NUEVO!
+import java.time.format.DateTimeFormatter;
+
 import java.util.List; 
 import java.util.Random; 
 import java.util.ResourceBundle;
-import java.util.Map; // <-- ¡NUEVO!
-import java.util.HashMap; // <-- ¡NUEVO!
+import java.util.Map; 
+
 
 // JavaFX
 import javafx.application.Platform;
-import javafx.scene.control.TextInputDialog;
+
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
@@ -58,7 +50,9 @@ public class MainAppController implements Initializable {
     private RutinaDAO rutinaDAO; 
     private EjercicioDAO ejercicioDAO;
     private RutinaEjercicioDAO rutinaEjercicioDAO;
-    private ProgresoDAO progresoDAO; // <-- ¡NUEVO!
+    private ProgresoDAO progresoDAO;
+    private ClienteDAO clienteDAO;
+    private EstadisticasDAO estadisticasDAO; // <-- ¡NUEVO!
 
     // Estado
     private Usuario usuarioLogueado;
@@ -78,7 +72,9 @@ public class MainAppController implements Initializable {
             this.rutinaDAO = new RutinaDAO();
             this.ejercicioDAO = new EjercicioDAO();
             this.rutinaEjercicioDAO = new RutinaEjercicioDAO();
-            this.progresoDAO = new ProgresoDAO(); // <-- ¡NUEVO!
+            this.progresoDAO = new ProgresoDAO();
+            this.clienteDAO = new ClienteDAO();
+            this.estadisticasDAO = new EstadisticasDAO(); // <-- ¡NUEVO!
             System.out.println("MainAppController: Todos los DAOs inicializados.");
         } catch (Exception e) {
             System.err.println("¡¡ERROR FATAL al inicializar DAOs!!");
@@ -101,11 +97,11 @@ public class MainAppController implements Initializable {
 
         // Carga de página y listener
         try {
-            Random random = new Random();
-            URL indexUrl = getClass().getResource("/webapp/index.html");
+            // Siempre cargamos 'index.html' (Login) al iniciar
+            URL indexUrl = getClass().getResource("/webapp/index.html"); 
             if (indexUrl == null) { System.err.println("¡¡ERROR FATAL!! No se encontró /webapp/index.html"); return; }
-            String urlConAntiCache = indexUrl.toExternalForm() + "?v=" + random.nextLong();
-            System.out.println("MainAppController: Cargando URL: " + urlConAntiCache);
+            String urlConAntiCache = indexUrl.toExternalForm() + "?v=" + new Random().nextLong();
+            System.out.println("MainAppController: Cargando URL inicial: " + urlConAntiCache);
             webEngine.load(urlConAntiCache);
         } catch (Exception e) { e.printStackTrace(); }
 
@@ -125,7 +121,38 @@ public class MainAppController implements Initializable {
     }
     
     // ==================================================================
-    // MÉTODOS DEL PUENTE (LOGIN / REGISTRO)
+    // FUNCIÓN DE NAVEGACIÓN
+    // ==================================================================
+    
+    /**
+     * Permite a JavaScript navegar a una nueva página HTML dentro de la WebView.
+     * @param pagina El nombre del archivo HTML (ej. "rutinas.html")
+     */
+    public void navegar(String pagina) {
+        System.out.println("MainAppController(Navegar): Solicitud para navegar a: " + pagina);
+        try {
+            URL pageUrl = getClass().getResource("/webapp/" + pagina);
+            if (pageUrl == null) {
+                System.err.println("¡¡ERROR DE NAVEGACIÓN!! No se encontró /webapp/" + pagina);
+                return;
+            }
+            String urlConAntiCache = pageUrl.toExternalForm() + "?v=" + new Random().nextLong();
+            
+            // Usamos Platform.runLater para asegurar que la carga se hace en el hilo de UI
+            Platform.runLater(() -> {
+                System.out.println("MainAppController(Navegar): Cargando URL: " + urlConAntiCache);
+                webEngine.load(urlConAntiCache);
+            });
+            
+        } catch (Exception e) {
+            System.err.println("¡¡ERROR FATAL en (navegar)!!");
+            e.printStackTrace();
+        }
+    }
+
+    
+    // ==================================================================
+    // MÉTODOS DEL PUENTE (LOGIN / REGISTRO / PERFIL BÁSICO)
     // ==================================================================
 
     public void logDesdeJS(String mensaje) { System.out.println("Consola JS: " + mensaje); }
@@ -152,12 +179,12 @@ public class MainAppController implements Initializable {
                                    String pNombre, String sNombre, String pApellido, String sApellido, 
                                    int sexo, String fechaNac, 
                                    double peso, double altura) {
+        
         System.out.println("MainAppController(Bridge): Solicitud de registro para: " + email);
         try {
             Usuario u = new Usuario(); u.setNombreUsuario(nombreUsuario); u.setEmail(email); u.setContrasena(contrasena); u.setFechaCreacion(Date.valueOf(LocalDate.now()));
             Cliente c = new Cliente(); c.setPrimerNombre(pNombre); c.setSegundoNombre(sNombre); c.setPrimerApellido(pApellido); c.setSegundoApellido(sApellido); c.setCodigoSexo(sexo); c.setFechaNacimiento(Date.valueOf(fechaNac));
             Progreso p = new Progreso(); p.setFecha(Date.valueOf(LocalDate.now())); p.setPesoCorporal(peso); p.setAltura(altura); p.setNotas("Registro inicial.");
-            
             return usuarioDAO.registrarNuevoUsuarioCompleto(u, c, p);
         } catch (Exception e) { e.printStackTrace(); return false; }
     }
@@ -170,7 +197,6 @@ public class MainAppController implements Initializable {
         if (this.usuarioLogueado == null) return "[]"; 
         int codigoUsuario = this.usuarioLogueado.getCodigoUsuario(); 
         System.out.println("MainAppController(Bridge-RF03): Buscando rutinas (con ejercicios) para usuario: " + codigoUsuario);
-        
         try {
             List<Rutina> rutinas = rutinaDAO.getRutinasPorUsuario(codigoUsuario);
             if (rutinas.isEmpty()) return "[]";
@@ -186,17 +212,18 @@ public class MainAppController implements Initializable {
                           .append("\"descripcion\":\"").append(escapeJSON(rutina.getDescripcion())).append("\",")
                           .append("\"fechaCreacion\":\"").append(rutina.getFechaCreacion()).append("\",");
                 
+                // Añadir ejercicios anidados
                 List<RutinaEjercicioDTO> ejercicios = rutinaEjercicioDAO.getEjerciciosPorRutina(rutina.getCodigoRutina());
                 jsonBuilder.append("\"ejercicios\": [");
                 boolean firstEx = true;
                 for (RutinaEjercicioDTO ex : ejercicios) {
                     if (!firstEx) jsonBuilder.append(",");
                     jsonBuilder.append("{")
-                              .append("\"nombre\":\"").append(escapeJSON(ex.getNombre())).append("\",")
-                              .append("\"series\":").append(ex.getSeries()).append(",")
-                              .append("\"repeticiones\":").append(ex.getRepeticiones()).append(",")
-                              .append("\"peso\":").append(ex.getPeso())
-                              .append("}");
+                               .append("\"nombre\":\"").append(escapeJSON(ex.getNombre())).append("\",")
+                               .append("\"series\":").append(ex.getSeries()).append(",")
+                               .append("\"repeticiones\":").append(ex.getRepeticiones()).append(",")
+                               .append("\"peso\":").append(ex.getPeso())
+                               .append("}");
                     firstEx = false;
                 }
                 jsonBuilder.append("]}");
@@ -217,7 +244,6 @@ public class MainAppController implements Initializable {
 
     public boolean guardarRutinaCompleta(JSObject workoutData) {
         if (this.usuarioLogueado == null) return false;
-        
         Connection conn = null;
         try {
             System.out.println("MainAppController(Bridge-RF03): Recibido objeto JS para guardar.");
@@ -228,7 +254,7 @@ public class MainAppController implements Initializable {
             boolean esCrear = (codigoRutina == 0);
             
             conn = ConexionDB.getConnection();
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false); // Iniciar Transacción
             System.out.println("DAO (Transacción): Iniciada.");
             
             if (esCrear) {
@@ -247,6 +273,7 @@ public class MainAppController implements Initializable {
                 rutinaEjercicioDAO.deleteEjerciciosPorRutina(codigoRutina);
             }
             
+            // Añadir/Re-añadir todos los ejercicios
             int numEjercicios = ((Number) jsEjercicios.getMember("length")).intValue();
             System.out.println("DAO (Transacción): Añadiendo " + numEjercicios + " ejercicios...");
             for (int i = 0; i < numEjercicios; i++) {
@@ -255,14 +282,18 @@ public class MainAppController implements Initializable {
                 int exSeries = ((Number) jsEx.getMember("series")).intValue();
                 int exRepeticiones = ((Number) jsEx.getMember("repeticiones")).intValue();
                 double exPeso = ((Number) jsEx.getMember("peso")).doubleValue();
+                
+                // Buscar o crear el ejercicio para obtener su ID
                 int codigoEjercicio = ejercicioDAO.findOrCreateEjercicio(exNombre);
+                
+                // Añadir a la tabla 'rutina_ejercicio'
                 rutinaEjercicioDAO.addEjercicioARutina(codigoRutina, codigoEjercicio, exSeries, exRepeticiones, exPeso);
             }
-
-            conn.commit();
+            
+            conn.commit(); // Finalizar Transacción
             System.out.println("DAO (Transacción): ¡Commit exitoso! Rutina guardada.");
             return true;
-
+            
         } catch (Exception e) {
             System.err.println("¡¡ERROR FATAL en (guardarRutinaCompleta)!! Haciendo rollback...");
             e.printStackTrace();
@@ -277,22 +308,17 @@ public class MainAppController implements Initializable {
     // MÉTODOS DEL PUENTE (PROGRESO - RF04/RF05)
     // ==================================================================
 
-    /**
-     * RF04/RF05 (Leer): Obtiene todos los datos para las gráficas y estadísticas.
-     */
     public String getDatosDeProgresoJSON() {
         if (this.usuarioLogueado == null) return "{}";
         int codigoUsuario = this.usuarioLogueado.getCodigoUsuario();
         System.out.println("MainAppController(Bridge-RF04): Obteniendo datos de progreso para usuario: " + codigoUsuario);
-        
         try {
             List<Progreso> historial = progresoDAO.getProgresoPorUsuario(codigoUsuario);
             if (historial.isEmpty()) {
                 System.out.println("MainAppController(Bridge-RF04): No se encontró historial.");
                 return "{\"stats\": null, \"chartData\": [], \"history\": []}";
             }
-
-            // Formateador para las etiquetas de la gráfica (ej. "8 Ene")
+            
             DateTimeFormatter chartFormatter = DateTimeFormatter.ofPattern("d MMM");
             
             StringBuilder chartData = new StringBuilder("[");
@@ -300,7 +326,7 @@ public class MainAppController implements Initializable {
             
             Progreso ultimo = historial.get(historial.size() - 1);
             Progreso penultimo = (historial.size() > 1) ? historial.get(historial.size() - 2) : ultimo;
-
+            
             double currentWeight = ultimo.getPesoCorporal();
             double currentHeight = ultimo.getAltura();
             double currentBMI = CalculoIMC.calcularIMC(currentWeight, currentHeight);
@@ -309,17 +335,14 @@ public class MainAppController implements Initializable {
 
             boolean firstChart = true;
             boolean firstHistory = true;
-
-            // Procesamos la lista (asumiendo que está ordenada por fecha ASC desde el DAO)
             for (Progreso p : historial) {
                 double peso = p.getPesoCorporal();
                 double altura = p.getAltura();
                 double imc = CalculoIMC.calcularIMC(peso, altura);
                 String cat = CalculoIMC.getCategoriaIMC(imc);
-                String fechaStr = p.getFecha().toLocalDate().format(chartFormatter); // "8 Ene"
-                String fechaFull = p.getFecha().toString(); // "2025-01-08"
-
-                // Añadir a datos de gráfica
+                String fechaStr = p.getFecha().toLocalDate().format(chartFormatter);
+                String fechaFull = p.getFecha().toString();
+                
                 if (!firstChart) chartData.append(",");
                 chartData.append("{")
                          .append("\"date\":\"").append(escapeJSON(fechaStr)).append("\",")
@@ -327,32 +350,29 @@ public class MainAppController implements Initializable {
                          .append("\"bmi\":").append(imc)
                          .append("}");
                 firstChart = false;
-
-                // Añadir a datos de historial (el historial se revierte en JS)
+                
                 if (!firstHistory) historyData.append(",");
                 historyData.append("{")
-                           .append("\"date\":\"").append(escapeJSON(fechaFull)).append("\",")
-                           .append("\"weight\":").append(peso).append(",")
-                           .append("\"bmi\":").append(imc).append(",")
-                           .append("\"bmiCategory\":\"").append(escapeJSON(cat)).append("\"")
-                           .append("}");
+                            .append("\"date\":\"").append(escapeJSON(fechaFull)).append("\",")
+                            .append("\"weight\":").append(peso).append(",")
+                            .append("\"bmi\":").append(imc).append(",")
+                            .append("\"bmiCategory\":\"").append(escapeJSON(cat)).append("\"")
+                            .append("}");
                 firstHistory = false;
             }
             chartData.append("]");
             historyData.append("]");
             
-            // Construir el JSON de estadísticas
             String statsJSON = String.format(
                 "{\"currentWeight\": %.1f, \"currentBMI\": %.1f, \"bmiCategory\": \"%s\", \"weightChange\": %.1f}",
                 currentWeight, currentBMI, escapeJSON(bmiCategory), weightChange
             );
-
-            // Construir el JSON final
+            
             return String.format(
                 "{\"stats\": %s, \"chartData\": %s, \"history\": %s}",
                 statsJSON, chartData.toString(), historyData.toString()
             );
-
+            
         } catch (Exception e) {
             System.err.println("¡¡ERROR FATAL en (getDatosDeProgresoJSON)!!");
             e.printStackTrace();
@@ -360,20 +380,13 @@ public class MainAppController implements Initializable {
         }
     }
 
-    /**
-     * RF04 (Crear): Registra un nuevo peso desde el modal.
-     * ¡¡MÉTODO ACTUALIZADO!! Ahora acepta una altura opcional.
-     */
     public boolean registrarNuevoProgreso(double peso, String fechaStr, double alturaNueva) {
         if (this.usuarioLogueado == null) return false;
-
         System.out.println("MainAppController(Bridge-Progreso): Registrando nuevo peso: " + peso + " en fecha: " + fechaStr + " (Altura opcional: " + alturaNueva + ")");
-
         try {
             int codigoUsuario = this.usuarioLogueado.getCodigoUsuario();
             double alturaParaGuardar = 0;
-
-            // --- ¡¡NUEVA LÓGICA DE ALTURA!! ---
+            
             if (alturaNueva > 0) {
                 System.out.println("MainAppController(Bridge-Progreso): Se proporcionó nueva altura: " + alturaNueva);
                 alturaParaGuardar = alturaNueva;
@@ -381,8 +394,7 @@ public class MainAppController implements Initializable {
                 System.out.println("MainAppController(Bridge-Progreso): No se proporcionó altura, buscando la más reciente...");
                 alturaParaGuardar = progresoDAO.getAlturaReciente(codigoUsuario);
             }
-            // --- FIN DE LA LÓGICA ---
-
+            
             if (alturaParaGuardar <= 0) {
                 System.err.println("MainAppController(Bridge-Progreso): ¡ERROR! No se pudo encontrar altura para el usuario. Registro fallido.");
                 return false;
@@ -394,14 +406,221 @@ public class MainAppController implements Initializable {
             nuevoProgreso.setAltura(alturaParaGuardar);
             nuevoProgreso.setFecha(Date.valueOf(fechaStr));
             nuevoProgreso.setNotas("Registro desde modal.");
-
+            
             return progresoDAO.registrarProgreso(nuevoProgreso);
-
+            
         } catch (Exception e) {
             System.err.println("¡¡ERROR FATAL en (registrarNuevoProgreso)!!");
             e.printStackTrace();
             return false;
         }
+    }
+
+    
+    // ==================================================================
+    // ¡¡LÓGICA ACTUALIZADA!! - Para las nuevas páginas
+    // ==================================================================
+    
+    /**
+     * RF-DASH: Obtiene los datos para el "Panel Principal"
+     * ¡¡AHORA IMPLEMENTADO!!
+     */
+    public String getDashboardOverviewJSON() {
+        if (this.usuarioLogueado == null) return "{}";
+        int codigoUsuario = this.usuarioLogueado.getCodigoUsuario();
+        System.out.println("MainAppController(Bridge-DASH): Obteniendo datos para el Panel Principal...");
+
+        try {
+            // 1. Obtener Estadísticas Rápidas (reutilizando la lógica de Progreso)
+            String progresoJsonStr = getDatosDeProgresoJSON();
+            String statsJson = "null";
+            if (progresoJsonStr.contains("\"stats\": {")) {
+                statsJson = progresoJsonStr.substring(progresoJsonStr.indexOf("\"stats\": {") + 8);
+                statsJson = statsJson.substring(0, statsJson.indexOf("}") + 1);
+            }
+
+            // 2. Obtener Rutinas Activas/Recientes (limitemos a 3)
+            List<Rutina> rutinas = rutinaDAO.getRutinasRecientes(codigoUsuario, 3);
+            StringBuilder rutinasJson = new StringBuilder("[");
+            boolean first = true;
+            for (Rutina r : rutinas) {
+                if (!first) rutinasJson.append(",");
+                rutinasJson.append("{")
+                           .append("\"nombre\":\"").append(escapeJSON(r.getNombreRutina())).append("\",")
+                           .append("\"dia\":\"").append(escapeJSON(r.getDiaSemana())).append("\"")
+                           .append("}");
+                first = false;
+            }
+            rutinasJson.append("]");
+
+            // 3. Obtener Actividad Reciente (limitemos a 5)
+            List<Progreso> actividad = progresoDAO.getProgresoReciente(codigoUsuario, 5);
+            StringBuilder actividadJson = new StringBuilder("[");
+            first = true;
+            for (Progreso p : actividad) {
+                if (!first) actividadJson.append(",");
+                actividadJson.append("{")
+                           .append("\"accion\":\"Peso Registrado\",")
+                           .append("\"detalle\":\"").append(p.getPesoCorporal()).append(" kg\",")
+                           .append("\"fecha\":\"").append(p.getFecha().toString()).append("\"")
+                           .append("}");
+                first = false;
+            }
+            actividadJson.append("]");
+
+            // 4. Construir el JSON final
+            return String.format(
+                "{\"stats\": %s, \"rutinasActivas\": %s, \"actividadReciente\": %s}",
+                statsJson,
+                rutinasJson.toString(),
+                actividadJson.toString()
+            );
+
+        } catch (Exception e) {
+            System.err.println("¡¡ERROR FATAL en (getDashboardOverviewJSON)!!");
+            e.printStackTrace();
+            return "{\"stats\": null, \"rutinasActivas\": [], \"actividadReciente\": []}";
+        }
+    }
+    
+    /**
+     * RF-STATS: Obtiene los datos para la página de "Estadísticas"
+     * ¡¡AHORA IMPLEMENTADO!!
+     */
+    public String getStatisticsDataJSON() {
+        if (this.usuarioLogueado == null) return "{}";
+        int codigoUsuario = this.usuarioLogueado.getCodigoUsuario();
+        System.out.println("MainAppController(Bridge-STATS): Obteniendo datos para Estadísticas...");
+
+        try {
+            // 1. Obtener Récords Personales
+            List<Map<String, String>> records = estadisticasDAO.getRecordsPersonales(codigoUsuario);
+            String recordsJson = mapListToJson(records);
+
+            // 2. Obtener Entrenamientos por Mes
+            List<Map<String, Object>> workouts = estadisticasDAO.getEntrenamientosPorMes(codigoUsuario);
+            String workoutsJson = mapListToJson(workouts);
+
+            // 3. Obtener Distribución de Ejercicios
+            List<Map<String, Object>> dist = estadisticasDAO.getDistribucionEjercicios(codigoUsuario);
+            String distJson = mapListToJson(dist);
+            
+            // 4. Construir JSON final
+            return String.format(
+                "{\"recordsPersonales\": %s, \"entrenamientosPorMes\": %s, \"distribucionEjercicios\": %s}",
+                recordsJson,
+                workoutsJson,
+                distJson
+            );
+            
+        } catch (Exception e) {
+            System.err.println("¡¡ERROR FATAL en (getStatisticsDataJSON)!!");
+            e.printStackTrace();
+            return "{\"recordsPersonales\": [], \"entrenamientosPorMes\": [], \"distribucionEjercicios\": []}";
+        }
+    }
+
+    /**
+     * RF-PERFIL: Obtiene los datos del perfil del cliente
+     * (Esta lógica ya estaba en tu Versión 7)
+     */
+    public String getClienteDataJSON() {
+        if (this.usuarioLogueado == null) return "{}";
+        System.out.println("MainAppController(Bridge-PERFIL): Obteniendo datos del cliente...");
+        try {
+            Cliente c = clienteDAO.obtenerClientePorId(this.usuarioLogueado.getCodigoUsuario());
+            if (c == null) return "{}";
+            
+            // Construir JSON manualmente
+            return String.format(
+                "{\"primerNombre\": \"%s\", \"segundoNombre\": \"%s\", \"primerApellido\": \"%s\", \"segundoApellido\": \"%s\", \"fechaNacimiento\": \"%s\", \"codigoSexo\": %d}",
+                escapeJSON(c.getPrimerNombre()),
+                escapeJSON(c.getSegundoNombre()),
+                escapeJSON(c.getPrimerApellido()),
+                escapeJSON(c.getSegundoApellido()),
+                c.getFechaNacimiento().toString(),
+                c.getCodigoSexo()
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "{}";
+        }
+    }
+    
+    /**
+     * RF-PERFIL (Actualizar): Actualiza los datos del perfil del cliente
+  
+
+    // --- Helpers de construcción de JSON ---
+
+    /**
+     * Convierte una Lista de Mapas a un String JSON.
+     * (Helper genérico para evitar repetir código)
+     */
+    private String mapListToJson(List<? extends Map<String, ?>> list) {
+        StringBuilder json = new StringBuilder("[");
+        boolean firstItem = true;
+        for (Map<String, ?> item : list) {
+            if (!firstItem) json.append(",");
+            json.append(mapToJson(item));
+            firstItem = false;
+        }
+        json.append("]");
+        return json.toString();
+    }
+    public boolean actualizarClienteData(String pNombre, String sNombre, String pApellido, String sApellido, String fechaNac) {
+    if (this.usuarioLogueado == null) return false;
+    System.out.println("MainAppController(Bridge-PERFIL): Actualizando datos del cliente...");
+    
+        try {
+// 1. Crear un objeto Cliente con los nuevos datos
+            Cliente clienteActualizado = new Cliente();
+            clienteActualizado.setCodigoUsuario(this.usuarioLogueado.getCodigoUsuario()); // ID de usuario
+            clienteActualizado.setPrimerNombre(pNombre);
+            clienteActualizado.setSegundoNombre(sNombre);
+            clienteActualizado.setPrimerApellido(pApellido);
+            clienteActualizado.setSegundoApellido(sApellido);
+            clienteActualizado.setFechaNacimiento(Date.valueOf(fechaNac)); // Convertir String a java.sql.Date
+
+// 2. Llamar al DAO para actualizar
+    boolean exito = clienteDAO.actualizarCliente(clienteActualizado);
+
+    if (exito) {
+        System.out.println("MainAppController(Bridge-PERFIL): ¡Perfil actualizado exitosamente!");
+    } else {
+        System.err.println("MainAppController(Bridge-PERFIL): DAO no reportó filas afectadas.");
+        }
+        return exito;
+
+    } catch (Exception e) {
+        System.err.println("¡¡ERROR FATAL en (actualizarClienteData)!!");
+        e.printStackTrace();
+            return false;
+    }
+    }
+    /**
+     * Convierte un Map<String, Object> a un String JSON.
+     * (Maneja Numbers, Booleans y Strings)
+     */
+    private String mapToJson(Map<String, ?> map) {
+        StringBuilder json = new StringBuilder("{");
+        boolean firstKey = true;
+        for (Map.Entry<String, ?> entry : map.entrySet()) {
+            if (!firstKey) json.append(",");
+            json.append("\"").append(escapeJSON(entry.getKey())).append("\":");
+            
+            Object value = entry.getValue();
+            if (value instanceof String) {
+                json.append("\"").append(escapeJSON((String) value)).append("\"");
+            } else if (value instanceof Number || value instanceof Boolean) {
+                json.append(value.toString());
+            } else {
+                json.append("\"").append(escapeJSON(String.valueOf(value))).append("\"");
+            }
+            firstKey = false;
+        }
+        json.append("}");
+        return json.toString();
     }
 
     // Helper para escapar JSON

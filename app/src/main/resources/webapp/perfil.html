@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Mi Perfil - GymProgress</title>
+    
+    <!-- CSS Compartido -->
+    <link rel="stylesheet" href="css/main.css">
+    
+    <!-- Librería de Iconos (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    
+    <!-- CSS Específico para esta página -->
+    <style>
+        .perfil-card {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .perfil-card .card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===================================== -->
+    <!--      BARRA LATERAL (NAV)          -->
+    <!-- ===================================== -->
+    <nav>
+        <div class="logo">
+            <img src="img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="Logo GymProgress">
+            <h1>GymProgress</h1>
+        </div>
+        <ul>
+            <li><a onclick="window.javaBridge.navegar('dashboard.html')"><i class="ph ph-house"></i> Panel Principal</a></li>
+            <li><a onclick="window.javaBridge.navegar('rutinas.html')"><i class="ph ph-barbell"></i> Entrenamientos</a></li>
+            <li><a onclick="window.javaBridge.navegar('progreso.html')"><i class="ph ph-chart-line-up"></i> Progreso</a></li>
+            <li><a onclick="window.javaBridge.navegar('estadisticas.html')"><i class="ph ph-chart-bar"></i> Estadísticas</a></li>
+            <li><a class="active" onclick="window.javaBridge.navegar('perfil.html')"><i class="ph-fill ph-user"></i> Perfil</a></li>
+        </ul>
+        
+        <!-- ¡¡BOTÓN DE CERRAR SESIÓN!! -->
+        <ul style="margin-top: auto;">
+             <li><a onclick="window.javaBridge.navegar('index.html')" style="color: var(--danger);"><i class="ph ph-sign-out"></i> Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===================================== -->
+    <!--      CONTENIDO PRINCIPAL (MAIN)     -->
+    <!-- ===================================== -->
+    <main>
+        <!-- --- Encabezado --- -->
+        <div class="manager-header">
+            <div class="header-title">
+                <h1>Mi Perfil</h1>
+                <p>Visualiza y actualiza tu información personal.</p>
+            </div>
+        </div>
+
+        <!-- --- Formulario de Perfil --- -->
+        <div class="card perfil-card">
+            <form id="perfil-form">
+                <div class="card-header">
+                    <h3>Información del Cliente</h3>
+                    <p>Estos datos se usan para cálculos como el IMC y el seguimiento.</p>
+                </div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="perfil-pnombre">Primer Nombre</label>
+                            <input type="text" id="perfil-pnombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="perfil-snombre">Segundo Nombre</label>
+                            <input type="text" id="perfil-snombre">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="perfil-papellido">Primer Apellido</label>
+                            <input type="text" id="perfil-papellido" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="perfil-sapellido">Segundo Apellido</label>
+                            <input type="text" id="perfil-sapellido">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="perfil-fecha-nac">Fecha de Nacimiento</label>
+                            <input type="date" id="perfil-fecha-nac" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="perfil-sexo">Sexo</label>
+                            <select id="perfil-sexo" disabled> <!-- El sexo no se puede cambiar -->
+                                <option value="1">Masculino</option>
+                                <option value="2">Femenino</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer" style="display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ph ph-floppy-disk"></i>
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- 
+      * ======================================
+      * JAVASCRIPT (¡¡NUEVO!!)
+      * ======================================
+      -->
+    <script>
+        let javaBridgeInicializado = false;
+
+        function initializeApp() {
+            if (javaBridgeInicializado) return;
+            javaBridgeInicializado = true;
+
+            window.javaBridge.logDesdeJS("perfil.js: Inicializando...");
+            
+            // Cargar los datos del perfil al iniciar
+            cargarDatosDelPerfil();
+            
+            // Configurar el listener del formulario
+            document.getElementById("perfil-form").addEventListener("submit", guardarDatosDelPerfil);
+        }
+        
+        function cargarDatosDelPerfil() {
+            try {
+                const jsonStr = window.javaBridge.getClienteDataJSON();
+                const data = JSON.parse(jsonStr);
+
+                if (data.primerNombre) {
+                    document.getElementById("perfil-pnombre").value = data.primerNombre;
+                    document.getElementById("perfil-snombre").value = data.segundoNombre || "";
+                    document.getElementById("perfil-papellido").value = data.primerApellido;
+                    document.getElementById("perfil-sapellido").value = data.segundoApellido || "";
+                    document.getElementById("perfil-fecha-nac").value = data.fechaNacimiento;
+                    document.getElementById("perfil-sexo").value = data.codigoSexo;
+                } else {
+                    window.javaBridge.logDesdeJS("Error: No se pudieron cargar los datos del cliente.");
+                }
+                
+            } catch (e) {
+                console.error("Error al cargar datos del perfil:", e);
+                window.javaBridge.logDesdeJS("Error JS al llamar getClienteDataJSON(): " + e.message);
+            }
+        }
+        
+        function guardarDatosDelPerfil(e) {
+            e.preventDefault();
+            
+            const pNombre = document.getElementById("perfil-pnombre").value;
+            const sNombre = document.getElementById("perfil-snombre").value;
+            const pApellido = document.getElementById("perfil-papellido").value;
+            const sApellido = document.getElementById("perfil-sapellido").value;
+            const fechaNac = document.getElementById("perfil-fecha-nac").value;
+            
+            if (!pNombre || !pApellido || !fechaNac) {
+                alert("Primer Nombre, Primer Apellido y Fecha de Nacimiento son obligatorios.");
+                return;
+            }
+            
+            try {
+                // Llamar a la función del puente que AÚN ESTÁ PENDIENTE
+                const exito = window.javaBridge.actualizarClienteData(
+                    pNombre, sNombre, pApellido, sApellido, fechaNac
+                );
+                
+                if (exito) {
+                    alert("¡Perfil actualizado exitosamente!");
+                } else {
+                    alert("Error: No se pudo actualizar el perfil.");
+                }
+            } catch(e) {
+                 console.error("Error al guardar datos del perfil:", e);
+                 window.javaBridge.logDesdeJS("Error JS al llamar actualizarClienteData(): " + e.message);
+            }
+        }
+
+        // --- Mecanismo de Polling ---
+        const bridgeCheckInterval = setInterval(() => {
+            if (window.javaBridge && typeof window.javaBridge.logDesdeJS === 'function') {
+                clearInterval(bridgeCheckInterval); 
+                initializeApp(); 
+            }
+        }, 100);
+        
+        window.javaBridgeReady = () => {
+            clearInterval(bridgeCheckInterval);
+            initializeApp();
+        };
+    </script>
+</body>
+</html>

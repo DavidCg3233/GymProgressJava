@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Progreso - GymProgress</title>
+    
+    <!-- CSS Compartido -->
+    <link rel="stylesheet" href="css/main.css">
+    
+    <!-- Librería de Iconos (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web@2.0.3"></script>
+    
+    <!-- Librería de Gráficas (Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- CSS Específico para esta página (Progreso) -->
+    <style>
+        .progress-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .stat-card-header { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .stat-card-body { font-size: 2rem; font-weight: 700; }
+        .stat-card-footer { margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+        .stat-card-footer .trend { display: flex; align-items: center; font-weight: 500; }
+        .stat-card-footer .trend.up { color: var(--danger); }
+        .stat-card-footer .trend.down { color: var(--success); }
+        .stat-card-footer .trend i { font-size: 1rem; }
+
+        .progress-chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 1200px) { .progress-chart-grid { grid-template-columns: 1fr; } }
+        
+        .chart-container {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .chart-container h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .chart-container p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .chart-container canvas { max-width: 100%; }
+
+        .history-list {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .history-list h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .history-list p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        #history-list-container { display: flex; flex-direction: column; gap: 0.75rem; max-height: 400px; overflow-y: auto; }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .history-item .weight { font-weight: 700; font-size: 1.1rem; }
+        .history-item .date { color: var(--text-muted); font-size: 0.9rem; }
+        .history-item .bmi-info .value { font-weight: 500; }
+        .history-item .bmi-info .category { font-size: 0.9rem; }
+        
+        #progress-modal-content { max-width: 450px; }
+        #progress-modal-content .form-group p {
+            color: var(--text-muted); 
+            font-size: 0.75rem; 
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===================================== -->
+    <!--      BARRA LATERAL (NAV)          -->
+    <!-- ===================================== -->
+    <nav>
+        <div class="logo">
+            <img src="img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="Logo GymProgress">
+            <h1>GymProgress</h1>
+        </div>
+        <ul>
+            <li><a onclick="window.javaBridge.navegar('dashboard.html')"><i class="ph ph-house"></i> Panel Principal</a></li>
+            <li><a onclick="window.javaBridge.navegar('rutinas.html')"><i class="ph ph-barbell"></i> Entrenamientos</a></li>
+            <li><a class="active" onclick="window.javaBridge.navegar('progreso.html')"><i class="ph-fill ph-chart-line-up"></i> Progreso</a></li>
+            <li><a onclick="window.javaBridge.navegar('estadisticas.html')"><i class="ph ph-chart-bar"></i> Estadísticas</a></li>
+            <li><a onclick="window.javaBridge.navegar('perfil.html')"><i class="ph ph-user"></i> Perfil</a></li>
+        </ul>
+        <ul style="margin-top: auto;">
+             <li><a onclick="window.javaBridge.navegar('index.html')" style="color: var(--danger);"><i class="ph ph-sign-out"></i> Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+    <!-- ===================================== -->
+    <!--      CONTENIDO PRINCIPAL (MAIN)     -->
+    <!-- ===================================== -->
+    <main>
+        <!-- --- Encabezado --- -->
+        <div class="manager-header">
+            <div class="header-title">
+                <h1>Seguimiento de Progreso</h1>
+                <p>Bienvenido, <span id="username-display">Cargando...</span></p>
+            </div>
+            <button class="btn btn-primary" id="btn-new-progress">
+                <i class="ph-fill ph-plus-circle"></i>
+                Registrar Peso
+            </button>
+        </div>
+        
+        <!-- --- Cuadrícula de Estadísticas (RF04) --- -->
+        <div class="progress-stats-grid" id="progress-stats-grid">
+            <div class="stat-card">
+                <div class="stat-card-header">Peso Actual</div>
+                <div class="stat-card-body" id="stat-current-weight">-- kg</div>
+                <div class="stat-card-footer">
+                    <span class="trend" id="stat-weight-change-trend"></span>
+                    <span id="stat-weight-change-label"></span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-header">IMC Actual</div>
+                <div class="stat-card-body" id="stat-current-bmi">--</div>
+                <div class="stat-card-footer">
+                    <span class="trend" id="stat-bmi-category">N/A</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-header">Peso Objetivo</div>
+                <div class="stat-card-body">70.0 kg</div>
+                <div class="stat-card-footer">
+                    <span id="stat-target-remaining">-- kg</span>
+                    <span> restantes</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- --- Cuadrícula de Gráficas (RF05) --- -->
+        <div class="progress-chart-grid">
+            <div class="chart-container">
+                <h3>Progreso de Peso</h3>
+                <p>Tu tendencia de peso a lo largo del tiempo.</p>
+                <canvas id="weight-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Progreso de IMC</h3>
+                <p>Tu tendencia de IMC a lo largo del tiempo.</p>
+                <canvas id="bmi-chart"></canvas>
+            </div>
+        </div>
+        
+        <!-- --- Historial de Peso (RF04) --- -->
+        <div class="history-list">
+            <h3>Historial de Peso</h3>
+            <p>Mediciones recientes de peso.</p>
+            <div id="history-list-container">
+                <p class="text-placeholder" id="no-history-placeholder">No hay registros de progreso. ¡Añade uno para comenzar!</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- 
+      * ======================================
+      * MODAL: PROGRESO (RF04)
+      * ======================================
+      -->
+    <div class="modal-overlay" id="progress-modal-overlay" style="display: none;">
+        <div class="modal-content" id="progress-modal-content">
+            <div class="modal-header">
+                <h2>Registra tu Peso</h2>
+                <button class="close-modal-btn" id="close-modal-btn-progress"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="progress-form">
+                <div class="modal-body">
+                    <p>
+                        Registra tu peso actual. La altura se tomará de tu último registro si dejas el campo en blanco.
+                    </p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="progress-weight">Peso (kg)</label>
+                            <input type="number" step="0.1" id="progress-weight" placeholder="72.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="progress-date">Fecha</label>
+                            <input type="date" id="progress-date" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="progress-altura">Altura (m) (Opcional)</label>
+                        <input type="number" step="0.01" id="progress-altura" placeholder="Ej. 1.75 (dejar vacío para usar la última altura)">
+                        <p>* Deja esto en blanco si tu altura no ha cambiado.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-modal-progress">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar Peso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 
+      * ======================================
+      * JAVASCRIPT (Solo para RF04/RF05)
+      * ======================================
+      -->
+    <script>
+        let javaBridgeInicializado = false;
+        let weightChartInstance = null;
+        let bmiChartInstance = null;
+
+        function initializeApp() {
+            if (javaBridgeInicializado) return;
+            javaBridgeInicializado = true;
+            window.javaBridge.logDesdeJS("progreso.js: Inicializando Seguimiento de Progreso...");
+
+            // --- Cargar Nombre de Usuario ---
+            try {
+                const username = window.javaBridge.getNombreUsuarioLogueado();
+                document.getElementById("username-display").textContent = username || "Usuario";
+            } catch (e) {
+                console.error("Error al obtener nombre:", e);
+                window.javaBridge.logDesdeJS("Error JS al llamar getNombreUsuarioLogueado(): " + e.message);
+            }
+
+            // --- Inicializar Módulo de Progreso ---
+            try {
+                initProgressTracker();
+            } catch (e) {
+                console.error("Error fatal inicializando ProgressTracker:", e);
+                window.javaBridge.logDesdeJS("Error JS (FATAL) en initProgressTracker(): " + e.message);
+            }
+        }
+        
+        // --- MÓDULO DE SEGUIMIENTO DE PROGRESO (RF04 / RF05) ---
+        function initProgressTracker() {
+            const btnNewProgress = document.getElementById("btn-new-progress");
+            const modalOverlay = document.getElementById("progress-modal-overlay");
+            const btnCloseModal = document.getElementById("close-modal-btn-progress");
+            const btnCancelModal = document.getElementById("btn-cancel-modal-progress");
+            const progressForm = document.getElementById("progress-form");
+            const progressWeightInput = document.getElementById("progress-weight");
+            const progressDateInput = document.getElementById("progress-date");
+            const progressAlturaInput = document.getElementById("progress-altura");
+            
+            const statWeight = document.getElementById("stat-current-weight");
+            const statWeightTrend = document.getElementById("stat-weight-change-trend");
+            const statWeightLabel = document.getElementById("stat-weight-change-label");
+            const statBMI = document.getElementById("stat-current-bmi");
+            const statBMICat = document.getElementById("stat-bmi-category");
+            const statTarget = document.getElementById("stat-target-remaining");
+            
+            const weightChartCtx = document.getElementById("weight-chart").getContext("2d");
+            const bmiChartCtx = document.getElementById("bmi-chart").getContext("2d");
+            const historyContainer = document.getElementById("history-list-container");
+            const noHistoryPlaceholder = document.getElementById("no-history-placeholder");
+
+            function renderStats(stats) {
+                if (!stats) {
+                    window.javaBridge.logDesdeJS("RF04: No hay estadísticas para renderizar.");
+                    statWeight.textContent = "-- kg";
+                    statBMI.textContent = "--";
+                    statTarget.textContent = "-- kg";
+                    statBMICat.textContent = "N/A";
+                    statWeightTrend.innerHTML = "";
+                    statWeightLabel.textContent = "Sin datos";
+                    return;
+                }
+                
+                statWeight.textContent = `${stats.currentWeight.toFixed(1)} kg`;
+                statBMI.textContent = stats.currentBMI.toFixed(1);
+                
+                statBMICat.textContent = stats.bmiCategory;
+                statBMICat.className = `trend ${getBmiColorClass(stats.bmiCategory)}`;
+                
+                let trendIcon = '';
+                let trendClass = '';
+                if (stats.weightChange < 0) {
+                    trendIcon = '<i class="ph-fill ph-trending-down"></i>';
+                    trendClass = 'down';
+                } else if (stats.weightChange > 0) {
+                    trendIcon = '<i class="ph-fill ph-trending-up"></i>';
+                    trendClass = 'up';
+                }
+                statWeightTrend.innerHTML = `${trendIcon} ${Math.abs(stats.weightChange).toFixed(1)} kg`;
+                statWeightTrend.className = `trend ${trendClass}`;
+                statWeightLabel.textContent = stats.weightChange === 0 ? "sin cambios" : "desde la última vez";
+                
+                statTarget.textContent = `${(stats.currentWeight - 70.0).toFixed(1)} kg`;
+            }
+
+            function renderCharts(chartData) {
+                const labels = chartData.map(d => d.date);
+                const weightData = chartData.map(d => d.weight);
+                const bmiData = chartData.map(d => d.bmi);
+
+                if (weightChartInstance) weightChartInstance.destroy();
+                if (bmiChartInstance) bmiChartInstance.destroy();
+
+                const chartOptions = {
+                    responsive: true, maintainAspectRatio: true,
+                    scales: { 
+                        x: { ticks: { color: 'var(--text-muted)' }, grid: { color: 'var(--border-color)' } },
+                        y: { ticks: { color: 'var(--text-muted)' }, grid: { color: 'var(--border-color)' } }
+                    },
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: 'var(--bg-card)', bodyColor: 'var(--text-light)', titleColor: 'var(--text-muted)' } }
+                };
+
+                weightChartInstance = new Chart(weightChartCtx, {
+                    type: 'line',
+                    data: { labels, datasets: [{ data: weightData, borderColor: 'var(--primary)', tension: 0.1, borderWidth: 3, pointBackgroundColor: 'var(--primary)' }] },
+                    options: chartOptions
+                });
+                
+                bmiChartInstance = new Chart(bmiChartCtx, {
+                    type: 'line',
+                    data: { labels, datasets: [{ data: bmiData, borderColor: 'var(--success)', tension: 0.1, borderWidth: 3, pointBackgroundColor: 'var(--success)' }] },
+                    options: chartOptions
+                });
+            }
+
+            function renderHistory(history) {
+                historyContainer.innerHTML = ""; 
+                if (history.length === 0) {
+                    noHistoryPlaceholder.style.display = "block";
+                } else {
+                    noHistoryPlaceholder.style.display = "none";
+                    history.slice().reverse().forEach(item => {
+                        const div = document.createElement("div");
+                        div.className = "history-item";
+                        const categoryClass = getBmiColorClass(item.bmiCategory);
+                        
+                        div.innerHTML = `
+                            <div>
+                                <p class="weight">${item.weight.toFixed(1)} kg</p>
+                                <p class="date">${item.date}</p>
+                            </div>
+                            <div class="bmi-info" style="text-align: right;">
+                                <p class="value">IMC: ${item.bmi.toFixed(1)}</p>
+                                <p class="category ${categoryClass}">${item.bmiCategory}</p>
+                            </div>`;
+                        historyContainer.appendChild(div);
+                    });
+                }
+            }
+            
+            window.cargarMiProgreso = function() {
+                window.javaBridge.logDesdeJS("RF04: Cargando datos de progreso...");
+                try {
+                    const progresoJSON = window.javaBridge.getDatosDeProgresoJSON();
+                    const data = JSON.parse(progresoJSON);
+                    
+                    renderStats(data.stats);
+                    renderCharts(data.chartData || []);
+                    renderHistory(data.history || []);
+                } catch (e) {
+                    console.error("Error al cargar progreso:", e);
+                    window.javaBridge.logDesdeJS("Error JS (RF04) al llamar getDatosDeProgresoJSON(): " + e.message);
+                }
+            }
+            
+            function openProgressModal() {
+                progressForm.reset();
+                progressDateInput.valueAsDate = new Date();
+                modalOverlay.style.display = "flex";
+            }
+            function closeProgressModal() {
+                modalOverlay.style.display = "none";
+            }
+
+            btnNewProgress.addEventListener("click", openProgressModal);
+            btnCloseModal.addEventListener("click", closeProgressModal);
+            btnCancelModal.addEventListener("click", closeProgressModal);
+            
+            progressForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const peso = parseFloat(progressWeightInput.value);
+                const fecha = progressDateInput.value;
+                const altura = parseFloat(progressAlturaInput.value) || 0;
+
+                if (!peso || !fecha || peso <= 0) {
+                    alert("Por favor, ingresa un peso y fecha válidos.");
+                    return;
+                }
+                
+                window.javaBridge.logDesdeJS(`RF04: Registrando nuevo peso: ${peso} en ${fecha} (Altura opcional: ${altura})`);
+                try {
+                    const exito = window.javaBridge.registrarNuevoProgreso(peso, fecha, altura);
+                    if (exito) {
+                        closeProgressModal();
+                        cargarMiProgreso();
+                    } else {
+                        alert("Error: Java devolvió 'false' al registrar el peso.\n\nAsegúrate de haber registrado tu altura inicial (esto se hace en el formulario de registro de usuario).");
+                    }
+                } catch(err) {
+                    alert("Error fatal al llamar a javaBridge.registrarNuevoProgreso(): " + err.message);
+                }
+            });
+
+            window.cargarMiProgreso();
+        }
+        
+        // --- Helpers ---
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return "";
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+        
+        function getBmiColorClass(category) {
+            switch(category) {
+                case "Normal": return "bmi-normal";
+                case "Sobrepeso": return "bmi-sobrepeso";
+                case "Bajo Peso": return "bmi-bajo-peso";
+                case "Obesidad": return "bmi-obesidad";
+                default: return "";
+            }
+        }
+
+        // --- Polling ---
+        const bridgeCheckInterval = setInterval(() => {
+            if (window.javaBridge && typeof window.javaBridge.logDesdeJS === 'function') {
+                clearInterval(bridgeCheckInterval); 
+                initializeApp(); 
+            }
+        }, 100);
+        
+        window.javaBridgeReady = () => {
+            clearInterval(bridgeCheckInterval);
+            initializeApp();
+        };
+    </script>
+</body>
+</html>
