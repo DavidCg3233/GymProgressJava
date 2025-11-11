@@ -20,6 +20,27 @@ public class ClienteDAO {
         if (this.conn == null) {
             System.err.println("¡¡ERROR FATAL en ClienteDAO!! La conexión a la BD (conn) es NULL.");
         }
+        // Intentar garantizar columna 'peso_objetivo'
+        ensurePesoObjetivoColumn();
+    }
+
+    private void ensurePesoObjetivoColumn() {
+        if (conn == null) return;
+        try (PreparedStatement ps = conn.prepareStatement("SELECT peso_objetivo FROM cliente LIMIT 1")) {
+            ps.executeQuery();
+        } catch (SQLException e) {
+            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (msg.contains("unknown column") || msg.contains("columna desconocida") || msg.contains("column not found")) {
+                System.out.println("DAO(Cliente): Columna 'peso_objetivo' no existe. Intentando crearla...");
+                try (PreparedStatement alter = conn.prepareStatement(
+                        "ALTER TABLE cliente ADD COLUMN peso_objetivo DECIMAL(5,2) NULL AFTER fecha_nacimiento")) {
+                    alter.executeUpdate();
+                    System.out.println("DAO(Cliente): Columna 'peso_objetivo' creada exitosamente.");
+                } catch (SQLException ex) {
+                    System.err.println("DAO(Cliente): No se pudo crear la columna 'peso_objetivo'. Debes ejecutar el script SQL manualmente.");
+                }
+            }
+        }
     }
 
     /**
@@ -45,6 +66,8 @@ public class ClienteDAO {
                     cliente.setSegundoApellido(rs.getString("segundo_apellido"));
                     cliente.setCodigoSexo(rs.getInt("codigo_sexo"));
                     cliente.setFechaNacimiento(rs.getDate("fecha_nacimiento"));
+                    // Leer peso_objetivo si existe
+                    try { Object pesoObj = rs.getObject("peso_objetivo"); if (pesoObj != null) { if (pesoObj instanceof java.math.BigDecimal) { cliente.setPesoObjetivo(((java.math.BigDecimal) pesoObj).doubleValue()); } else if (pesoObj instanceof Double) { cliente.setPesoObjetivo((Double) pesoObj); } else if (pesoObj instanceof Number) { cliente.setPesoObjetivo(((Number) pesoObj).doubleValue()); } } } catch (SQLException ignore) {}
                     return cliente;
                 }
             }
@@ -84,6 +107,56 @@ public class ClienteDAO {
 
             int filasAfectadas = stmt.executeUpdate();
             return filasAfectadas > 0;
+        }
+    }
+
+    // --- NUEVO: Get/Set Peso Objetivo ---
+    public Double obtenerPesoObjetivo(int codigoUsuario) {
+        if (conn == null) return null;
+        String sql = "SELECT peso_objetivo FROM cliente WHERE codigo_usuario = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, codigoUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // MySQL normalmente devuelve BigDecimal para DECIMAL. Evitamos ClassCastException.
+                    Object raw = rs.getObject(1);
+                    if (raw == null) {
+                        System.out.println("DAO(Cliente): peso_objetivo=NULL para usuario=" + codigoUsuario);
+                        return null;
+                    }
+                    if (raw instanceof Number) {
+                        double val = ((Number) raw).doubleValue();
+                        System.out.println("DAO(Cliente): peso_objetivo leído=" + val + " para usuario=" + codigoUsuario);
+                        return val;
+                    }
+                    try {
+                        double parsed = Double.parseDouble(raw.toString());
+                        System.out.println("DAO(Cliente): peso_objetivo parseado=" + parsed + " para usuario=" + codigoUsuario);
+                        return parsed;
+                    } catch (NumberFormatException nfe) {
+                        System.err.println("DAO(Cliente): No se pudo parsear peso_objetivo ('" + raw + "') para usuario=" + codigoUsuario);
+                        return null;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("DAO(Cliente): Error obteniendo peso_objetivo: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public boolean actualizarPesoObjetivo(int codigoUsuario, double pesoObjetivo) {
+        if (conn == null) return false;
+        String sql = "UPDATE cliente SET peso_objetivo = ? WHERE codigo_usuario = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, pesoObjetivo);
+            ps.setInt(2, codigoUsuario);
+            int rows = ps.executeUpdate();
+            System.out.println("DAO(Cliente): actualizarPesoObjetivo filas afectadas=" + rows);
+            return rows > 0;
+        } catch (SQLException e) {
+            System.err.println("DAO(Cliente): Error actualizando peso_objetivo: " + e.getMessage());
+            return false;
         }
     }
     

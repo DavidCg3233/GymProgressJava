@@ -128,6 +128,38 @@
       -->
     <script>
         let javaBridgeInicializado = false;
+        // === Helpers de colores (para usar CSS variables con alpha) ===
+        function getCssVar(name, fallback) {
+            const val = getComputedStyle(document.documentElement).getPropertyValue(name);
+            const trimmed = val && val.trim();
+            return trimmed && trimmed.length > 0 ? trimmed : (fallback || '#3b82f6');
+        }
+        function hexToRgb(hex) {
+            let c = hex.replace('#','');
+            if (c.length === 3) c = c.split('').map(ch => ch + ch).join('');
+            const num = parseInt(c, 16);
+            return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+        }
+        function toRgba(color, alpha=1) {
+            try {
+                if (!color) return `rgba(59,130,246,${alpha})`;
+                const c = color.trim();
+                if (c.startsWith('#')) {
+                    const {r,g,b} = hexToRgb(c);
+                    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                }
+                if (c.startsWith('rgb')) {
+                    // rgb or rgba already
+                    return c.replace(/rgba?\(([^)]+)\)/, (m, inner) => {
+                        const parts = inner.split(',').map(p=>p.trim());
+                        const [r,g,b] = parts;
+                        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                    });
+                }
+                // Si viene como nombre o var(--x), devolvemos tal cual (Chart.js soporta algunos)
+                return c;
+            } catch(e) { return `rgba(59,130,246,${alpha})`; }
+        }
 
         function initializeApp() {
             if (javaBridgeInicializado) return;
@@ -178,16 +210,24 @@
                 document.getElementById("no-entrenamientos-placeholder").style.display = "block";
                 return;
             }
-            
-            new Chart(container.getContext("2d"), {
+            const ctx = container.getContext("2d");
+            const primary = getCssVar('--primary', '#3b82f6');
+            const barBg = toRgba(primary, 0.75);
+            const barHover = toRgba(primary, 0.95);
+
+            new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: data.map(d => d.mes),
                     datasets: [{
                         label: 'Entrenamientos',
                         data: data.map(d => d.total),
-                        backgroundColor: 'var(--primary)',
-                        borderRadius: 4
+                        backgroundColor: barBg,
+                        hoverBackgroundColor: barHover,
+                        borderColor: primary,
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        maxBarThickness: 48
                     }]
                 },
                 options: {
@@ -196,7 +236,10 @@
                         y: { beginAtZero: true, ticks: { color: 'var(--text-muted)', stepSize: 1 }, grid: { color: 'var(--border-color)' } },
                         x: { ticks: { color: 'var(--text-muted)' }, grid: { display: false } }
                     },
-                    plugins: { legend: { display: false } }
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { backgroundColor: 'rgba(17,24,39,0.9)', borderColor: 'var(--border-color)', borderWidth: 1 }
+                    }
                 }
             });
         }
@@ -208,14 +251,17 @@
                 return;
             }
 
-            // Colores (puedes añadir más)
-            const colors = [
-                'var(--primary)', 
-                'var(--success)', 
-                'var(--warning)', 
-                'var(--danger)', 
-                '#334155'
-            ];
+            // Paleta mejorada
+            const primary = getCssVar('--primary', '#3b82f6');
+            const success = getCssVar('--success', '#10b981');
+            const warning = getCssVar('--warning', '#f59e0b');
+            const danger = getCssVar('--danger', '#ef4444');
+            const extra1 = '#8b5cf6'; // violet-500
+            const extra2 = '#06b6d4'; // cyan-500
+            const extra3 = '#22d3ee'; // sky-400
+            const extra4 = '#84cc16'; // lime-500
+            const palette = [primary, success, warning, danger, extra1, extra2, extra3, extra4];
+            const colors = palette.map((c, idx) => toRgba(c, 0.9));
 
             new Chart(container.getContext("2d"), {
                 type: 'doughnut',
@@ -223,7 +269,9 @@
                     labels: data.map(d => d.grupo),
                     datasets: [{
                         data: data.map(d => d.total),
-                        backgroundColor: colors.slice(0, data.length)
+                        backgroundColor: colors.slice(0, data.length),
+                        borderColor: 'var(--bg-card)',
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -232,8 +280,11 @@
                         legend: { 
                             position: 'right', 
                             labels: { color: 'var(--text-light)' } 
-                        } 
-                    }
+                        },
+                        tooltip: { backgroundColor: 'rgba(17,24,39,0.9)', borderColor: 'var(--border-color)', borderWidth: 1 }
+                    },
+                    cutout: '60%',
+                    hoverOffset: 8
                 }
             });
         }

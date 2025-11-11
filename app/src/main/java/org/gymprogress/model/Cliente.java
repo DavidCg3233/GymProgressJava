@@ -9,6 +9,8 @@ public class Cliente {
     private String segundoApellido;
     private int codigoSexo;
     private Date fechaNacimiento;
+    // Nuevo: peso objetivo (nullable)
+    private Double pesoObjetivo;
     
     // Getters y Setters
     public int getCodigoUsuario() { return codigoUsuario; }
@@ -25,4 +27,6 @@ public class Cliente {
     public void setCodigoSexo(int codigoSexo) { this.codigoSexo = codigoSexo; }
     public Date getFechaNacimiento() { return fechaNacimiento; }
     public void setFechaNacimiento(Date fechaNacimiento) { this.fechaNacimiento = fechaNacimiento; }
+    public Double getPesoObjetivo() { return pesoObjetivo; }
+    public void setPesoObjetivo(Double pesoObjetivo) { this.pesoObjetivo = pesoObjetivo; }
 }

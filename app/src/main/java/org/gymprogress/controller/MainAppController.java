@@ -36,6 +36,7 @@ import javafx.application.Platform;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 import java.util.Optional;
 
@@ -93,6 +94,22 @@ public class MainAppController implements Initializable {
             
             Optional<javafx.scene.control.ButtonType> result = alert.showAndWait();
             return result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK;
+        });
+
+        // Manejador de prompt() de JS
+        webEngine.setPromptHandler(promptData -> {
+            try {
+                TextInputDialog dialog = new TextInputDialog(promptData.getDefaultValue());
+                dialog.setTitle("Entrada requerida");
+                dialog.setHeaderText("Ingresar valor");
+                dialog.setContentText(promptData.getMessage());
+                if (this.mainStage != null) dialog.initOwner(this.mainStage);
+                Optional<String> res = dialog.showAndWait();
+                return res.orElse(null);
+            } catch (Exception e) {
+                System.err.println("Error en PromptHandler: " + e.getMessage());
+                return null;
+            }
         });
 
         // Carga de página y listener
@@ -220,6 +237,7 @@ public class MainAppController implements Initializable {
                     if (!firstEx) jsonBuilder.append(",");
                     jsonBuilder.append("{")
                                .append("\"nombre\":\"").append(escapeJSON(ex.getNombre())).append("\",")
+                               .append("\"grupoMuscular\":\"").append(escapeJSON(ex.getGrupoMuscular())).append("\",")
                                .append("\"series\":").append(ex.getSeries()).append(",")
                                .append("\"repeticiones\":").append(ex.getRepeticiones()).append(",")
                                .append("\"peso\":").append(ex.getPeso())
@@ -230,7 +248,9 @@ public class MainAppController implements Initializable {
                 firstRutina = false;
             }
             jsonBuilder.append("]");
-            return jsonBuilder.toString();
+            String rutinasJson = jsonBuilder.toString();
+            System.out.println("MainAppController(Bridge-RF03): JSON rutinas: " + rutinasJson);
+            return rutinasJson;
         } catch (Exception e) { e.printStackTrace(); return "[]"; }
     }
 
@@ -272,19 +292,27 @@ public class MainAppController implements Initializable {
                 System.out.println("DAO (Transacción): Borrando ejercicios antiguos...");
                 rutinaEjercicioDAO.deleteEjerciciosPorRutina(codigoRutina);
             }
-            
+            //asd
             // Añadir/Re-añadir todos los ejercicios
             int numEjercicios = ((Number) jsEjercicios.getMember("length")).intValue();
             System.out.println("DAO (Transacción): Añadiendo " + numEjercicios + " ejercicios...");
             for (int i = 0; i < numEjercicios; i++) {
                 JSObject jsEx = (JSObject) jsEjercicios.getSlot(i);
                 String exNombre = (String) jsEx.getMember("nombre");
+                // Grupo muscular opcional desde frontend
+                String exGrupo = null;
+                try { exGrupo = (String) jsEx.getMember("grupoMuscular"); } catch (Exception ign) { /* campo opcional */ }
                 int exSeries = ((Number) jsEx.getMember("series")).intValue();
                 int exRepeticiones = ((Number) jsEx.getMember("repeticiones")).intValue();
                 double exPeso = ((Number) jsEx.getMember("peso")).doubleValue();
                 
                 // Buscar o crear el ejercicio para obtener su ID
-                int codigoEjercicio = ejercicioDAO.findOrCreateEjercicio(exNombre);
+                int codigoEjercicio;
+                if (exGrupo != null && !exGrupo.trim().isEmpty()) {
+                    codigoEjercicio = ejercicioDAO.findOrCreateEjercicio(exNombre, exGrupo);
+                } else {
+                    codigoEjercicio = ejercicioDAO.findOrCreateEjercicio(exNombre);
+                }
                 
                 // Añadir a la tabla 'rutina_ejercicio'
                 rutinaEjercicioDAO.addEjercicioARutina(codigoRutina, codigoEjercicio, exSeries, exRepeticiones, exPeso);
@@ -301,6 +329,82 @@ public class MainAppController implements Initializable {
             return false;
         } finally {
             if (conn != null) { try { conn.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); } }
+        }
+    }
+
+    // ===================== EJERCICIOS (LISTADO) =====================
+    /**
+     * Devuelve JSON con todos los ejercicios disponibles (id, nombre, grupoMuscular)
+     */
+    public String getEjerciciosDisponiblesJSON() {
+        System.out.println("MainAppController(Bridge-Ejercicios): solicitando listado de ejercicios...");
+        try {
+            java.sql.ResultSet rs = ejercicioDAO.listAllEjerciciosRaw();
+            StringBuilder json = new StringBuilder("[");
+            boolean first = true;
+            while (rs.next()) {
+                if (!first) json.append(',');
+                json.append('{')
+                    .append("\"id\":").append(rs.getInt("codigo_ejercicio")).append(',')
+                    .append("\"nombre\":\"").append(escapeJSON(rs.getString("nombre"))).append("\",")
+                    .append("\"grupoMuscular\":\"").append(escapeJSON(rs.getString("grupo_muscular"))).append("\"")
+                    .append('}');
+                first = false;
+            }
+            json.append(']');
+            try { 
+                java.sql.Statement st = rs.getStatement();
+                rs.close();
+                if (st != null) st.close();
+            } catch (Exception ignore) {}
+            return json.toString();
+        } catch (Exception e) {
+            System.err.println("ERROR en getEjerciciosDisponiblesJSON");
+            e.printStackTrace();
+            return "[]";
+        }
+    }
+
+    // Lista de grupos musculares normalizados
+    public String getGruposMuscularesJSON() {
+        System.out.println("MainAppController(Bridge-Grupos): solicitando listado de grupos musculares...");
+        try {
+            java.sql.ResultSet rs = ejercicioDAO.listAllGrupos();
+            StringBuilder json = new StringBuilder("[");
+            boolean first = true;
+            while (rs.next()) {
+                if (!first) json.append(',');
+                json.append('{')
+                    .append("\"id\":").append(rs.getInt("codigo_grupo_muscular")).append(',')
+                    .append("\"nombre\":\"").append(escapeJSON(rs.getString("nombre_grupo_muscular"))).append("\"")
+                    .append('}');
+                first = false;
+            }
+            json.append(']');
+            try {
+                java.sql.Statement st = rs.getStatement();
+                rs.close();
+                if (st != null) st.close();
+            } catch (Exception ignore) {}
+            return json.toString();
+        } catch (Exception e) {
+            System.err.println("ERROR en getGruposMuscularesJSON");
+            e.printStackTrace();
+            return "[]";
+        }
+    }
+
+    public boolean crearNuevoGrupoMuscular(String nombreGrupo) {
+        if (nombreGrupo == null || nombreGrupo.trim().isEmpty()) return false;
+        System.out.println("MainAppController(Bridge-Grupos): creando grupo muscular '" + nombreGrupo + "'");
+        try {
+            int id = ejercicioDAO.findOrCreateGrupo(nombreGrupo.trim());
+            System.out.println("MainAppController(Bridge-Grupos): grupo id=" + id);
+            return id > 0;
+        } catch (Exception e) {
+            System.err.println("ERROR en crearNuevoGrupoMuscular");
+            e.printStackTrace();
+            return false;
         }
     }
     
@@ -346,16 +450,16 @@ public class MainAppController implements Initializable {
                 if (!firstChart) chartData.append(",");
                 chartData.append("{")
                          .append("\"date\":\"").append(escapeJSON(fechaStr)).append("\",")
-                         .append("\"weight\":").append(peso).append(",")
-                         .append("\"bmi\":").append(imc)
+                         .append("\"weight\":").append(String.format(java.util.Locale.US, "%.1f", peso)).append(",")
+                         .append("\"bmi\":").append(String.format(java.util.Locale.US, "%.1f", imc))
                          .append("}");
                 firstChart = false;
                 
                 if (!firstHistory) historyData.append(",");
                 historyData.append("{")
                             .append("\"date\":\"").append(escapeJSON(fechaFull)).append("\",")
-                            .append("\"weight\":").append(peso).append(",")
-                            .append("\"bmi\":").append(imc).append(",")
+                            .append("\"weight\":").append(String.format(java.util.Locale.US, "%.1f", peso)).append(",")
+                            .append("\"bmi\":").append(String.format(java.util.Locale.US, "%.1f", imc)).append(",")
                             .append("\"bmiCategory\":\"").append(escapeJSON(cat)).append("\"")
                             .append("}");
                 firstHistory = false;
@@ -363,15 +467,17 @@ public class MainAppController implements Initializable {
             chartData.append("]");
             historyData.append("]");
             
-            String statsJSON = String.format(
+            String statsJSON = String.format(java.util.Locale.US,
                 "{\"currentWeight\": %.1f, \"currentBMI\": %.1f, \"bmiCategory\": \"%s\", \"weightChange\": %.1f}",
                 currentWeight, currentBMI, escapeJSON(bmiCategory), weightChange
             );
-            
-            return String.format(
+
+            String finalJson = String.format(
                 "{\"stats\": %s, \"chartData\": %s, \"history\": %s}",
                 statsJSON, chartData.toString(), historyData.toString()
             );
+            System.out.println("MainAppController(Bridge-RF04): JSON a devolver: " + finalJson);
+            return finalJson;
             
         } catch (Exception e) {
             System.err.println("¡¡ERROR FATAL en (getDatosDeProgresoJSON)!!");
@@ -457,11 +563,11 @@ public class MainAppController implements Initializable {
             List<Progreso> actividad = progresoDAO.getProgresoReciente(codigoUsuario, 5);
             StringBuilder actividadJson = new StringBuilder("[");
             first = true;
-            for (Progreso p : actividad) {
+                for (Progreso p : actividad) {
                 if (!first) actividadJson.append(",");
                 actividadJson.append("{")
                            .append("\"accion\":\"Peso Registrado\",")
-                           .append("\"detalle\":\"").append(p.getPesoCorporal()).append(" kg\",")
+                           .append("\"detalle\":\"").append(String.format(java.util.Locale.US, "%.1f", p.getPesoCorporal())).append(" kg\",")
                            .append("\"fecha\":\"").append(p.getFecha().toString()).append("\"")
                            .append("}");
                 first = false;
@@ -469,12 +575,14 @@ public class MainAppController implements Initializable {
             actividadJson.append("]");
 
             // 4. Construir el JSON final
-            return String.format(
+            String overviewJson = String.format(
                 "{\"stats\": %s, \"rutinasActivas\": %s, \"actividadReciente\": %s}",
                 statsJson,
                 rutinasJson.toString(),
                 actividadJson.toString()
             );
+            System.out.println("MainAppController(Bridge-DASH): JSON overview: " + overviewJson);
+            return overviewJson;
 
         } catch (Exception e) {
             System.err.println("¡¡ERROR FATAL en (getDashboardOverviewJSON)!!");
@@ -530,16 +638,17 @@ public class MainAppController implements Initializable {
         try {
             Cliente c = clienteDAO.obtenerClientePorId(this.usuarioLogueado.getCodigoUsuario());
             if (c == null) return "{}";
-            
-            // Construir JSON manualmente
+            Double pesoObjetivo = c.getPesoObjetivo();
+            String pesoObjetivoStr = (pesoObjetivo != null) ? String.format(java.util.Locale.US, "%.1f", pesoObjetivo) : "null";
             return String.format(
-                "{\"primerNombre\": \"%s\", \"segundoNombre\": \"%s\", \"primerApellido\": \"%s\", \"segundoApellido\": \"%s\", \"fechaNacimiento\": \"%s\", \"codigoSexo\": %d}",
+                "{\"primerNombre\": \"%s\", \"segundoNombre\": \"%s\", \"primerApellido\": \"%s\", \"segundoApellido\": \"%s\", \"fechaNacimiento\": \"%s\", \"codigoSexo\": %d, \"pesoObjetivo\": %s}",
                 escapeJSON(c.getPrimerNombre()),
                 escapeJSON(c.getSegundoNombre()),
                 escapeJSON(c.getPrimerApellido()),
                 escapeJSON(c.getSegundoApellido()),
                 c.getFechaNacimiento().toString(),
-                c.getCodigoSexo()
+                c.getCodigoSexo(),
+                pesoObjetivoStr
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -567,6 +676,28 @@ public class MainAppController implements Initializable {
         }
         json.append("]");
         return json.toString();
+    }
+
+    // ===================== PESO OBJETIVO (BRIDGE) =====================
+    public String getPesoObjetivo() {
+        if (this.usuarioLogueado == null) return null;
+        System.out.println("MainAppController(Bridge-PesoObjetivo): solicitando peso objetivo actual...");
+        Double val = clienteDAO.obtenerPesoObjetivo(this.usuarioLogueado.getCodigoUsuario());
+        System.out.println("MainAppController(Bridge-PesoObjetivo): valor actual=" + val);
+        if (val == null) return null;
+        // Normalizamos formato (un decimal) para el frontend
+        String formatted = String.format(java.util.Locale.US, "%.1f", val);
+        System.out.println("MainAppController(Bridge-PesoObjetivo): devolviendo='" + formatted + "'");
+        return formatted;
+    }
+
+    public boolean actualizarPesoObjetivo(double nuevoPeso) {
+        if (this.usuarioLogueado == null) return false;
+        if (nuevoPeso <= 0 || nuevoPeso > 500) return false; // sanity check
+        System.out.println("MainAppController(Bridge-PesoObjetivo): Actualizando peso objetivo a " + nuevoPeso);
+        boolean ok = clienteDAO.actualizarPesoObjetivo(this.usuarioLogueado.getCodigoUsuario(), nuevoPeso);
+        System.out.println("MainAppController(Bridge-PesoObjetivo): resultado actualización=" + ok);
+        return ok;
     }
     public boolean actualizarClienteData(String pNombre, String sNombre, String pApellido, String sApellido, String fechaNac) {
     if (this.usuarioLogueado == null) return false;

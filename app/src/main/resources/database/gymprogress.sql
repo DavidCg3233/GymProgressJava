@@ -131,3 +131,10 @@ CREATE TABLE reporte (
 ) ENGINE=InnoDB;
 ALTER TABLE rutina
 ADD COLUMN dia_semana VARCHAR(20) NULL;
+
+-- ========================================
+-- NUEVA COLUMNA: peso_objetivo (Cliente)
+-- ========================================
+-- Agrega un peso objetivo opcional por usuario para objetivos de pérdida/ganancia
+ALTER TABLE cliente
+ADD COLUMN peso_objetivo DECIMAL(5,2) NULL AFTER fecha_nacimiento;

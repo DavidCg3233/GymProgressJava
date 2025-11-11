@@ -10,6 +10,7 @@ public class RutinaEjercicioDTO {
     
     // De la tabla 'ejercicio'
     private String nombre; 
+    private String grupoMuscular;
     
     // De la tabla 'rutina_ejercicio'
     private int series;
@@ -24,6 +25,14 @@ public class RutinaEjercicioDTO {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String getGrupoMuscular() {
+        return grupoMuscular;
+    }
+
+    public void setGrupoMuscular(String grupoMuscular) {
+        this.grupoMuscular = grupoMuscular;
     }
 
     public int getSeries() {

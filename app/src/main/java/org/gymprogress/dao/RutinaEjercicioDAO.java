@@ -33,10 +33,12 @@ public class RutinaEjercicioDAO {
         List<RutinaEjercicioDTO> ejercicios = new ArrayList<>();
         
         // Hacemos un JOIN para obtener el NOMBRE del ejercicio
-        String sql = "SELECT e.nombre, re.series, re.repeticiones, re.peso " +
-                     "FROM rutina_ejercicio re " +
-                     "JOIN ejercicio e ON re.codigo_ejercicio = e.codigo_ejercicio " +
-                     "WHERE re.codigo_rutina = ?";
+    String sql = "SELECT e.nombre, COALESCE(g.nombre_grupo_muscular, e.grupo_muscular, 'General') AS grupo_muscular, " +
+             "re.series, re.repeticiones, re.peso " +
+             "FROM rutina_ejercicio re " +
+             "JOIN ejercicio e ON re.codigo_ejercicio = e.codigo_ejercicio " +
+             "LEFT JOIN grupo_muscular g ON e.codigo_grupo_muscular = g.codigo_grupo_muscular " +
+             "WHERE re.codigo_rutina = ?";
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, codigoRutina);
@@ -48,6 +50,7 @@ public class RutinaEjercicioDAO {
                     dto.setSeries(rs.getInt("series"));
                     dto.setRepeticiones(rs.getInt("repeticiones"));
                     dto.setPeso(rs.getDouble("peso"));
+                    try { dto.setGrupoMuscular(rs.getString("grupo_muscular")); } catch (Exception ignore) {}
                     ejercicios.add(dto);
                 }
             }

@@ -150,6 +150,7 @@ main {
     border: 1px solid var(--border-color);
     border-radius: 12px;
     width: 90%;
+    max-width: 500px;
     max-height: 90vh;
     display: flex;
     flex-direction: column;

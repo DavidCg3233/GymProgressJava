@@ -110,7 +110,7 @@
     <!-- ===================================== -->
     <nav>
         <div class="logo">
-            <img src="../img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" >
+            <img src="../img/Gemini_Generated_Image_m66imgm66imgm66i-removebg-preview.png" alt="Logo GymProgress">
             <h1>GymProgress</h1>
         </div>
         <ul>
@@ -226,22 +226,38 @@
         
         function cargarDatosDelPanel() {
             try {
-                const jsonStr = window.javaBridge.getDashboardOverviewJSON();
-                const data = JSON.parse(jsonStr);
+                // 1) Obtener y renderizar datos de progreso (peso, IMC, historial)
+                const progresoStr = window.javaBridge.getDatosDeProgresoJSON();
+                try {
+                    const progresoData = JSON.parse(progresoStr);
+                    if (progresoData.stats) {
+                        renderStats(progresoData.stats);
+                    } else {
+                        window.javaBridge.logDesdeJS('dashboard.js: No hay stats en getDatosDeProgresoJSON()');
+                    }
 
-                if (data.stats) {
-                    renderStats(data.stats);
+                    // Usamos 'history' como actividad reciente si está disponible
+                    if (Array.isArray(progresoData.history) && progresoData.history.length > 0) {
+                        renderActividad(progresoData.history);
+                    }
+                } catch (pe) {
+                    console.error('Error parseando getDatosDeProgresoJSON():', pe, progresoStr);
+                    window.javaBridge.logDesdeJS('Error JS parseando getDatosDeProgresoJSON(): ' + pe.message);
                 }
-                if (data.rutinasActivas) {
-                    renderRutinas(data.rutinasActivas);
+
+                // 2) Obtener y renderizar rutinas activas (lista simple)
+                try {
+                    const rutinasJSON = window.javaBridge.getRutinasDelUsuarioJSON();
+                    const rutinas = JSON.parse(rutinasJSON);
+                    renderRutinas(rutinas);
+                } catch (re) {
+                    console.error('Error al cargar rutinas:', re);
+                    window.javaBridge.logDesdeJS('Error JS al llamar getRutinasDelUsuarioJSON(): ' + re.message);
                 }
-                if (data.actividadReciente) {
-                    renderActividad(data.actividadReciente);
-                }
-                
+
             } catch (e) {
                 console.error("Error al cargar datos del panel:", e);
-                window.javaBridge.logDesdeJS("Error JS al llamar getDashboardOverviewJSON(): " + e.message);
+                window.javaBridge.logDesdeJS("Error JS en cargarDatosDelPanel(): " + e.message);
             }
         }
         
@@ -278,17 +294,44 @@
             }
             
             document.getElementById("stat-rutinas").textContent = rutinas.length;
-            
-            rutinas.forEach(r => {
+
+            const dias = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+            const jsDay = new Date().getDay(); // 0=Domingo,1=Lunes,...
+            const hoy = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"][jsDay];
+            const idxHoy = dias.indexOf(hoy) === -1 ? 0 : dias.indexOf(hoy);
+
+            const normalizadas = rutinas.map(r => ({
+                codigo: r.codigoRutina,
+                nombre: r.nombreRutina || r.nombre || "(Sin nombre)",
+                dia: r.diaSemana || r.dia || "",
+            }));
+
+            const ordenadas = normalizadas
+                .filter(r => r.dia && dias.includes(r.dia))
+                .sort((a,b) => {
+                    const da = (dias.indexOf(a.dia) - idxHoy + 7) % 7;
+                    const db = (dias.indexOf(b.dia) - idxHoy + 7) % 7;
+                    return da - db;
+                });
+
+            const otras = normalizadas.filter(r => !r.dia || !dias.includes(r.dia));
+            const lista = [...ordenadas, ...otras].slice(0, 5);
+
+            lista.forEach(r => {
                 const item = document.createElement("div");
                 item.className = "upcoming-routine-item";
+                const esHoy = r.dia === hoy;
+                const badge = esHoy ? `<span class="badge" style="margin-left:6px;background:var(--success);color:#fff;">Hoy</span>` : '';
                 item.innerHTML = `
                     <div>
                         <h4>${escapeHTML(r.nombre)}</h4>
-                        <span class="badge" style="margin-top: 0.25rem;">${escapeHTML(r.dia)}</span>
+                        <span class="badge" style="margin-top: 0.25rem;">${escapeHTML(r.dia || 'Sin día')}</span>
+                        ${badge}
                     </div>
                     <i class="ph ph-caret-right" style="color: var(--text-muted);"></i>
                 `;
+                item.style.cursor = 'pointer';
+                item.addEventListener('click', ()=> window.javaBridge.navegar('rutinas.html'));
                 container.appendChild(item);
             });
         }
@@ -296,20 +339,70 @@
         function renderActividad(actividad) {
             const container = document.getElementById("feed-actividad");
             container.innerHTML = ""; // Limpiar placeholder
-            if (actividad.length === 0) {
+            if (!Array.isArray(actividad) || actividad.length === 0) {
                 container.innerHTML = '<p class="text-placeholder">No hay actividad reciente.</p>';
                 return;
             }
-            
-            actividad.forEach(a => {
+
+            // Detectar forma de datos:
+            // 1) actividadReciente del overview: {accion, detalle, fecha}
+            // 2) history de progreso: {date, weight, bmi, bmiCategory}
+            const esHistorialPeso = actividad[0] && ("weight" in actividad[0] || "bmi" in actividad[0] || "bmiCategory" in actividad[0]);
+
+            let items = [];
+            if (esHistorialPeso) {
+                // Copia y ordena por fecha asc para calcular deltas
+                const sorted = [...actividad].sort((a,b) => new Date(a.date) - new Date(b.date));
+                for (let i = 0; i < sorted.length; i++) {
+                    const cur = sorted[i];
+                    const prev = i > 0 ? sorted[i-1] : null;
+                    const delta = prev ? (cur.weight - prev.weight) : 0;
+                    const accion = 'Peso Registrado';
+                    const detalle = `${cur.weight.toFixed(1)} kg — IMC ${cur.bmi.toFixed(1)} (${cur.bmiCategory})${prev ? ` · ${delta>0?'+':''}${delta.toFixed(1)} vs. ant.` : ''}`;
+                    items.push({
+                        type: 'peso',
+                        fecha: cur.date,
+                        accion,
+                        detalle,
+                        delta
+                    });
+                }
+                // Mostrar últimos 6
+                items = items.reverse().slice(0,6);
+            } else {
+                // Ya vienen normalizados desde overview
+                items = actividad.slice(0,6).map(a => ({
+                    type: 'evento',
+                    fecha: a.fecha,
+                    accion: a.accion,
+                    detalle: a.detalle
+                }));
+            }
+
+            items.forEach((it, idx) => {
                 const item = document.createElement("div");
                 item.className = "activity-feed-item";
+                let icon = 'ph-chart-line-up';
+                let color = 'var(--text-light)';
+                if (it.type === 'peso') {
+                    if (it.delta > 0.01) { icon = 'ph-trend-up'; color = 'var(--warning)'; }
+                    else if (it.delta < -0.01) { icon = 'ph-trend-down'; color = 'var(--success)'; }
+                    else { icon = 'ph-activity'; color = 'var(--text-light)'; }
+                } else {
+                    // Heurística para otros eventos
+                    const acc = (it.accion||'').toLowerCase();
+                    if (acc.includes('rutina')) { icon = 'ph-barbell'; color = 'var(--primary)'; }
+                    else if (acc.includes('peso')) { icon = 'ph-scale'; color = 'var(--success)'; }
+                    else { icon = 'ph-check-circle'; color = 'var(--text-light)'; }
+                }
+
+                const badgeNuevo = idx === 0 ? `<span class="badge" style="margin-left:6px;">Nuevo</span>` : '';
                 item.innerHTML = `
-                    <div class="icon"><i class="ph-fill ph-chart-line-up"></i></div>
+                    <div class="icon" style="background-color: var(--bg-dark);"><i class="ph-fill ${icon}" style="color:${color}"></i></div>
                     <div class="info">
-                        <p class="action">${escapeHTML(a.accion)}</p>
-                        <p class="detail">${escapeHTML(a.detalle)}</p>
-                        <p class="date">${escapeHTML(a.fecha)}</p>
+                        <p class="action">${escapeHTML(it.accion)} ${badgeNuevo}</p>
+                        <p class="detail">${escapeHTML(it.detalle)}</p>
+                        <p class="date">${escapeHTML(it.fecha)}</p>
                     </div>`;
                 container.appendChild(item);
             });

@@ -143,8 +143,11 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-card-header">Peso Objetivo</div>
-                <div class="stat-card-body">70.0 kg</div>
+                <div class="stat-card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>Peso Objetivo</span>
+                    <button id="btn-edit-target" class="btn btn-sm btn-secondary" title="Editar peso objetivo"><i class="ph ph-pencil"></i> Editar</button>
+                </div>
+                <div class="stat-card-body"><span id="stat-target-weight">--</span> kg</div>
                 <div class="stat-card-footer">
                     <span id="stat-target-remaining">-- kg</span>
                     <span> restantes</span>
@@ -216,6 +219,29 @@
         </div>
     </div>
 
+    <!-- MODAL: Peso Objetivo -->
+    <div class="modal-overlay" id="target-modal-overlay" style="display:none;">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <h2>Editar Peso Objetivo</h2>
+                <button class="close-modal-btn" id="close-modal-btn-target"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="target-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="target-weight">Peso objetivo (kg)</label>
+                        <input type="number" step="0.1" id="target-weight" placeholder="Ej. 70.0" required>
+                    </div>
+                    <p class="text-placeholder">Este valor se usa para calcular cuánto te falta.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-modal-target">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- 
       * ======================================
       * JAVASCRIPT (Solo para RF04/RF05)
@@ -259,6 +285,12 @@
             const progressWeightInput = document.getElementById("progress-weight");
             const progressDateInput = document.getElementById("progress-date");
             const progressAlturaInput = document.getElementById("progress-altura");
+            const btnEditTarget = document.getElementById("btn-edit-target");
+            const targetModalOverlay = document.getElementById("target-modal-overlay");
+            const targetForm = document.getElementById("target-form");
+            const targetWeightInput = document.getElementById("target-weight");
+            const targetWeightDisplay = document.getElementById("stat-target-weight");
+            const targetRemainingDisplay = document.getElementById("stat-target-remaining");
             
             const statWeight = document.getElementById("stat-current-weight");
             const statWeightTrend = document.getElementById("stat-weight-change-trend");
@@ -277,7 +309,8 @@
                     window.javaBridge.logDesdeJS("RF04: No hay estadísticas para renderizar.");
                     statWeight.textContent = "-- kg";
                     statBMI.textContent = "--";
-                    statTarget.textContent = "-- kg";
+                    targetWeightDisplay.textContent = "--";
+                    targetRemainingDisplay.textContent = "-- kg";
                     statBMICat.textContent = "N/A";
                     statWeightTrend.innerHTML = "";
                     statWeightLabel.textContent = "Sin datos";
@@ -303,7 +336,19 @@
                 statWeightTrend.className = `trend ${trendClass}`;
                 statWeightLabel.textContent = stats.weightChange === 0 ? "sin cambios" : "desde la última vez";
                 
-                statTarget.textContent = `${(stats.currentWeight - 70.0).toFixed(1)} kg`;
+                // Peso objetivo dinámico
+                let objetivo = null;
+                try { const val = window.javaBridge.getPesoObjetivo(); objetivo = val ? parseFloat(val) : null; } catch(e) {}
+                if (objetivo) {
+                    targetWeightDisplay.textContent = objetivo.toFixed(1);
+                    const diffRaw = objetivo - stats.currentWeight; // positivo si falta bajar
+                    const diffAbs = Math.abs(diffRaw);
+                    // Mostrar solo la cantidad restante en kg; la palabra "restantes" ya está en el DOM
+                    targetRemainingDisplay.textContent = `${diffAbs.toFixed(1)} kg`;
+                } else {
+                    targetWeightDisplay.textContent = "--";
+                    targetRemainingDisplay.textContent = "-- kg";
+                }
             }
 
             function renderCharts(chartData) {
@@ -377,25 +422,60 @@
             }
             
             function openProgressModal() {
-                progressForm.reset();
-                progressDateInput.valueAsDate = new Date();
-                modalOverlay.style.display = "flex";
+                window.javaBridge.logDesdeJS("RF04: Abriendo modal de registro de peso...");
+                
+                try {
+                    progressForm.reset();
+                    
+                    // Establecer fecha actual en formato YYYY-MM-DD
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    progressDateInput.value = `${yyyy}-${mm}-${dd}`;
+                    
+                    modalOverlay.style.display = "flex";
+                    window.javaBridge.logDesdeJS("RF04: Modal abierto correctamente");
+                    
+                } catch(err) {
+                    window.javaBridge.logDesdeJS("RF04: ERROR: " + err.message);
+                }
             }
             function closeProgressModal() {
                 modalOverlay.style.display = "none";
             }
 
+            function openTargetModal() {
+                try {
+                    const current = targetWeightDisplay.textContent !== "--" ? parseFloat(targetWeightDisplay.textContent) : "";
+                    targetForm.reset();
+                    targetWeightInput.value = current || "";
+                    targetModalOverlay.style.display = "flex";
+                } catch(e){ window.javaBridge.logDesdeJS("RF04: Error abriendo modal objetivo: " + e.message); }
+            }
+            function closeTargetModal(){ targetModalOverlay.style.display = "none"; }
+
             btnNewProgress.addEventListener("click", openProgressModal);
             btnCloseModal.addEventListener("click", closeProgressModal);
             btnCancelModal.addEventListener("click", closeProgressModal);
+            document.getElementById("close-modal-btn-target").addEventListener("click", closeTargetModal);
+            document.getElementById("btn-cancel-modal-target").addEventListener("click", closeTargetModal);
+            btnEditTarget.addEventListener("click", openTargetModal);
+            
+            window.javaBridge.logDesdeJS("RF04: Event listeners configurados correctamente.");
             
             progressForm.addEventListener("submit", (e) => {
                 e.preventDefault();
+                window.javaBridge.logDesdeJS("RF04: Submit del formulario disparado");
+                
                 const peso = parseFloat(progressWeightInput.value);
                 const fecha = progressDateInput.value;
                 const altura = parseFloat(progressAlturaInput.value) || 0;
 
+                window.javaBridge.logDesdeJS(`RF04: Valores capturados - Peso: ${peso}, Fecha: ${fecha}, Altura: ${altura}`);
+
                 if (!peso || !fecha || peso <= 0) {
+                    window.javaBridge.logDesdeJS("RF04: Validación fallida - datos incompletos");
                     alert("Por favor, ingresa un peso y fecha válidos.");
                     return;
                 }
@@ -403,6 +483,7 @@
                 window.javaBridge.logDesdeJS(`RF04: Registrando nuevo peso: ${peso} en ${fecha} (Altura opcional: ${altura})`);
                 try {
                     const exito = window.javaBridge.registrarNuevoProgreso(peso, fecha, altura);
+                    window.javaBridge.logDesdeJS(`RF04: Resultado de registrarNuevoProgreso: ${exito}`);
                     if (exito) {
                         closeProgressModal();
                         cargarMiProgreso();
@@ -410,7 +491,35 @@
                         alert("Error: Java devolvió 'false' al registrar el peso.\n\nAsegúrate de haber registrado tu altura inicial (esto se hace en el formulario de registro de usuario).");
                     }
                 } catch(err) {
+                    window.javaBridge.logDesdeJS(`RF04: Error en registrarNuevoProgreso: ${err.message}`);
                     alert("Error fatal al llamar a javaBridge.registrarNuevoProgreso(): " + err.message);
+                }
+            });
+
+            targetForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const val = parseFloat(targetWeightInput.value);
+                if (!val || val <= 0 || val > 500) { alert("Ingresa un peso objetivo válido."); return; }
+                try {
+                    window.javaBridge.logDesdeJS(`RF04: Guardando peso objetivo: ${val}`);
+                    const ok = window.javaBridge.actualizarPesoObjetivo(val);
+                    window.javaBridge.logDesdeJS(`RF04: Resultado actualizarPesoObjetivo: ${ok}`);
+                    if (ok) {
+                        // Refrescar UI al instante
+                        targetWeightDisplay.textContent = val.toFixed(1);
+                        const currentWeightText = document.getElementById("stat-current-weight").textContent || ""; // ej: "80.0 kg"
+                        const currentWeight = parseFloat(currentWeightText);
+                        if (!isNaN(currentWeight)) {
+                            const diffRaw = val - currentWeight;
+                            targetRemainingDisplay.textContent = `${Math.abs(diffRaw).toFixed(1)} kg`;
+                        }
+                        closeTargetModal();
+                        cargarMiProgreso();
+                    }
+                    else { alert("No se pudo guardar el peso objetivo."); }
+                } catch(err){
+                    window.javaBridge.logDesdeJS(`RF04: Error en actualizarPesoObjetivo: ${err.message}`);
+                    alert("Error: " + err.message);
                 }
             });
 
