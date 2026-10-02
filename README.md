@@ -7,11 +7,8 @@ Aplicación de escritorio para registrar y hacer seguimiento de rutinas de entre
 
 ## Funcionalidades
 
-**[COMPLETAR: lista corta de lo que hace la app, por ejemplo: registrar rutinas, guardar métricas de entrenamiento, ver el progreso, etc. Solo lo que realmente funciona.]**
+registrar rutinas y ejercicios, guardar métricas de entrenamiento, ver el progreso
 
-## Capturas de pantalla
-
-**[COMPLETAR: 2 o 3 imágenes de la app funcionando (carpeta `docs/` o `img/` del repo).]**
 
 ## Tecnologías
 
@@ -25,8 +22,6 @@ Aplicación de escritorio para registrar y hacer seguimiento de rutinas de entre
 - **MySQL Server 8.x** en ejecución (y, opcionalmente, MySQL Workbench).
 - Git.
 
-Comprueba tu versión de Java con `java -version`.
-
 ## Instalación y ejecución
 
 1. Clona el repositorio:
@@ -34,8 +29,8 @@ Comprueba tu versión de Java con `java -version`.
    git clone https://github.com/DavidCg3233/GymProgressJava.git
    cd GymProgressJava
    ```
-2. Crea la base de datos en MySQL: **[COMPLETAR: nombre de la base de datos y script `.sql` con las tablas; subir el script al repo]**.
-3. Configura la conexión (host, puerto, usuario, contraseña y nombre de la base) en `app/src/main/java/org/gymprogress/dao/ConexionDB.java`. **[COMPLETAR: confirmar la ruta exacta]**
+2. Crea la base de datos en MySQL: gymprogress.sql
+3. Abre app/src/main/java/org/gymprogress/dao/ConexionDB.java y ajusta USER y PASSWORD con los de tu MySQL local. Por defecto la aplicación se conecta a jdbc:mysql://localhost:3306/gymprogress
 4. Ejecuta la aplicación:
    ```bash
    ./gradlew run          # Linux / macOS
