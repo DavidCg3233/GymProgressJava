@@ -163,6 +163,12 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 | 2026-11-10 | T-006-02 | `98203b4` · 17 pruebas | `[DAVID]` |
 | 2026-11-10 | T-006-15 | 64 pruebas de reglas (se escribieron primero y fallaron; luego el código) | `[DAVID]` |
 
+| 2026-11-10 | T-006-03 | **Bloqueada, sin verificar.** Archivos escritos (`Dockerfile`, `docker-compose.yml`, 3 pruebas de PostgreSQL) y sintaxis validada, pero nunca se ejecutó: Docker no arranca porque el equipo no tiene WSL. | — |
+
+### Bloqueos
+
+- **T-006-03 necesita WSL.** Docker Desktop está instalado pero su motor no inicia: "El Subsistema de Windows para Linux no está instalado". Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y correr, en `deploy/`, `docker compose run --rm backend sh -c "python manage.py migrate --noinput && pytest"`. La tarea se cierra cuando las 84 pruebas pasan ahí (incluidas las 3 de PostgreSQL).
+
 ### Notas técnicas
 
 - **T-006-15 se adelantó** a las fases 0 a 2 porque no depende de nada y David pidió empezar por las pruebas unitarias (TDD).

@@ -1,0 +1,54 @@
+# Entorno de desarrollo y pruebas de GymProgress.
+#
+#   Levantar todo:        docker compose up
+#   Correr las pruebas:   docker compose run --rm backend pytest
+#
+# Los valores salen de deploy/.env (copia de .env.example), que no se sube al repo.
+
+name: gymprogress
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${GP_DB_NAME:?Falta GP_DB_NAME en deploy/.env}
+      POSTGRES_USER: ${GP_DB_USER:?Falta GP_DB_USER en deploy/.env}
+      POSTGRES_PASSWORD: ${GP_DB_PASSWORD:?Falta GP_DB_PASSWORD en deploy/.env}
+    volumes:
+      - datos_db:/var/lib/postgresql/data
+    # La base no se publica fuera de Docker: solo el servidor la alcanza.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: ../backend
+      args:
+        REQUISITOS: requirements-dev.txt
+    environment:
+      GP_SECRET_KEY: ${GP_SECRET_KEY:?Falta GP_SECRET_KEY en deploy/.env}
+      GP_DEBUG: ${GP_DEBUG:-0}
+      GP_ALLOWED_HOSTS: ${GP_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      GP_DB_NAME: ${GP_DB_NAME}
+      GP_DB_USER: ${GP_DB_USER}
+      GP_DB_PASSWORD: ${GP_DB_PASSWORD}
+      GP_DB_HOST: db
+      GP_DB_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+    # Solo desde este equipo; no queda expuesto a la red local.
+    ports:
+      - "127.0.0.1:8000:8000"
+    # El código se monta para ver los cambios sin reconstruir la imagen.
+    volumes:
+      - ../backend:/app
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+
+volumes:
+  datos_db:
