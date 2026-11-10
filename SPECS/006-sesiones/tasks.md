@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 38 cerradas · 18 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09 a 13, 15 a 22). Servidor del hito A completo |
+| **Avance** | 0 de 38 cerradas · 26 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09 a 16, 17 a 29). Hito A usable con conexión; falta la fase 6 (sin conexión) |
 
 > **Cómo se usa este archivo**
 > - **Una tarea = un commit**, en orden. No se salta de fase.
@@ -177,6 +177,8 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 | 2026-11-10 | T-006-20 | Cierre a las 2 horas y descarte de sesiones vacías, sin tarea programada | `[DAVID]` |
 | 2026-11-10 | T-006-21 | Historial por páginas de 20, detalle y eliminar | `[DAVID]` |
 | 2026-11-10 | T-006-22 | Arranque: sesión en curso, "última vez" serie por serie y nota de la última vez | `[DAVID]` |
+| 2026-11-10 | T-006-14 | Pantalla de acceso, cambio de contraseña (obligatorio con temporal) y salir | `[DAVID]` |
+| 2026-11-10 | T-006-23 a 29 | Pantallas de inicio, sesión en curso e historial. Lógica de la sesión en funciones puras con 28 pruebas; pantallas recorridas a mano en 375 px: entrar, sesión libre, agregar ejercicio, confirmar (1 toque), +0,5 kg y confirmar (2 toques), rechazo de 30,3 kg, recargar a mitad de sesión, nota de la última vez, precarga, terminar con resumen, descartar sesión vacía, historial, detalle, eliminar y salir | `[DAVID]` |
 | 2026-11-10 | T-006-03 | `e2dc212` · Docker Compose con PostgreSQL 16. **Verificada en GitHub Actions:** migraciones y 105 pruebas dentro de Docker, incluidas las 3 de PostgreSQL. En el equipo de David sigue sin poder correr (falta WSL) | `[DAVID]` |
 
 ### Bloqueos
@@ -184,6 +186,10 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 - **Docker no corre en el equipo de David: falta WSL.** No bloquea el avance, porque GitHub Actions ejecuta lo mismo en cada PR, pero sin WSL no se puede levantar el servidor completo en local. Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y, en `deploy/`, `docker compose up`.
 
 ### Notas técnicas
+
+- **Las pantallas todavía no funcionan sin conexión.** Si se cae la señal, el cambio se ve en el celular pero no llega al servidor y se pierde al recargar; la pantalla avisa "este cambio no se guardó". Eso es exactamente la fase 6 (T-006-30 a 34: IndexedDB, cola de pendientes y service worker).
+- **Probar en tu equipo sin Docker:** `backend/config/settings_local.py` usa SQLite. En `backend`: `.venv\Scripts\python.exe manage.py migrate --settings=config.settings_local`, `createsuperuser` con la misma opción, y `runserver --settings=config.settings_local`. En `frontend`: `npm run dev`. Abrir http://localhost:5173.
+- **Dos errores encontrados al probar en el navegador:** (1) el resumen al terminar no aparecía, porque la pantalla de sesión desaparecía antes de avisar; ahora el resumen vive en el estado compartido. (2) Un ejercicio conocido quedaba con el nombre como se escribió ese día; ahora conserva el nombre registrado, pero respeta el grupo que se elija.
 
 - **El PR #6 se fusionó con la revisión del servidor en rojo.** Las pruebas pasaban en PostgreSQL; falló la auditoría de dependencias: Django REST Framework 3.17.2 tiene 3 vulnerabilidades conocidas (CVE-2026-114136, 114137 y 114138), corregidas en 3.18.2. La había dejado fija por debajo de 3.18. Se subió a 3.18.3 en la rama `fix/006-dependencias`. Es RNF-SEG-07 funcionando: la revisión lo detectó; lo que falló fue fusionar sin esperarla.
 - **12 errores internos encontrados con pruebas de entradas hostiles** (`test_entradas_hostiles.py`): un identificador de ejercicio que no era UUID, o un nombre o nota que no era texto, hacían fallar al servidor con error 500 en vez de rechazar el dato. Corregido en las reglas de Python y de JavaScript.
