@@ -24,3 +24,6 @@ Thumbs.db
 .gradle
 build
 .vite/
+
+# Base de datos local de desarrollo
+*.sqlite3
