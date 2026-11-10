@@ -23,6 +23,11 @@ os.environ.setdefault("GP_DB_HOST", "no-se-usa")
 from .settings import *  # noqa: E402,F401,F403
 from .settings import BASE_DIR  # noqa: E402
 
+# En desarrollo la pantalla corre en el puerto 5173 y le reenvía las peticiones
+# a este servidor. Para la protección CSRF eso es "otro origen", así que hay que
+# declararlo de confianza. En producción ambos comparten dominio y no hace falta.
+CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",

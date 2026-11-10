@@ -34,7 +34,8 @@ export function agregarEjercicio(sesion, { id, idSerie, nombre, grupo, ultimaVez
 
   const ejercicio = {
     id,
-    nombre: nombreValido,
+    // Un ejercicio conocido conserva el nombre con que se registró, aunque hoy se escriba distinto.
+    nombre: ultimaVez?.[clave]?.nombre ?? nombreValido,
     grupo: grupoValido,
     orden: sesion.ejercicios.length + 1,
     nota: '',

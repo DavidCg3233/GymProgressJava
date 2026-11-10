@@ -77,6 +77,15 @@ describe('RF-006-13: agregar un ejercicio', () => {
     expect(ejercicio.series[0].peso).toBe(30)
   })
 
+  it('si ya lo conoce, usa el nombre con que lo registré antes, pero respeta el grupo que elijo', () => {
+    const sesion = nuevaSesionLibre({ id: id(), ahora: AHORA })
+
+    const ejercicio = agregarEjercicio(sesion, { id: id(), idSerie: id(), nombre: 'press INCLINADO', grupo: 'Hombro', ultimaVez: ULTIMA_VEZ })
+
+    expect(ejercicio.nombre).toBe('Press inclinado')
+    expect(ejercicio.grupo).toBe('Hombro')
+  })
+
   it('si nunca lo he hecho, la serie viene vacía para que yo la llene', () => {
     const sesion = nuevaSesionLibre({ id: id(), ahora: AHORA })
 
