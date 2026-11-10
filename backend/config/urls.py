@@ -12,5 +12,6 @@ admin.site.index_title = "Cuentas"
 urlpatterns = [
     path("salud/", vistas.salud, name="salud"),
     path("api/acceso/", include("cuentas.urls")),
+    path("api/", include("sesiones.urls")),
     path("panel/", admin.site.urls),
 ]

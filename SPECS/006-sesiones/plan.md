@@ -104,6 +104,9 @@ Todas requieren acceso. Todas operan solo sobre datos del usuario que hace la pe
 | `GET /api/sesiones/{id}` | — | Sesión con ejercicios y series | 404 | RF-006-10 |
 | `DELETE /api/sesiones/{id}` | — | — | 404 | RF-006-15 |
 
+- **Toda escritura de ejercicio o serie lleva `momento`:** la hora en que ocurrió en el celular (RN-006-17). El servidor decide con esa hora, no con la de llegada. Si falta, usa la hora actual.
+- **Lo ajeno y lo inexistente responden igual: 404.** No se confirma que un dato de otra persona exista. Por eso quitar una serie ya quitada también da 404, y la cola de pendientes lo toma como "ya estaba hecho".
+- **Hito A:** la sesión todavía no tiene el campo `rutina` ni el ejercicio su referencia al catálogo; se agregan con la spec 002. El ejercicio se reconoce por su nombre sin mayúsculas ni tildes.
 - **`PUT` con identificador del cliente = operación repetible.** Enviar dos veces la misma serie deja el mismo resultado. Es lo que hace segura la cola de pendientes.
 - **Error 400** siempre trae el campo y el rango permitido, en español y sin términos técnicos (RF-006-24, RNF-USA-02, RNF-SEG-09).
 

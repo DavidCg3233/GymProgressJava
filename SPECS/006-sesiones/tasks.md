@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 38 cerradas · 11 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09 a 12, 15, 16) |
+| **Avance** | 0 de 38 cerradas · 18 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09 a 13, 15 a 22). Servidor del hito A completo |
 
 > **Cómo se usa este archivo**
 > - **Una tarea = un commit**, en orden. No se salta de fase.
@@ -170,6 +170,13 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 | 2026-11-10 | T-006-10 | `7b0168f` · Entrar con usuario o correo, salir, acceso de 7 días renovado con cada uso, cookie HttpOnly + Secure + SameSite=Lax, protección CSRF. 28 pruebas escritas primero | `[DAVID]` |
 | 2026-11-10 | T-006-11 | `7663a30` · Bloqueo de 15 minutos tras 5 intentos fallidos, por cuenta (no se evade cambiando mayúsculas ni alternando usuario y correo). 10 pruebas escritas primero | `[DAVID]` |
 | 2026-11-10 | T-006-12 | Cuentas por invitación: tope de 5, contraseña temporal que se muestra una sola vez, cambio de contraseña pidiendo la actual, panel del dueño en `/panel/`, sin registro público. 41 pruebas escritas primero | `[DAVID]` |
+| 2026-11-10 | T-006-13 | Base de la API: sin acceso responde 401, lo ajeno responde 404, con contraseña temporal responde 403, y toda escritura exige el token CSRF. Una prueba recorre **todas** las operaciones con una segunda cuenta | `[DAVID]` |
+| 2026-11-10 | T-006-17 | Modelos `sesion`, `sesion_ejercicio`, `serie` con identificadores UUID del celular y restricciones en la base (rangos, una sola sesión en curso) | `[DAVID]` |
+| 2026-11-10 | T-006-18 | Guardar sesión: libre, una sola en curso, terminar con nombre y nota, no reabrir, repetir el envío sin duplicar | `[DAVID]` |
+| 2026-11-10 | T-006-19 | Ejercicios y series: confirmar, corregir, agregar, quitar; tabla de bordes CA-006-24a comprobada en el servidor | `[DAVID]` |
+| 2026-11-10 | T-006-20 | Cierre a las 2 horas y descarte de sesiones vacías, sin tarea programada | `[DAVID]` |
+| 2026-11-10 | T-006-21 | Historial por páginas de 20, detalle y eliminar | `[DAVID]` |
+| 2026-11-10 | T-006-22 | Arranque: sesión en curso, "última vez" serie por serie y nota de la última vez | `[DAVID]` |
 | 2026-11-10 | T-006-03 | `e2dc212` · Docker Compose con PostgreSQL 16. **Verificada en GitHub Actions:** migraciones y 105 pruebas dentro de Docker, incluidas las 3 de PostgreSQL. En el equipo de David sigue sin poder correr (falta WSL) | `[DAVID]` |
 
 ### Bloqueos
@@ -177,6 +184,11 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 - **Docker no corre en el equipo de David: falta WSL.** No bloquea el avance, porque GitHub Actions ejecuta lo mismo en cada PR, pero sin WSL no se puede levantar el servidor completo en local. Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y, en `deploy/`, `docker compose up`.
 
 ### Notas técnicas
+
+- **Hueco de diseño encontrado al construir la API (T-006-19, 20):** el plan decía que el servidor cierra la sesión a las 2 horas. Pero si el celular estuvo sin señal más de 2 horas, al sincronizar el servidor ya la habría cerrado y rechazaría todas las series: se perdía justo lo que RF-006-16 promete conservar. Solución: cada acción lleva la hora en que ocurrió (`momento`) y el servidor decide con esa hora. Quedó escrito en la spec como RN-006-17, 18 y 19. Lo detectaron las pruebas de `test_sincronizacion.py`, escritas antes del código.
+- **Segundo error, encontrado por las pruebas:** una sesión de hace días que apenas se sincronizaba se borraba por "vencida y vacía" antes de que llegaran sus series. El margen de 24 horas ahora cuenta desde el último envío del celular, no desde el fin de la sesión.
+- **Riesgo aceptado:** el servidor confía en la hora que reporta el celular. Alguien podría falsearla para modificar una sesión suya ya terminada. Solo afecta sus propios datos.
+- **T-006-12 quedó completa con T-006-13:** con contraseña temporal la API responde 403 hasta cambiarla.
 
 - **Riesgo aceptado en T-006-11 (RNF-ACC-07):** el bloqueo es por cuenta, como pide RNF-ACC-07. Consecuencia: quien conozca tu nombre de usuario puede dejarte fuera 15 minutos fallando 5 veces a propósito. La alternativa (bloquear por cuenta y dirección de red) evita eso, pero deja pasar a quien cambie de red. **Decidido por David el 2026-11-10: se queda por cuenta.** Que alguien moleste 15 minutos es menos grave que darle intentos ilimitados para adivinar la contraseña.
 - **Pendiente de T-006-12:** el servidor ya avisa cuando hay que cambiar una contraseña temporal, pero todavía no impide usar el resto de la app hasta cambiarla. Eso se hace cumplir en T-006-13, con la base de permisos de la API.
