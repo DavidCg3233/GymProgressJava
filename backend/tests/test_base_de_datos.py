@@ -21,5 +21,5 @@ def test_la_version_de_postgresql_es_la_del_plan():
 
 
 def test_las_migraciones_iniciales_estan_aplicadas():
-    # Si la tabla de usuarios de Django existe, las migraciones corrieron (RNF-MAN-02).
-    assert "auth_user" in connection.introspection.table_names()
+    # Si la tabla de cuentas existe, las migraciones corrieron (RNF-MAN-02).
+    assert "cuentas_usuario" in connection.introspection.table_names()

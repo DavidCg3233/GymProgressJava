@@ -28,6 +28,32 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "cuentas",
+]
+
+# --- Cuentas y contraseñas -------------------------------------------------
+
+AUTH_USER_MODEL = "cuentas.Usuario"
+
+# RNF-SEG-01: cifrado de una vía con Argon2. Nunca se guarda la contraseña.
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+]
+
+# RNF-SEG-10: mínimo 10 caracteres, y además que no sea adivinable.
+LARGO_MINIMO_DE_CONTRASENA = 10
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": LARGO_MINIMO_DE_CONTRASENA},
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "OPTIONS": {"user_attributes": ("usuario", "correo", "nombre")},
+    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 MIDDLEWARE = [

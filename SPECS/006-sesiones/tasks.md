@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 38 cerradas · 5 con código listo esperando la línea de David en la bitácora (T-006-01, 02, 04, 15, 16) · T-006-03 bloqueada por WSL |
+| **Avance** | 0 de 38 cerradas · 7 con código listo esperando la línea de David en la bitácora (T-006-01, 02, 04, 05, 09, 15, 16) · T-006-03 bloqueada por WSL en el equipo; el PR la verifica en GitHub Actions |
 
 > **Cómo se usa este archivo**
 > - **Una tarea = un commit**, en orden. No se salta de fase.
@@ -165,6 +165,8 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 
 | 2026-11-10 | T-006-04 | `47ff882` · esqueleto Vue + Vite; página comprobada a 375 px sin desplazamiento horizontal | `[DAVID]` |
 | 2026-11-10 | T-006-16 | `47ff882` · 76 pruebas en JavaScript (mismas tablas que Python, más la precarga de una serie) | `[DAVID]` |
+| 2026-11-10 | T-006-05 | `88c3def` · GitHub Actions con 3 revisiones. **Sin verificar:** corre por primera vez al abrir el PR | `[DAVID]` |
+| 2026-11-10 | T-006-09 | Modelo de cuenta con TDD: 21 pruebas (campos mínimos, unicidad sin distinguir mayúsculas, Argon2, mínimo 10 caracteres) | `[DAVID]` |
 | 2026-11-10 | T-006-03 | **Bloqueada, sin verificar.** Archivos escritos (`Dockerfile`, `docker-compose.yml`, 3 pruebas de PostgreSQL) y sintaxis validada, pero nunca se ejecutó: Docker no arranca porque el equipo no tiene WSL. | — |
 
 ### Bloqueos
