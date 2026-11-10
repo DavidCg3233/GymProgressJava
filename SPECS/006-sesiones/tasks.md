@@ -178,7 +178,7 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 
 ### Notas técnicas
 
-- **Riesgo aceptado en T-006-11:** el bloqueo es por cuenta, como pide RNF-ACC-07. Consecuencia: quien conozca tu nombre de usuario puede dejarte fuera 15 minutos fallando 5 veces a propósito. La alternativa (bloquear por cuenta y dirección de red) evita eso, pero deja pasar a quien cambie de red. Con 5 cuentas privadas se dejó como dice el requisito. `[DECIDIR]` si quieres cambiarlo.
+- **Riesgo aceptado en T-006-11 (RNF-ACC-07):** el bloqueo es por cuenta, como pide RNF-ACC-07. Consecuencia: quien conozca tu nombre de usuario puede dejarte fuera 15 minutos fallando 5 veces a propósito. La alternativa (bloquear por cuenta y dirección de red) evita eso, pero deja pasar a quien cambie de red. **Decidido por David el 2026-11-10: se queda por cuenta.** Que alguien moleste 15 minutos es menos grave que darle intentos ilimitados para adivinar la contraseña.
 - **Pendiente de T-006-12:** el servidor ya avisa cuando hay que cambiar una contraseña temporal, pero todavía no impide usar el resto de la app hasta cambiarla. Eso se hace cumplir en T-006-13, con la base de permisos de la API.
 - **Primera cuenta del dueño:** se crea una sola vez en el servidor con `python manage.py createsuperuser`. Las demás, desde `/panel/`.
 
