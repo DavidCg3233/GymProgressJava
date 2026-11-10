@@ -10,3 +10,6 @@
 # Binary files should be left untouched
 *.jar           binary
 
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.sh text eol=lf
