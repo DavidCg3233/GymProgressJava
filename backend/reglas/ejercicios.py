@@ -3,6 +3,7 @@
 import unicodedata
 
 from .errores import ErrorDeValidacion
+from .textos import exigir_texto
 
 # RN-002-07 y RN-002-08.
 LARGO_MAXIMO_NOMBRE_DE_EJERCICIO = 50
@@ -16,7 +17,7 @@ _TILDE_DE_LA_ENIE = "̃"
 
 
 def validar_nombre_de_ejercicio(valor: str | None) -> str:
-    nombre = (valor or "").strip()
+    nombre = exigir_texto(valor, "nombre").strip()
     if not nombre:
         raise ErrorDeValidacion("nombre", "Escribe el nombre del ejercicio.")
     if len(nombre) > LARGO_MAXIMO_NOMBRE_DE_EJERCICIO:
@@ -27,7 +28,7 @@ def validar_nombre_de_ejercicio(valor: str | None) -> str:
 
 
 def validar_grupo_muscular(valor: str | None) -> str:
-    grupo = (valor or "").strip()
+    grupo = exigir_texto(valor, "grupo").strip()
     if not grupo:
         raise ErrorDeValidacion("grupo", "Elige el grupo muscular.")
     if len(grupo) > LARGO_MAXIMO_GRUPO:
