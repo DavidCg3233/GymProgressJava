@@ -2,6 +2,7 @@
 // La sesión de entrenamiento en curso (T-006-23 a T-006-28).
 import { computed, ref } from 'vue'
 
+import EstadoDeSincronizacion from '../componentes/EstadoDeSincronizacion.vue'
 import TarjetaDeEjercicio from '../componentes/TarjetaDeEjercicio.vue'
 import { agregarEjercicio, estado, terminarSesion } from '../estado/sesion.js'
 import { claveDeEjercicio } from '../reglas/ejercicios.js'
@@ -74,8 +75,7 @@ async function terminar() {
       <button class="boton boton--texto" type="button" @click="emit('volver')">Inicio</button>
     </header>
 
-    <!-- RF-006-18: cambios que el servidor aún no confirma. -->
-    <p v-if="estado.aviso" class="mensaje mensaje--aviso" role="status">{{ estado.aviso }}</p>
+    <EstadoDeSincronizacion />
 
     <TarjetaDeEjercicio v-for="ejercicio in sesion.ejercicios" :key="ejercicio.id" :ejercicio="ejercicio" />
 

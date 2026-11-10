@@ -8,6 +8,7 @@ import {
   agregarEjercicio,
   agregarSerie,
   confirmarSerie,
+  incorporarAUltimaVez,
   nuevaSesionLibre,
   quitarSerie,
   seriesConfirmadas,
@@ -254,5 +255,50 @@ describe('RF-006-07, 19, 21, 22: terminar', () => {
     agregarSerie(ejercicio, { id: id(), ultimaVez: ULTIMA_VEZ })
 
     expect(seriesConfirmadas(sesion)).toBe(1)
+  })
+})
+
+describe('RN-006-08: al terminar, lo de hoy pasa a ser "la última vez" (también sin conexión)', () => {
+  function terminadaHoy() {
+    const { sesion, ejercicio } = sesionConPress()
+    confirmarSerie(ejercicio.series[0], { peso: 35, reps: 5 })
+    agregarSerie(ejercicio, { id: id(), ultimaVez: ULTIMA_VEZ }) // serie 2 sin confirmar
+    ejercicio.nota = 'bajar a 32,5'
+    const fondos = agregarEjercicio(sesion, { id: id(), idSerie: id(), nombre: 'Fondos', grupo: 'Pecho', ultimaVez: {} })
+    confirmarSerie(fondos.series[0], { peso: 0, reps: 12 })
+    agregarEjercicio(sesion, { id: id(), idSerie: id(), nombre: 'Aperturas', grupo: 'Pecho', ultimaVez: {} }) // nada confirmado
+    terminarSesion(sesion, { ahora: despues(50), nombre: '', nota: '' })
+    return sesion
+  }
+
+  it('cada serie confirmada hoy reemplaza la de ese número; las demás se conservan', () => {
+    const nueva = incorporarAUltimaVez(ULTIMA_VEZ, terminadaHoy())
+
+    expect(nueva['press inclinado'].series).toEqual([
+      { numero: 1, peso: 35, reps: 5 },
+      { numero: 2, peso: 32.5, reps: 8 },
+      { numero: 3, peso: 32.5, reps: 6 },
+    ])
+  })
+
+  it('RN-006-16: la nota es la de hoy, aunque esté vacía', () => {
+    const nueva = incorporarAUltimaVez(ULTIMA_VEZ, terminadaHoy())
+
+    expect(nueva['press inclinado'].nota).toBe('bajar a 32,5')
+  })
+
+  it('un ejercicio nuevo entra; uno sin series confirmadas no', () => {
+    const nueva = incorporarAUltimaVez(ULTIMA_VEZ, terminadaHoy())
+
+    expect(nueva.fondos).toEqual({ nombre: 'Fondos', grupo: 'Pecho', nota: '', series: [{ numero: 1, peso: 0, reps: 12 }] })
+    expect(nueva.aperturas).toBeUndefined()
+  })
+
+  it('no modifica la última vez original', () => {
+    const copia = structuredClone(ULTIMA_VEZ)
+
+    incorporarAUltimaVez(ULTIMA_VEZ, terminadaHoy())
+
+    expect(ULTIMA_VEZ).toEqual(copia)
   })
 })

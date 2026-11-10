@@ -2,12 +2,30 @@
 // Pantalla de inicio: lo primero es empezar o continuar la sesión (RNF-006-03).
 import { ref } from 'vue'
 
+import EstadoDeSincronizacion from '../componentes/EstadoDeSincronizacion.vue'
 import { acceso, salir } from '../estado/acceso.js'
-import { empezarSesionLibre, estado } from '../estado/sesion.js'
+import { empezarSesionLibre, estado, olvidarDatosLocales } from '../estado/sesion.js'
 
 const emit = defineEmits(['sesion', 'historial', 'contrasena'])
 
 const error = ref('')
+const confirmandoSalida = ref(false)
+
+// RNF-ACC-04: al salir no queda nada de esta persona en el celular.
+// Si hay cambios sin enviar, se perderían: primero se avisa (RNF-USA-04).
+async function salirDeLaCuenta() {
+  if (estado.pendientes > 0 && !confirmandoSalida.value) {
+    confirmandoSalida.value = true
+    return
+  }
+  error.value = ''
+  try {
+    await salir()
+    await olvidarDatosLocales()
+  } catch (fallo) {
+    error.value = fallo.sinConexion ? 'Para salir de la cuenta necesitas conexión.' : fallo.mensaje
+  }
+}
 
 function empezar() {
   error.value = ''
@@ -43,7 +61,7 @@ function empezar() {
       </ul>
     </section>
 
-    <p v-if="estado.aviso" class="mensaje mensaje--aviso" role="status">{{ estado.aviso }}</p>
+    <EstadoDeSincronizacion />
     <p v-if="error" class="mensaje mensaje--error" role="alert">{{ error }}</p>
 
     <!-- RF-006-02: si hay una sesión en curso, lo primero es continuarla. -->
@@ -56,9 +74,20 @@ function empezar() {
 
     <button class="boton boton--ancho" type="button" @click="emit('historial')">Historial</button>
 
+    <section v-if="confirmandoSalida" class="tarjeta">
+      <p>
+        Tienes {{ estado.pendientes }} {{ estado.pendientes === 1 ? 'cambio' : 'cambios' }} sin enviar al servidor.
+        Si sales ahora, se pierden.
+      </p>
+      <div class="fila">
+        <button class="boton boton--peligro" type="button" @click="salirDeLaCuenta">Salir y perderlos</button>
+        <button class="boton boton--texto" type="button" @click="confirmandoSalida = false">Cancelar</button>
+      </div>
+    </section>
+
     <footer class="fila fila--separada">
       <button class="boton boton--texto" type="button" @click="emit('contrasena')">Cambiar contraseña</button>
-      <button class="boton boton--texto" type="button" @click="salir">Salir</button>
+      <button class="boton boton--texto" type="button" @click="salirDeLaCuenta">Salir</button>
     </footer>
   </main>
 </template>
