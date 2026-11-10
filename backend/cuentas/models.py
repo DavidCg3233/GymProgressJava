@@ -9,6 +9,16 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.db.models.functions import Lower
 
+# RNF-ACC-05: la app es privada. El dueño y, como mucho, cuatro personas más.
+MAXIMO_DE_CUENTAS = 5
+
+
+class LimiteDeCuentasAlcanzado(Exception):
+    """Se intentó crear una cuenta cuando ya existe el máximo permitido."""
+
+    def __init__(self) -> None:
+        super().__init__(f"Ya existe el máximo de {MAXIMO_DE_CUENTAS} cuentas.")
+
 
 def normalizar_identificador(valor: str | None) -> str:
     """Usuario y correo se comparan sin distinguir mayúsculas ni espacios sobrantes."""
@@ -34,6 +44,9 @@ class GestorDeUsuarios(BaseUserManager):
         extra.setdefault("is_superuser", True)
         return self.create_user(usuario, correo, nombre, password, **extra)
 
+    def hay_cupo(self) -> bool:
+        return self.count() < MAXIMO_DE_CUENTAS
+
     @staticmethod
     def _exigir(campo: str, valor: str) -> str:
         if not valor:
@@ -45,6 +58,9 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     usuario = models.CharField("nombre de usuario", max_length=30, unique=True)
     correo = models.EmailField("correo", unique=True)
     nombre = models.CharField("nombre para mostrar", max_length=50)
+
+    # RNF-ACC-09: verdadero mientras la contraseña sea una temporal que entregó el dueño.
+    debe_cambiar_contrasena = models.BooleanField("debe cambiar la contraseña", default=False)
 
     is_active = models.BooleanField("activa", default=True)
     is_staff = models.BooleanField("puede entrar al panel de administración", default=False)
@@ -70,6 +86,10 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
         return self.usuario
 
     def save(self, *args, **kwargs):
+        es_nueva = self._state.adding
+        if es_nueva and not type(self).objects.hay_cupo():
+            raise LimiteDeCuentasAlcanzado()
+
         self.usuario = normalizar_identificador(self.usuario)
         self.correo = normalizar_identificador(self.correo)
         self.nombre = (self.nombre or "").strip()

@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 38 cerradas · 9 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09, 10, 15, 16) |
+| **Avance** | 0 de 38 cerradas · 11 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09 a 12, 15, 16) |
 
 > **Cómo se usa este archivo**
 > - **Una tarea = un commit**, en orden. No se salta de fase.
@@ -168,6 +168,8 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 | 2026-11-10 | T-006-05 | `88c3def` · GitHub Actions con 3 revisiones. **Verificada:** las tres pasaron en `main` (commit `2defea4`, PR #3) | `[DAVID]` |
 | 2026-11-10 | T-006-09 | Modelo de cuenta con TDD: 21 pruebas (campos mínimos, unicidad sin distinguir mayúsculas, Argon2, mínimo 10 caracteres) | `[DAVID]` |
 | 2026-11-10 | T-006-10 | `7b0168f` · Entrar con usuario o correo, salir, acceso de 7 días renovado con cada uso, cookie HttpOnly + Secure + SameSite=Lax, protección CSRF. 28 pruebas escritas primero | `[DAVID]` |
+| 2026-11-10 | T-006-11 | `7663a30` · Bloqueo de 15 minutos tras 5 intentos fallidos, por cuenta (no se evade cambiando mayúsculas ni alternando usuario y correo). 10 pruebas escritas primero | `[DAVID]` |
+| 2026-11-10 | T-006-12 | Cuentas por invitación: tope de 5, contraseña temporal que se muestra una sola vez, cambio de contraseña pidiendo la actual, panel del dueño en `/panel/`, sin registro público. 41 pruebas escritas primero | `[DAVID]` |
 | 2026-11-10 | T-006-03 | `e2dc212` · Docker Compose con PostgreSQL 16. **Verificada en GitHub Actions:** migraciones y 105 pruebas dentro de Docker, incluidas las 3 de PostgreSQL. En el equipo de David sigue sin poder correr (falta WSL) | `[DAVID]` |
 
 ### Bloqueos
@@ -175,6 +177,10 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 - **Docker no corre en el equipo de David: falta WSL.** No bloquea el avance, porque GitHub Actions ejecuta lo mismo en cada PR, pero sin WSL no se puede levantar el servidor completo en local. Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y, en `deploy/`, `docker compose up`.
 
 ### Notas técnicas
+
+- **Riesgo aceptado en T-006-11:** el bloqueo es por cuenta, como pide RNF-ACC-07. Consecuencia: quien conozca tu nombre de usuario puede dejarte fuera 15 minutos fallando 5 veces a propósito. La alternativa (bloquear por cuenta y dirección de red) evita eso, pero deja pasar a quien cambie de red. Con 5 cuentas privadas se dejó como dice el requisito. `[DECIDIR]` si quieres cambiarlo.
+- **Pendiente de T-006-12:** el servidor ya avisa cuando hay que cambiar una contraseña temporal, pero todavía no impide usar el resto de la app hasta cambiarla. Eso se hace cumplir en T-006-13, con la base de permisos de la API.
+- **Primera cuenta del dueño:** se crea una sola vez en el servidor con `python manage.py createsuperuser`. Las demás, desde `/panel/`.
 
 - **El PR #3 se fusionó antes de que terminaran las revisiones.** Pasaron después, sobre `main`. Para que no dependa de la suerte: esperar los tres vistos verdes antes de pulsar *Merge* (se puede volver obligatorio en GitHub: Settings → Branches → regla de protección de `main` con *Require status checks to pass*).
 - **T-006-15 se adelantó** a las fases 0 a 2 porque no depende de nada y David pidió empezar por las pruebas unitarias (TDD).
