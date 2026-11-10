@@ -1,5 +1,25 @@
-# Ignore Gradle project-specific cache directory
-.gradle
+# --- Secretos (RNF-SEG-03): nunca al repo
+.env
+.env.*
+!.env.example
 
-# Ignore Gradle build output directory
+# --- Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Node
+node_modules/
+dist/
+
+# --- Editor y sistema
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- v1.0 (legacy): Gradle
+.gradle
 build

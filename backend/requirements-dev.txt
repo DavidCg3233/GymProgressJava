@@ -1,0 +1,4 @@
+# Dependencias para desarrollar y probar. Incluye las de producción.
+-r requirements.txt
+pytest>=8,<10
+pytest-django>=4.9,<5

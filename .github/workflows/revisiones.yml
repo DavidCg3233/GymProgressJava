@@ -1,0 +1,93 @@
+# Revisiones automáticas en cada cambio (T-006-05).
+# Si alguna falla, el cambio no se fusiona.
+name: Revisiones
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Lo mínimo: leer el código. Nada de escribir en el repositorio.
+permissions:
+  contents: read
+
+concurrency:
+  group: revisiones-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  servidor:
+    name: Servidor (Docker + PostgreSQL)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Valores de un solo uso para esta ejecución; no son secretos reales.
+      - name: Crear deploy/.env de prueba
+        working-directory: deploy
+        run: |
+          {
+            echo "GP_SECRET_KEY=$(openssl rand -hex 32)"
+            echo "GP_DEBUG=0"
+            echo "GP_ALLOWED_HOSTS=localhost,127.0.0.1"
+            echo "GP_DB_NAME=gymprogress"
+            echo "GP_DB_USER=gymprogress"
+            echo "GP_DB_PASSWORD=$(openssl rand -hex 16)"
+          } > .env
+
+      # Las mismas imágenes y la misma base que producción (RNF-MAN-02, RNF-MAN-04).
+      - name: Migraciones y pruebas dentro de Docker Compose
+        working-directory: deploy
+        run: >
+          docker compose run --rm backend
+          sh -c "python manage.py migrate --noinput && pytest -p no:cacheprovider"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # RNF-SEG-07: ninguna dependencia con vulnerabilidades conocidas.
+      - name: Auditar dependencias de Python
+        run: pipx run pip-audit --requirement backend/requirements.txt
+
+  pantalla:
+    name: Pantalla (Vitest + compilación)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # "ci" instala exactamente lo que dice package-lock.json (versiones fijas).
+      - run: npm ci
+
+      - name: Pruebas
+        run: npm test
+
+      - name: Compilar
+        run: npm run build
+
+      # RNF-SEG-07. Solo dependencias que llegan al usuario; severidad alta o crítica.
+      - name: Auditar dependencias de JavaScript
+        run: npm audit --omit=dev --audit-level=high
+
+  secretos:
+    name: Sin secretos en el código
+    runs-on: ubuntu-latest
+    steps:
+      # Historial completo de la rama: un secreto borrado en un commit posterior sigue ahí.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # RNF-SEG-03.
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -34,49 +34,31 @@ Limitaciones conocidas de la v1.0, con su evidencia en el código: [`docs/as-is/
 
 La interfaz HTML corre dentro de un `WebView` y habla con Java a través de un puente (`window.javaBridge`). El detalle de la arquitectura, el modelo de datos y el contrato del puente está en [`docs/as-is/sistema-actual.md`](docs/as-is/sistema-actual.md).
 
-## Cómo ejecutar la v1.0
+## Cómo ejecutar
 
-**Requisitos:** JDK 17 o superior (`java -version`), MySQL Server 8 en ejecución, Git y conexión a internet (las gráficas y los íconos se cargan por CDN).
+**v2 (en construcción).** Hoy existe el servidor con sus pruebas:
 
-1. Clona el repositorio:
-   ```bash
-   git clone https://github.com/DavidCg3233/GymProgressJava.git
-   cd GymProgressJava
-   ```
-2. Crea la base de datos:
-   ```bash
-   mysql -u root -p < gymprogress.sql
-   ```
-3. Escribe tu usuario y contraseña de MySQL en `app/src/main/java/org/gymprogress/dao/ConexionDB.java`. **No subas ese cambio a Git.**
-4. Ejecuta:
-   ```bash
-   ./gradlew run        # Linux / macOS
-   gradlew.bat run      # Windows
-   ```
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate        # Windows  ·  source .venv/bin/activate en Linux / macOS
+pip install -r requirements-dev.txt
+pytest
+```
 
-La primera vez que arranca, la aplicación crea por su cuenta la tabla `grupo_muscular` y dos columnas que no están en el script.
+**v1.0 (legado).** Instrucciones en [`legacy/README.md`](legacy/README.md).
 
 ## Estructura
 
 ```
 GymProgressJava/
-├── app/src/main/
-│   ├── java/org/gymprogress/
-│   │   ├── Main.java          # arranque de la ventana
-│   │   ├── controller/        # puente entre la interfaz y Java
-│   │   ├── dao/               # acceso a MySQL
-│   │   ├── model/             # entidades
-│   │   └── utils/             # cálculo de IMC
-│   └── resources/
-│       ├── fxml/              # ventana con el WebView
-│       └── webapp/            # pantallas HTML, CSS y JS
-├── docs/
-│   ├── guia-sdd.md            # cómo se trabaja en este repo
-│   ├── constitucion.md        # principios del proyecto
-│   ├── vision.md              # usuario, problema y alcance
-│   └── as-is/                 # ingeniería inversa de la v1.0
-├── SPECS/                     # requisitos, RNF, issues y una carpeta por funcionalidad
-└── gymprogress.sql            # esquema de la base de datos
+├── backend/               # v2: servidor en Python + Django
+│   ├── config/            # configuración del proyecto (lee variables de entorno)
+│   ├── reglas/            # reglas de negocio puras, sin base de datos ni pantalla
+│   └── tests/             # pruebas; cada una nombra el criterio de la spec que verifica
+├── SPECS/                 # requisitos, RNF, issues y una carpeta por funcionalidad
+├── docs/                  # guía SDD, constitución, visión e ingeniería inversa de la v1.0
+└── legacy/                # v1.0 en Java (referencia, no se mantiene)
 ```
 
 ## Cómo se desarrolla: Spec-Driven Development

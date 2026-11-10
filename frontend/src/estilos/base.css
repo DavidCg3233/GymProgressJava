@@ -1,0 +1,62 @@
+/* Estilos base. Pensados primero para un celular en vertical (RNF-PLA-02). */
+
+:root {
+  --color-fondo: #f6f5f1;
+  --color-superficie: #ffffff;
+  --color-texto: #1e1f1c;
+  --color-texto-suave: #5d605a;
+  --color-acento: #2f6b4f;
+
+  --espacio-1: 0.25rem;
+  --espacio-2: 0.5rem;
+  --espacio-3: 0.75rem;
+  --espacio-4: 1rem;
+
+  /* Tamaño mínimo de un botón para acertarle con el pulgar (RNF-006-04). */
+  --tamano-toque: 2.75rem;
+
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+  color: var(--color-texto);
+  background: var(--color-fondo);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-fondo: #151613;
+    --color-superficie: #1e1f1c;
+    --color-texto: #f1efe9;
+    --color-texto-suave: #a9aca4;
+    --color-acento: #7fc7a1;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  /* Nada puede forzar desplazamiento horizontal en el celular. */
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  /* 16 px como mínimo: con menos, Safari de iOS hace zoom al enfocar un campo. */
+  font-size: max(1rem, 16px);
+}
