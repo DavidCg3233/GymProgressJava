@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 38 cerradas · 8 con código verificado esperando la línea de David en la bitácora (T-006-01 a 05, 09, 15, 16) |
+| **Avance** | 0 de 38 cerradas · 9 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09, 10, 15, 16) |
 
 > **Cómo se usa este archivo**
 > - **Una tarea = un commit**, en orden. No se salta de fase.

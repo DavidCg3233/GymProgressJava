@@ -56,6 +56,24 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# RNF-ACC-01: se entra con el nombre de usuario o con el correo.
+AUTHENTICATION_BACKENDS = ["cuentas.autenticacion.UsuarioOCorreo"]
+
+# --- Acceso recordado (RNF-ACC-02, RNF-ACC-03) -----------------------------
+
+# 7 días, renovados con cada uso: solo se pide la contraseña tras 7 días sin abrir la app.
+SESSION_COOKIE_AGE = 7 * 24 * 60 * 60
+SESSION_SAVE_EVERY_REQUEST = True
+
+# La cookie no la puede leer código de la página, solo viaja por HTTPS y
+# otros sitios no pueden usarla para enviar acciones. En desarrollo (DEBUG)
+# se permite HTTP, porque en el equipo no hay certificado.
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SAMESITE = "Lax"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
