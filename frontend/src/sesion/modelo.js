@@ -128,3 +128,34 @@ function historialDesde(resumen) {
   }
   return [{ fin: 'ultima-vez', series: resumen.series.map((serie) => ({ ...serie, confirmada: true })) }]
 }
+
+/**
+ * RN-006-08 y RN-006-16: incorpora una sesión terminada a "la última vez".
+ *
+ * Hace en el celular lo mismo que el servidor, para que la siguiente sesión
+ * precargue lo de hoy aunque no haya habido señal para preguntarle.
+ * Devuelve un objeto nuevo: no modifica el que recibe.
+ */
+export function incorporarAUltimaVez(ultimaVez, sesion) {
+  // Copia en datos simples: structuredClone no sabe copiar los objetos reactivos de Vue.
+  const nueva = JSON.parse(JSON.stringify(ultimaVez))
+
+  for (const ejercicio of sesion.ejercicios) {
+    const confirmadas = ejercicio.series.filter((serie) => serie.confirmada)
+    if (confirmadas.length === 0) {
+      continue
+    }
+    const clave = claveDeEjercicio(ejercicio.nombre)
+    const porNumero = new Map((nueva[clave]?.series ?? []).map((serie) => [serie.numero, serie]))
+    for (const serie of confirmadas) {
+      porNumero.set(serie.numero, { numero: serie.numero, peso: serie.peso, reps: serie.reps })
+    }
+    nueva[clave] = {
+      nombre: ejercicio.nombre,
+      grupo: ejercicio.grupo,
+      nota: ejercicio.nota,
+      series: [...porNumero.values()].sort((a, b) => a.numero - b.numero),
+    }
+  }
+  return nueva
+}

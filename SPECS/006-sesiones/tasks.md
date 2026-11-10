@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 38 cerradas · 26 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09 a 16, 17 a 29). Hito A usable con conexión; falta la fase 6 (sin conexión) |
+| **Avance** | 0 de 38 cerradas · 30 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09 a 33). Hito A completo salvo lo que necesita el VPS o el iPhone: T-006-06 a 08, 34 a 36 |
 
 > **Cómo se usa este archivo**
 > - **Una tarea = un commit**, en orden. No se salta de fase.
@@ -179,6 +179,7 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 | 2026-11-10 | T-006-22 | Arranque: sesión en curso, "última vez" serie por serie y nota de la última vez | `[DAVID]` |
 | 2026-11-10 | T-006-14 | Pantalla de acceso, cambio de contraseña (obligatorio con temporal) y salir | `[DAVID]` |
 | 2026-11-10 | T-006-23 a 29 | Pantallas de inicio, sesión en curso e historial. Lógica de la sesión en funciones puras con 28 pruebas; pantallas recorridas a mano en 375 px: entrar, sesión libre, agregar ejercicio, confirmar (1 toque), +0,5 kg y confirmar (2 toques), rechazo de 30,3 kg, recargar a mitad de sesión, nota de la última vez, precarga, terminar con resumen, descartar sesión vacía, historial, detalle, eliminar y salir | `[DAVID]` |
+| 2026-11-10 | T-006-30 a 33 | Sin conexión: almacén en el celular (IndexedDB), cola de pendientes, aviso de cambios por enviar, cuenta recordada para abrir sin señal, cierre a las 2 horas en el celular y app instalable con service worker. 39 pruebas nuevas. Comprobado en el navegador apagando el servidor a mitad de sesión: se registraron series, se recargó la app sin servidor, abrió con todo intacto, y al encender el servidor los pendientes se enviaron solos | `[DAVID]` |
 | 2026-11-10 | T-006-03 | `e2dc212` · Docker Compose con PostgreSQL 16. **Verificada en GitHub Actions:** migraciones y 105 pruebas dentro de Docker, incluidas las 3 de PostgreSQL. En el equipo de David sigue sin poder correr (falta WSL) | `[DAVID]` |
 
 ### Bloqueos
@@ -186,6 +187,16 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 - **Docker no corre en el equipo de David: falta WSL.** No bloquea el avance, porque GitHub Actions ejecuta lo mismo en cada PR, pero sin WSL no se puede levantar el servidor completo en local. Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y, en `deploy/`, `docker compose up`.
 
 ### Notas técnicas
+
+- **Tres errores que encontraron las pruebas de la fase 6, antes de llegar al celular:**
+  1. *Grave.* La cola fusionaba dos cambios sobre el mismo dato poniendo el último en el lugar del primero. Eso adelantaba el **cierre** de la sesión al lugar de su **inicio**: el servidor la habría recibido terminada y sin series, la habría descartado, y luego habría rechazado todas las series. Se perdía el entrenamiento entero. Ahora solo se fusionan cambios seguidos; con otros en medio, se conservan los dos en orden.
+  2. La app no abría sin señal: lo primero que hacía era preguntarle al servidor si había acceso. Ahora el celular recuerda la cuenta y, sin señal, sigue con ella; con señal, manda el servidor.
+  3. `structuredClone` no puede copiar los objetos reactivos de Vue: terminar una sesión habría fallado al actualizar "la última vez".
+- **Desviación del plan:** no se usó Dexie. Para guardar tres claves bastan 40 líneas sobre IndexedDB, y es una dependencia menos que auditar.
+- **Riesgo aceptado:** sin señal, la app confía en la cuenta que recuerda el celular. Si el acceso venció en el servidor, los datos locales se siguen viendo hasta que vuelva la señal; entonces se pide entrar y nada pendiente se pierde.
+- **Al salir de la cuenta** se borra todo del celular. Si hay cambios sin enviar, la app avisa antes.
+- **Sin hacer de la fase 6:** T-006-34 (pruebas automáticas con el motor de Safari cortando la red; las simulaciones de Vitest y la prueba manual cubren los mismos casos, pero no el service worker real) y T-006-35 (respaldo diario, va con el VPS). **El service worker solo se activa en la versión publicada**, así que "abrir la app en modo avión desde la pantalla de inicio" solo se puede comprobar en tu iPhone (T-006-08 y T-006-36).
+- **Íconos provisionales** en `frontend/public/` (una pesa en los colores de la app), generados por script. Reemplázalos cuando quieras.
 
 - **Las pantallas todavía no funcionan sin conexión.** Si se cae la señal, el cambio se ve en el celular pero no llega al servidor y se pierde al recargar; la pantalla avisa "este cambio no se guardó". Eso es exactamente la fase 6 (T-006-30 a 34: IndexedDB, cola de pendientes y service worker).
 - **Probar en tu equipo sin Docker:** `backend/config/settings_local.py` usa SQLite. En `backend`: `.venv\Scripts\python.exe manage.py migrate --settings=config.settings_local`, `createsuperuser` con la misma opción, y `runserver --settings=config.settings_local`. En `frontend`: `npm run dev`. Abrir http://localhost:5173.
