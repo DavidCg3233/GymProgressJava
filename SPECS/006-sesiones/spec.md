@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | En revisión (todas las decisiones tomadas; falta la lectura final de David) |
+| **Estado** | **Aprobada** por David el 2026-11-10 |
 | **Autor** | David Calambás |
 | **Creada** | 2026-11-09 |
 | **Requisitos de origen** | R-01, R-02, R-04, R-05, R-06 |

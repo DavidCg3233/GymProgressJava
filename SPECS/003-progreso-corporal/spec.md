@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | En revisión (decisiones tomadas; falta la lectura final de David) |
+| **Estado** | **Aprobada** por David el 2026-11-10 |
 | **Autor** | David Calambás |
 | **Creada** | 2026-11-09 (ingeniería inversa de v1.0) · reescrita el 2026-11-09 con las decisiones del usuario |
 | **Requisitos de origen** | R-23 |
@@ -70,13 +70,13 @@ Llevar el peso corporal en el tiempo, ver hacia dónde va y cuánto falta para e
 |---|---|---|
 | RN-003-01 | Fórmula del IMC | peso (kg) ÷ altura (m)², redondeado a 1 decimal |
 | RN-003-02 | Categorías ([OMS](https://www.who.int/news-room/fact-sheets/detail/obesity-and-overweight)) | menor que 18,5 Bajo peso · de 18,5 a menos de 25 Normal · de 25 a menos de 30 Sobrepeso · 30 o más Obesidad. **La categoría se decide con el IMC sin redondear.** |
-| RN-003-03 | Peso corporal | `[PROPUESTA]` de 20,0 a 300,0 kg, con un decimal |
-| RN-003-04 | Altura | `[PROPUESTA]` en centímetros, entero de 100 a 250. *(La v1.0 la pedía en metros y aceptaba 175, lo que daba IMC 0.)* |
+| RN-003-03 | Peso corporal | De 20,0 a 300,0 kg, con un decimal |
+| RN-003-04 | Altura | En centímetros, entero de 100 a 250. *(La v1.0 la pedía en metros y aceptaba 175, lo que daba IMC 0.)* |
 | RN-003-05 | Fecha | Obligatoria; no puede ser futura |
 | RN-003-06 | Registros por día | Uno; uno nuevo en la misma fecha reemplaza al anterior, con confirmación |
 | RN-003-07 | Peso objetivo | Uno por usuario, opcional, mismo rango que el peso corporal |
 | RN-003-08 | "Objetivo alcanzado" | Si el objetivo es menor que el primer registro: cuando el peso actual es menor o igual al objetivo. Si es mayor: cuando es mayor o igual. |
-| RN-003-09 | Texto del IMC | `[PROPUESTA]` "El IMC es orientativo: no distingue músculo de grasa." |
+| RN-003-09 | Texto del IMC | "El IMC es orientativo: no distingue músculo de grasa." |
 
 > RN-003-02 corrige un detalle de la v1.0: redondeaba primero y clasificaba después, así que 24,975 se mostraba como 25,0 y caía en "Sobrepeso".
 
@@ -87,7 +87,7 @@ Los generales están en [`rnf.md`](../rnf.md). Propio de esta spec:
 | ID | Requerimiento |
 |---|---|
 | RNF-003-01 | Registrar el peso de hoy debe tomar máximo 3 toques además de escribir el número. |
-| RNF-003-02 | `[DECIDIR]` ¿Registrar el peso corporal debe funcionar sin conexión, como las sesiones? sí · no hace falta |
+| RNF-003-02 | Registrar el peso corporal requiere conexión. Si no la hay, el sistema lo indica sin perder lo escrito. Decidido 2026-11-10. |
 
 ## 7. Fuera de alcance — *Complementos*
 
@@ -170,8 +170,8 @@ Datos base: altura 175 cm.
 | 2 | ¿Altura en cada registro o en el perfil? | — | **Una vez, en el perfil.** Decidido 2026-11-09. |
 | 3 | ¿El IMC se queda? | — | **Sí, como dato informativo.** Decidido 2026-11-09. |
 | 4 | ¿Registros por día y edición? | — | **Uno por día, editable y eliminable; sin fechas futuras.** Decidido 2026-11-09. |
-| 5 | Rangos de peso y altura, y unidad de la altura | RN-003-03, RN-003-04 | `[PROPUESTA]` pendiente de tu sí |
-| 6 | ¿Sin conexión? | RNF-003-02 | `[DECIDIR]` |
+| 5 | Rangos de peso y altura, y unidad de la altura | RN-003-03, RN-003-04 | **Aprobados** (2026-11-10). |
+| 6 | ¿Sin conexión? | RNF-003-02 | **No hace falta** (2026-11-10). |
 
 ## 10. Checklist antes de aprobar
 
