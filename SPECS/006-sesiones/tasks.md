@@ -167,6 +167,7 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 | 2026-11-10 | T-006-16 | `47ff882` · 76 pruebas en JavaScript (mismas tablas que Python, más la precarga de una serie) | `[DAVID]` |
 | 2026-11-10 | T-006-05 | `88c3def` · GitHub Actions con 3 revisiones. **Verificada:** las tres pasaron en `main` (commit `2defea4`, PR #3) | `[DAVID]` |
 | 2026-11-10 | T-006-09 | Modelo de cuenta con TDD: 21 pruebas (campos mínimos, unicidad sin distinguir mayúsculas, Argon2, mínimo 10 caracteres) | `[DAVID]` |
+| 2026-11-10 | T-006-10 | `7b0168f` · Entrar con usuario o correo, salir, acceso de 7 días renovado con cada uso, cookie HttpOnly + Secure + SameSite=Lax, protección CSRF. 28 pruebas escritas primero | `[DAVID]` |
 | 2026-11-10 | T-006-03 | `e2dc212` · Docker Compose con PostgreSQL 16. **Verificada en GitHub Actions:** migraciones y 105 pruebas dentro de Docker, incluidas las 3 de PostgreSQL. En el equipo de David sigue sin poder correr (falta WSL) | `[DAVID]` |
 
 ### Bloqueos
