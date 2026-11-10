@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 38 cerradas · 7 con código listo esperando la línea de David en la bitácora (T-006-01, 02, 04, 05, 09, 15, 16) · T-006-03 bloqueada por WSL en el equipo; el PR la verifica en GitHub Actions |
+| **Avance** | 0 de 38 cerradas · 9 con código listo esperando la línea de David en la bitácora (T-006-01 a 05, 09, 10, 15, 16) |
 
 > **Cómo se usa este archivo**
 > - **Una tarea = un commit**, en orden. No se salta de fase.
@@ -165,16 +165,18 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 
 | 2026-11-10 | T-006-04 | `47ff882` · esqueleto Vue + Vite; página comprobada a 375 px sin desplazamiento horizontal | `[DAVID]` |
 | 2026-11-10 | T-006-16 | `47ff882` · 76 pruebas en JavaScript (mismas tablas que Python, más la precarga de una serie) | `[DAVID]` |
-| 2026-11-10 | T-006-05 | `88c3def` · GitHub Actions con 3 revisiones. **Sin verificar:** corre por primera vez al abrir el PR | `[DAVID]` |
+| 2026-11-10 | T-006-05 | `88c3def` · GitHub Actions con 3 revisiones. **Verificada:** las tres pasaron en `main` (commit `2defea4`, PR #3) | `[DAVID]` |
 | 2026-11-10 | T-006-09 | Modelo de cuenta con TDD: 21 pruebas (campos mínimos, unicidad sin distinguir mayúsculas, Argon2, mínimo 10 caracteres) | `[DAVID]` |
-| 2026-11-10 | T-006-03 | **Bloqueada, sin verificar.** Archivos escritos (`Dockerfile`, `docker-compose.yml`, 3 pruebas de PostgreSQL) y sintaxis validada, pero nunca se ejecutó: Docker no arranca porque el equipo no tiene WSL. | — |
+| 2026-11-10 | T-006-10 | `7b0168f` · Entrar con usuario o correo, salir, acceso de 7 días renovado con cada uso, cookie HttpOnly + Secure + SameSite=Lax, protección CSRF. 28 pruebas escritas primero | `[DAVID]` |
+| 2026-11-10 | T-006-03 | `e2dc212` · Docker Compose con PostgreSQL 16. **Verificada en GitHub Actions:** migraciones y 105 pruebas dentro de Docker, incluidas las 3 de PostgreSQL. En el equipo de David sigue sin poder correr (falta WSL) | `[DAVID]` |
 
 ### Bloqueos
 
-- **T-006-03 necesita WSL.** Docker Desktop está instalado pero su motor no inicia: "El Subsistema de Windows para Linux no está instalado". Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y correr, en `deploy/`, `docker compose run --rm backend sh -c "python manage.py migrate --noinput && pytest"`. La tarea se cierra cuando las 84 pruebas pasan ahí (incluidas las 3 de PostgreSQL).
+- **Docker no corre en el equipo de David: falta WSL.** No bloquea el avance, porque GitHub Actions ejecuta lo mismo en cada PR, pero sin WSL no se puede levantar el servidor completo en local. Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y, en `deploy/`, `docker compose up`.
 
 ### Notas técnicas
 
+- **El PR #3 se fusionó antes de que terminaran las revisiones.** Pasaron después, sobre `main`. Para que no dependa de la suerte: esperar los tres vistos verdes antes de pulsar *Merge* (se puede volver obligatorio en GitHub: Settings → Branches → regla de protección de `main` con *Require status checks to pass*).
 - **T-006-15 se adelantó** a las fases 0 a 2 porque no depende de nada y David pidió empezar por las pruebas unitarias (TDD).
 - **PostgreSQL no carga en Windows fuera de Docker:** el Control de aplicaciones de Windows bloquea la librería del conector (`psycopg`). No se toca esa configuración de seguridad. Consecuencia: en el equipo, `pytest` corre con SQLite en memoria; las pruebas que dependen de PostgreSQL se marcan `@pytest.mark.postgres` y corren dentro de Docker Compose (T-006-03).
 - El equipo tiene Python 3.14; el servidor usará la imagen de Python 3.12 del plan. Django 5.2 funciona en ambos.
