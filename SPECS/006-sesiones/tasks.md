@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 38 |
+| **Avance** | 0 de 38 cerradas · 3 con código listo esperando la línea de David en la bitácora (T-006-01, 02, 15) |
 
 > **Cómo se usa este archivo**
 > - **Una tarea = un commit**, en orden. No se salta de fase.
@@ -157,6 +157,14 @@
 
 Una línea por tarea: fecha, qué entendí, dónde me trabé.
 
-| Fecha | Tarea | Qué entendí / notas |
-|---|---|---|
-| | | |
+| Fecha | Tarea | Código | Qué entendí (lo escribe David) |
+|---|---|---|---|
+| 2026-11-10 | T-006-01 | `c570d5a` · v1.0 en `legacy/`, etiqueta `v1.0` | `[DAVID]` |
+| 2026-11-10 | T-006-02 | `98203b4` · 17 pruebas | `[DAVID]` |
+| 2026-11-10 | T-006-15 | 64 pruebas de reglas (se escribieron primero y fallaron; luego el código) | `[DAVID]` |
+
+### Notas técnicas
+
+- **T-006-15 se adelantó** a las fases 0 a 2 porque no depende de nada y David pidió empezar por las pruebas unitarias (TDD).
+- **PostgreSQL no carga en Windows fuera de Docker:** el Control de aplicaciones de Windows bloquea la librería del conector (`psycopg`). No se toca esa configuración de seguridad. Consecuencia: en el equipo, `pytest` corre con SQLite en memoria; las pruebas que dependen de PostgreSQL se marcan `@pytest.mark.postgres` y corren dentro de Docker Compose (T-006-03).
+- El equipo tiene Python 3.14; el servidor usará la imagen de Python 3.12 del plan. Django 5.2 funciona en ambos.
