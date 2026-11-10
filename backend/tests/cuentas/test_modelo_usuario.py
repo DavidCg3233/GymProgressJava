@@ -47,6 +47,7 @@ def test_la_cuenta_no_tiene_campos_personales_de_mas():
         "usuario",
         "correo",
         "nombre",
+        "debe_cambiar_contrasena",
         "password",
         "last_login",
         "is_superuser",

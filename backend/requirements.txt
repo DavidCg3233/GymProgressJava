@@ -3,3 +3,5 @@ Django>=5.2,<5.3
 psycopg[binary]>=3.2,<3.4
 # Cifrado de contraseñas (RNF-SEG-01).
 argon2-cffi>=23.1,<26
+# Bloqueo por intentos fallidos de acceso (RNF-ACC-07).
+django-axes>=8,<9

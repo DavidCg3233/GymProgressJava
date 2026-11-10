@@ -36,4 +36,7 @@ class Reloj:
 def reloj(monkeypatch):
     reloj = Reloj(timezone.now())
     monkeypatch.setattr(timezone, "now", reloj)
+    # django-axes guarda su propia referencia a `now`; también hay que cambiarla.
+    monkeypatch.setattr("axes.attempts.now", reloj)
+    monkeypatch.setattr("axes.handlers.proxy.now", reloj)
     return reloj

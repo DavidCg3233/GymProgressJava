@@ -52,16 +52,18 @@ def test_se_puede_entrar(client, cuenta, identificador):
     respuesta = entrar(client, identificador)
 
     assert respuesta.status_code == 200
-    assert respuesta.json() == {"cuenta": {"usuario": "davidc", "correo": "david@ejemplo.com", "nombre": "David"}}
+    assert respuesta.json() == {"cuenta": {"usuario": "davidc", "correo": "david@ejemplo.com", "nombre": "David", "debe_cambiar_contrasena": False}}
     assert esta_dentro(client) is True
 
 
 def test_la_respuesta_nunca_incluye_la_contrasena(client, cuenta):
-    cuerpo = entrar(client).content.decode()
+    respuesta = entrar(client)
+    cuerpo = respuesta.content.decode()
 
-    assert "password" not in cuerpo
-    assert "contrasena" not in cuerpo
+    assert CONTRASENA not in cuerpo
     assert "argon2" not in cuerpo
+    assert "password" not in cuerpo
+    assert set(respuesta.json()["cuenta"]) == {"usuario", "correo", "nombre", "debe_cambiar_contrasena"}
 
 
 # --- Rechazos: mismo mensaje siempre, para no revelar qué falló --------------
@@ -201,7 +203,7 @@ def test_el_estado_con_acceso_trae_solo_los_datos_de_la_cuenta(client, cuenta):
 
     assert client.get(URL_ESTADO).json() == {
         "autenticado": True,
-        "cuenta": {"usuario": "davidc", "correo": "david@ejemplo.com", "nombre": "David"},
+        "cuenta": {"usuario": "davidc", "correo": "david@ejemplo.com", "nombre": "David", "debe_cambiar_contrasena": False},
     }
 
 
