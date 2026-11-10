@@ -4,6 +4,7 @@ Todo lo que cambia entre equipos o es secreto se lee del entorno
 (ver `entorno.py` y `.env.example`). Aquí no hay ningún valor sensible.
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 from . import entorno
@@ -28,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "axes",
     "cuentas",
 ]
 
@@ -57,7 +59,27 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # RNF-ACC-01: se entra con el nombre de usuario o con el correo.
-AUTHENTICATION_BACKENDS = ["cuentas.autenticacion.UsuarioOCorreo"]
+# El primero no autentica a nadie: solo corta el paso si la cuenta está bloqueada.
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "cuentas.autenticacion.UsuarioOCorreo",
+]
+
+# --- Bloqueo por intentos fallidos (RNF-ACC-07) ----------------------------
+
+# 5 contraseñas incorrectas seguidas bloquean esa cuenta 15 minutos.
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = timedelta(minutes=15)
+# Se bloquea la cuenta, no el aparato: cambiar de navegador o de red no ayuda.
+AXES_LOCKOUT_PARAMETERS = ["username"]
+AXES_USERNAME_CALLABLE = "cuentas.autenticacion.clave_de_bloqueo"
+AXES_LOCKOUT_CALLABLE = "cuentas.vistas.respuesta_de_bloqueo"
+# Entrar bien borra los fallos anteriores.
+AXES_RESET_ON_SUCCESS = True
+# Los 15 minutos cuentan desde el quinto fallo; insistir no alarga el bloqueo.
+AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = False
+# No se guarda la contraseña intentada en ningún registro (RNF-SEG-08).
+AXES_SENSITIVE_PARAMETERS = ["contrasena", "password"]
 
 # --- Acceso recordado (RNF-ACC-02, RNF-ACC-03) -----------------------------
 
@@ -82,6 +104,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Debe ir de último: revisa el resultado de cada intento de entrar.
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

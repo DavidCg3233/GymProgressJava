@@ -11,6 +11,9 @@ from django.views.decorators.http import require_GET, require_POST
 # contraseña o si la cuenta está desactivada (RNF-SEG-09).
 MENSAJE_DE_RECHAZO = "Usuario o contraseña incorrectos."
 
+# RNF-ACC-07. Se muestra igual para cuentas que existen y que no.
+MENSAJE_DE_BLOQUEO = "Demasiados intentos. Espera 15 minutos e inténtalo de nuevo."
+
 
 @require_GET
 @ensure_csrf_cookie
@@ -28,8 +31,12 @@ def estado(request: HttpRequest) -> JsonResponse:
 @require_POST
 def entrar(request: HttpRequest) -> JsonResponse:
     identificador, contrasena = _leer_credenciales(request)
+    # Lo recuerda la petición para que el contador de intentos sepa a quién atribuirlos.
+    request.identificador_de_acceso = identificador
+
     cuenta = authenticate(request, username=identificador, password=contrasena)
     if cuenta is None:
+        # Si además la cuenta quedó bloqueada, `respuesta_de_bloqueo` reemplaza esta respuesta.
         return JsonResponse({"mensaje": MENSAJE_DE_RECHAZO}, status=400)
 
     # `login` estrena identificador de sesión: nadie puede fijarlo de antemano.
@@ -42,6 +49,15 @@ def salir(request: HttpRequest) -> HttpResponse:
     """Borra la sesión en el servidor: la cookie anterior deja de servir (RNF-ACC-04)."""
     logout(request)
     return HttpResponse(status=204)
+
+
+def respuesta_de_bloqueo(request: HttpRequest, respuesta_original=None, credentials=None) -> JsonResponse:
+    """Lo que se responde mientras una cuenta está bloqueada por intentos fallidos (RNF-ACC-07).
+
+    La invoca django-axes en lugar de su página propia, para que el mensaje
+    sea el nuestro y no revele nada del sistema.
+    """
+    return JsonResponse({"mensaje": MENSAJE_DE_BLOQUEO}, status=429)
 
 
 def _leer_credenciales(request: HttpRequest) -> tuple[str, str]:
