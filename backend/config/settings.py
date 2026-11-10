@@ -29,9 +29,23 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
     "axes",
     "cuentas",
+    "sesiones",
 ]
+
+# --- API (T-006-13) --------------------------------------------------------
+
+# Estas reglas valen para toda vista de la API, sin que cada una las repita:
+# hay que haber entrado, solo se habla JSON y los errores no revelan detalles.
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["config.api.AccesoPorSesion"],
+    "DEFAULT_PERMISSION_CLASSES": ["config.api.AccesoVigente"],
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
+    "EXCEPTION_HANDLER": "config.api.responder_error",
+}
 
 # --- Cuentas y contraseñas -------------------------------------------------
 

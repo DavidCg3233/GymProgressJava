@@ -105,6 +105,9 @@ Hoy la app solo guarda el plan (la rutina). No sabe qué se hizo en el gimnasio,
 | RN-006-11 | Ejercicio agregado en vivo | Empieza con 1 serie; si ya lo he hecho antes, con los valores de la última vez |
 | RN-006-12 | Cierre a las 2 horas sin conexión | Se aplica en el dispositivo; la hora de cierre es inicio + 2 horas |
 | RN-006-13 | Dispositivos | Una sesión en curso se registra desde un solo dispositivo. No se resuelven ediciones simultáneas desde dos. Decidido 2026-11-09. |
+| RN-006-17 | Hora de cada acción | Cada serie o ejercicio se registra con la hora en que el usuario lo hizo en su celular. Una acción se acepta si ocurrió antes del cierre de la sesión, **aunque llegue al servidor horas después**. Una acción posterior al cierre se rechaza. *(Agregada el 2026-11-10 al construir: sin ella, lo registrado sin señal durante más de 2 horas se perdía al sincronizar.)* |
+| RN-006-18 | Sesión vencida y vacía | Una sesión que cumplió sus 2 horas sin series confirmadas deja de mostrarse de inmediato, pero se conserva 24 horas desde la última vez que el celular envió algo de ella, por si aún tiene series por sincronizar. Después se borra. *(Agregada el 2026-11-10.)* |
+| RN-006-19 | Cierre del servidor y cierre del celular | Si el servidor cerró la sesión a las 2 horas y después llega el cierre hecho en el celular (con su hora, nombre y nota), vale el del celular. *(Agregada el 2026-11-10.)* |
 | RN-006-14 | Notas (de sesión y de ejercicio) | Opcionales, texto de hasta 280 caracteres |
 | RN-006-15 | Nombre de una sesión libre | Opcional, hasta 50 caracteres |
 | RN-006-16 | "La siguiente vez" de una nota de ejercicio (RF-006-23) | Se muestra la nota de la sesión terminada más reciente que tenga ese ejercicio; si esa no tiene nota, no se muestra ninguna |
