@@ -43,6 +43,23 @@ def test_el_limite_de_la_nota_se_mide_despues_de_quitar_espacios_sobrantes():
     assert validar_nota(" " + "a" * 280 + " ") == "a" * 280
 
 
+@pytest.mark.parametrize("entrada", [123, ["x"], {"a": 1}, True])
+def test_una_nota_que_no_es_texto_se_rechaza_en_lugar_de_romper(entrada):
+    with pytest.raises(ErrorDeValidacion) as error:
+        validar_nota(entrada)
+
+    assert error.value.campo == "nota"
+    assert error.value.mensaje == "Escribe un texto válido."
+
+
+@pytest.mark.parametrize("entrada", [123, ["x"], True])
+def test_un_nombre_que_no_es_texto_se_rechaza_en_lugar_de_romper(entrada):
+    with pytest.raises(ErrorDeValidacion) as error:
+        nombre_de_sesion_libre(entrada)
+
+    assert error.value.campo == "nombre"
+
+
 # --- Nombre de una sesión libre (RF-006-21, RN-006-15) ----------------------
 
 

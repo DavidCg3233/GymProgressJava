@@ -41,6 +41,19 @@ describe('notas (RN-006-14): opcionales, hasta 280 caracteres', () => {
   })
 })
 
+describe('datos que no son texto', () => {
+  it.each([[123], [['x']], [{ a: 1 }], [true]])('una nota %j se rechaza en lugar de romper', (entrada) => {
+    try {
+      validarNota(entrada)
+      throw new Error('Se esperaba un error de validación.')
+    } catch (error) {
+      expect(error).toBeInstanceOf(ErrorDeValidacion)
+      expect(error.campo).toBe('nota')
+      expect(error.mensaje).toBe('Escribe un texto válido.')
+    }
+  })
+})
+
 describe('nombre de una sesión libre (RF-006-21, RN-006-15)', () => {
   it('CA-006-21a: conserva el nombre que escribe el usuario', () => {
     expect(nombreDeSesionLibre('Hotel Bogotá')).toBe('Hotel Bogotá')

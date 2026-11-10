@@ -8,6 +8,7 @@ celular. Se decide con esa hora y no con la de llegada, para que lo
 registrado sin señal se acepte aunque se sincronice horas después (RF-006-16).
 """
 
+import uuid
 from datetime import datetime, timedelta
 
 from django.db import transaction
@@ -223,7 +224,10 @@ def guardar_ejercicio(usuario, id_sesion, id, nombre, grupo, orden, nota, moment
 @transaction.atomic
 def guardar_serie(usuario, id, id_ejercicio, numero, peso, reps, confirmada, momento, ahora: datetime) -> Serie:
     """Registra o corrige una serie (RF-006-03, 12, 14, 24)."""
-    ejercicio = SesionEjercicio.objects.select_related("sesion").filter(pk=id_ejercicio).first()
+    id_ejercicio = _identificador(id_ejercicio)
+    ejercicio = (
+        SesionEjercicio.objects.select_related("sesion").filter(pk=id_ejercicio).first() if id_ejercicio else None
+    )
     _sesion_modificable(usuario, ejercicio.sesion if ejercicio else None, momento, ahora)
 
     serie = Serie.objects.filter(pk=id).first()
@@ -288,6 +292,18 @@ def ultima_vez(usuario) -> dict[str, dict]:
 
 
 # --- Validaciones propias de la API -----------------------------------------
+
+
+def _identificador(valor) -> uuid.UUID | None:
+    """Convierte a UUID. Lo que no lo sea se trata como un dato que no existe."""
+    if isinstance(valor, uuid.UUID):
+        return valor
+    if not isinstance(valor, str):
+        return None
+    try:
+        return uuid.UUID(valor)
+    except ValueError:
+        return None
 
 
 def _exigir_hora(valor, campo: str, mensaje: str) -> datetime:

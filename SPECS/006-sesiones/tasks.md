@@ -185,6 +185,9 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 
 ### Notas técnicas
 
+- **El PR #6 se fusionó con la revisión del servidor en rojo.** Las pruebas pasaban en PostgreSQL; falló la auditoría de dependencias: Django REST Framework 3.17.2 tiene 3 vulnerabilidades conocidas (CVE-2026-114136, 114137 y 114138), corregidas en 3.18.2. La había dejado fija por debajo de 3.18. Se subió a 3.18.3 en la rama `fix/006-dependencias`. Es RNF-SEG-07 funcionando: la revisión lo detectó; lo que falló fue fusionar sin esperarla.
+- **12 errores internos encontrados con pruebas de entradas hostiles** (`test_entradas_hostiles.py`): un identificador de ejercicio que no era UUID, o un nombre o nota que no era texto, hacían fallar al servidor con error 500 en vez de rechazar el dato. Corregido en las reglas de Python y de JavaScript.
+
 - **Hueco de diseño encontrado al construir la API (T-006-19, 20):** el plan decía que el servidor cierra la sesión a las 2 horas. Pero si el celular estuvo sin señal más de 2 horas, al sincronizar el servidor ya la habría cerrado y rechazaría todas las series: se perdía justo lo que RF-006-16 promete conservar. Solución: cada acción lleva la hora en que ocurrió (`momento`) y el servidor decide con esa hora. Quedó escrito en la spec como RN-006-17, 18 y 19. Lo detectaron las pruebas de `test_sincronizacion.py`, escritas antes del código.
 - **Segundo error, encontrado por las pruebas:** una sesión de hace días que apenas se sincronizaba se borraba por "vencida y vacía" antes de que llegaran sus series. El margen de 24 horas ahora cuenta desde el último envío del celular, no desde el fin de la sesión.
 - **Riesgo aceptado:** el servidor confía en la hora que reporta el celular. Alguien podría falsearla para modificar una sesión suya ya terminada. Solo afecta sus propios datos.
