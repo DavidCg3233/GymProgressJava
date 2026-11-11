@@ -82,6 +82,15 @@ watch(
   cursor: pointer;
 }
 
+/* El punto elegido ya se distingue por su relleno; con teclado se engrosa su borde. */
+.grafica__punto:focus {
+  outline: none;
+}
+
+.grafica__punto:focus-visible {
+  stroke-width: 4;
+}
+
 .grafica__punto--elegido {
   fill: var(--color-acento);
 }

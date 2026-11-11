@@ -12,3 +12,13 @@ export async function fijarMeta(meta) {
   const respuesta = await pedir('PUT', '/api/progreso/meta/', { meta: validarMeta(meta) })
   return respuesta.meta
 }
+
+/**
+ * RNF-004-02: Progreso necesita conexión y lo dice. Un servidor que no responde
+ * (5xx, también el del proxy) se trata igual que no tener red, como en el arranque.
+ */
+export function mensajeDeProgreso(fallo) {
+  return fallo.sinConexion || fallo.estado >= 500
+    ? 'Progreso necesita conexión. Revisa tu señal y vuelve a intentar.'
+    : fallo.mensaje
+}

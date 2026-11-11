@@ -136,7 +136,7 @@ function empezar() {
     </section>
 
     <div class="inicio__menu">
-      <button class="boton" type="button" @click="emit('rutinas')">Mis rutinas</button>
+      <button class="boton" type="button" @click="emit('rutinas')">Rutinas</button>
       <button class="boton" type="button" @click="emit('progreso')">Progreso</button>
       <button class="boton" type="button" @click="emit('historial')">Historial</button>
     </div>

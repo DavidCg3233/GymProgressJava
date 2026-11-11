@@ -4,7 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 
 import Explicacion from '../componentes/Explicacion.vue'
-import { cargarProgreso, fijarMeta } from '../estado/progreso.js'
+import { cargarProgreso, fijarMeta, mensajeDeProgreso } from '../estado/progreso.js'
 import { EXPLICACIONES } from '../progreso/explicaciones.js'
 import { META_MAXIMA, META_MINIMA } from '../reglas/progreso.js'
 import Evolucion from './Evolucion.vue'
@@ -28,16 +28,12 @@ const mayorSemana = computed(() =>
 )
 const mayorGrupo = computed(() => Math.max(1, ...(datos.value?.grupos ?? []).map((grupo) => grupo.series)))
 
-function mensajeDe(fallo) {
-  return fallo.sinConexion ? 'Progreso necesita conexión. Revisa tu señal y vuelve a intentar.' : fallo.mensaje
-}
-
 async function cargar() {
   error.value = ''
   try {
     datos.value = await cargarProgreso()
   } catch (fallo) {
-    error.value = mensajeDe(fallo)
+    error.value = mensajeDeProgreso(fallo)
   }
 }
 
@@ -48,7 +44,7 @@ async function cambiarMeta(evento) {
     await fijarMeta(valor)
     await cargar()
   } catch (fallo) {
-    errorDeMeta.value = mensajeDe(fallo)
+    errorDeMeta.value = mensajeDeProgreso(fallo)
     evento.target.value = datos.value?.meta ?? ''
   }
 }
@@ -120,7 +116,7 @@ onMounted(cargar)
         </ol>
         <p class="fila fila--separada suave semanas__pie">
           <span>{{ fecha(datos.semanas[0].inicio) }}</span>
-          <span v-if="datos.meta">■ cumplió la meta</span>
+          <span v-if="datos.meta"><span class="leyenda" aria-hidden="true">■</span> cumplió la meta</span>
           <span>esta semana</span>
         </p>
       </section>
@@ -160,6 +156,16 @@ onMounted(cargar)
 </template>
 
 <style scoped>
+/* La explicación de un indicador baja a su propia línea (RNF-004-03). */
+.tarjeta > header,
+.fila {
+  flex-wrap: wrap;
+}
+
+.leyenda {
+  color: var(--color-acento);
+}
+
 .cifra {
   margin: 0;
   font-size: 1.5rem;

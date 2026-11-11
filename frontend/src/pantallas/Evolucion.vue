@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 
 import Explicacion from '../componentes/Explicacion.vue'
 import GraficaDeLinea from '../componentes/GraficaDeLinea.vue'
-import { cargarEvolucion } from '../estado/progreso.js'
+import { cargarEvolucion, mensajeDeProgreso } from '../estado/progreso.js'
 import { EXPLICACIONES } from '../progreso/explicaciones.js'
 
 const props = defineProps({ clave: { type: String, required: true }, nombre: { type: String, required: true } })
@@ -41,7 +41,7 @@ async function cargar() {
   try {
     datos.value = await cargarEvolucion(props.clave)
   } catch (fallo) {
-    error.value = fallo.sinConexion ? 'Progreso necesita conexión.' : fallo.mensaje
+    error.value = mensajeDeProgreso(fallo)
   }
 }
 
@@ -89,6 +89,10 @@ onMounted(cargar)
 </template>
 
 <style scoped>
+.fila {
+  flex-wrap: wrap;
+}
+
 .selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
