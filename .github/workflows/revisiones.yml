@@ -112,6 +112,35 @@ jobs:
           # Crea la cuenta del dueño y nunca escribe la contraseña en los registros (RNF-SEG-08).
           docker logs app 2>&1 | grep -q "Cuenta de dueño creada: dueno"
           ! docker logs app 2>&1 | grep -q "Temporal-de-la-revision-7"
+
+      # T-006-34: el flujo sin conexión, en WebKit (el motor de Safari), contra esta
+      # misma imagen. El "modo avión" apaga el contenedor de verdad: así el service
+      # worker tiene que abrir la app solo, como en el iPhone sin señal.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Flujo completo sin conexión (Playwright + WebKit)
+        working-directory: frontend
+        env:
+          E2E_URL: http://localhost:8000
+          E2E_USUARIO: dueno
+          E2E_CONTRASENA_TEMPORAL: Temporal-de-la-revision-7
+          E2E_APAGAR: docker stop app
+          E2E_ENCENDER: docker start app
+        run: |
+          npm ci
+          npx playwright install --with-deps webkit
+          npx playwright test
+      - name: Rastro de Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rastro-playwright
+          path: frontend/test-results/
+          retention-days: 7
+
         # Si falla, que se vea por qué.
       - name: Registros del contenedor
         if: failure()

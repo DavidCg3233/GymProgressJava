@@ -7,12 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "vue": "^3.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@vitejs/plugin-vue": "^6.0.0",
     "fake-indexeddb": "^6.2.8",
     "vite": "^7.0.0",

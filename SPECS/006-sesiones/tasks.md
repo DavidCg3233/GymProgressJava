@@ -159,6 +159,7 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 
 | Fecha | Tarea | Código | Qué entendí (lo escribe David) |
 |---|---|---|---|
+| 2026-11-11 | T-006-34 | Playwright con WebKit corre CA-006-16a y 17a contra la imagen de producción en cada PR. Hallazgo: en WebKit, `setOffline` y `route` de Playwright cortan la navegación antes que el service worker, así que nunca probarían que la app abre sin señal. El "modo avión" de la prueba apaga el servidor de verdad (`docker stop app`). Pasó en mi equipo: abrió sin servidor, conservó la sesión al cerrar y abrir, y las 2 series llegaron al volver | IA |
 | 2026-11-10 | T-006-01 | `c570d5a` · v1.0 en `legacy/`, etiqueta `v1.0` | `[DAVID]` |
 | 2026-11-10 | T-006-02 | `98203b4` · 17 pruebas | `[DAVID]` |
 | 2026-11-10 | T-006-15 | 64 pruebas de reglas (se escribieron primero y fallaron; luego el código) | `[DAVID]` |
@@ -190,6 +191,16 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 - **Docker no corre en el equipo de David: falta WSL.** No bloquea el avance, porque GitHub Actions ejecuta lo mismo en cada PR, pero sin WSL no se puede levantar el servidor completo en local. Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y, en `deploy/`, `docker compose up`.
 
 ### Notas técnicas
+
+#### Correr la prueba de flujo sin conexión (T-006-34) en tu equipo
+
+Necesita la pantalla construida (`npm run build`), el servidor local con `settings_local` en el puerto 8000 y una cuenta con contraseña temporal. Desde `frontend/`:
+
+```bash
+E2E_USUARIO=tu_cuenta_de_prueba E2E_CONTRASENA_TEMPORAL=su_temporal E2E_APAGAR="comando que apaga el servidor" E2E_ENCENDER="comando que lo enciende" npx playwright test
+```
+
+La prueba cambia la contraseña temporal, así que después hay que volver a ponerla. En Windows, apagar es matar el proceso que escucha en el puerto 8000 y encender es lanzar `runserver` en segundo plano. La primera vez: `npx playwright install webkit`.
 
 - **La revisión "Imagen de producción" atrapó un error antes de Railway:** la app corre con un usuario sin privilegios, pero `/app` era del administrador, así que no podía crear su carpeta de archivos al construir. Corregido. La revisión ahora publica las líneas del error como anotación, visible sin iniciar sesión en GitHub.
 - **Railway falló al primer intento** porque construyó `main`, que aún no tenía el `Dockerfile`. Se resuelve al fusionar el PR #10.
