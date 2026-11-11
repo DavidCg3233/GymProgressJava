@@ -113,7 +113,7 @@ def historial(usuario, pagina: int) -> tuple[list[Sesion], bool]:
 
 
 @transaction.atomic
-def guardar_sesion(usuario, id, nombre, inicio, fin, nota, ahora: datetime) -> Sesion | None:
+def guardar_sesion(usuario, id, nombre, inicio, fin, nota, ahora: datetime, rutina=None) -> Sesion | None:
     """Crea, actualiza o termina una sesión. Devuelve None si quedó descartada."""
     inicio = _exigir_hora(inicio, "inicio", "La hora de inicio no es válida.")
     fin = _hora_opcional(fin, "fin", "La hora de fin no es válida.")
@@ -130,7 +130,7 @@ def guardar_sesion(usuario, id, nombre, inicio, fin, nota, ahora: datetime) -> S
         raise NoEncontrado()
 
     if sesion is None:
-        sesion = _crear_sesion(usuario, id, nombre, inicio, fin, nota, ahora)
+        sesion = _crear_sesion(usuario, id, nombre, inicio, fin, nota, ahora, rutina)
     elif sesion.fin is not None and not sesion.cierre_automatico:
         # Ya la terminó el usuario: queda fija. Repetir el cierre no es un error.
         if fin is None:
@@ -151,7 +151,7 @@ def guardar_sesion(usuario, id, nombre, inicio, fin, nota, ahora: datetime) -> S
     return sesion
 
 
-def _crear_sesion(usuario, id, nombre, inicio, fin, nota, ahora) -> Sesion:
+def _crear_sesion(usuario, id, nombre, inicio, fin, nota, ahora, rutina=None) -> Sesion:
     cierre_automatico = False
     if fin is None:
         if reglas_de_sesiones.debe_cerrarse(inicio, ahora):
@@ -164,8 +164,37 @@ def _crear_sesion(usuario, id, nombre, inicio, fin, nota, ahora) -> Sesion:
             if en_curso is not None:
                 raise Conflicto("Ya tienes una sesión en curso.", sesion_en_curso=str(en_curso.pk))
     return Sesion.objects.create(
-        id=id, usuario=usuario, nombre=nombre, inicio=inicio, fin=fin, nota=nota, cierre_automatico=cierre_automatico
+        id=id,
+        usuario=usuario,
+        nombre=nombre,
+        inicio=inicio,
+        fin=fin,
+        nota=nota,
+        cierre_automatico=cierre_automatico,
+        # La rutina se fija al empezar y no cambia después (RF-006-01).
+        rutina=_rutina_propia(usuario, rutina),
     )
+
+
+def _rutina_propia(usuario, valor):
+    """La rutina de la persona con ese id, o nada.
+
+    Una rutina inexistente o ajena se ignora en vez de rechazar la sesión: pudo
+    eliminarse mientras el celular estaba sin señal, y rechazarla perdería el
+    entrenamiento (plan 002, sección 4.4).
+    """
+    from rutinas.models import Rutina
+
+    id = _identificador(valor)
+    return Rutina.objects.filter(pk=id, usuario=usuario).first() if id else None
+
+
+def _en_catalogo(usuario, nombre: str, grupo: str):
+    """Plan 002, sección 4.3: el ejercicio del catálogo con ese nombre; si no existe, se crea (RF-002-09)."""
+    from rutinas import catalogo_inicial
+    from rutinas.models import Ejercicio, GrupoMuscular
+
+    return catalogo_inicial.asegurar_ejercicio(usuario, nombre, grupo, GrupoMuscular, Ejercicio)
 
 
 def _series_confirmadas(sesion: Sesion) -> int:
@@ -212,6 +241,7 @@ def guardar_ejercicio(usuario, id_sesion, id, nombre, grupo, orden, nota, moment
         "orden": _validar_orden(orden),
         "nota": reglas_de_textos.validar_nota(nota),
     }
+    datos["ejercicio"] = _en_catalogo(usuario, datos["nombre"], datos["grupo"])
     if ejercicio is None:
         return SesionEjercicio.objects.create(id=id, sesion=sesion, **datos)
 

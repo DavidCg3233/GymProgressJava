@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 20 |
+| **Avance** | 0 de 20 cerradas · 11 con código (T-002-01 a 11): servidor completo |
 
 > Mismas reglas que en la spec 006:
 > - **Una tarea = un commit**, en orden, con TDD: primero la prueba, verla fallar, después el código.
@@ -81,4 +81,14 @@
 
 | Fecha | Tarea | Código | Qué entendí (lo escribe David) |
 |---|---|---|---|
-| | | | |
+| 2026-11-10 | T-002-01 | Reglas de rutina en Python. **Sin rojo previo:** la prueba y el código se escribieron juntos; para compensar, 7 errores introducidos a propósito fueron todos detectados | `[DAVID]` |
+| 2026-11-10 | T-002-02 | Las mismas reglas en JavaScript, con rojo previo | `[DAVID]` |
+| 2026-11-10 | T-002-03 a 05 | Catálogo por persona, 40 ejercicios predefinidos al crear la cuenta, migración para cuentas existentes. Probada sobre la base local: la cuenta `prueba` recibió el catálogo y sus 3 ejercicios de sesión quedaron enlazados | `[DAVID]` |
+| 2026-11-10 | T-002-06 a 09 | API del catálogo y de las rutinas: crear, renombrar, eliminar con aviso, duplicar con numeración | `[DAVID]` |
+| 2026-11-10 | T-002-10 y 11 | La sesión recuerda su rutina, cada ejercicio de sesión entra solo al catálogo, el arranque trae catálogo y rutinas | `[DAVID]` |
+
+### Notas técnicas
+
+- **Error encontrado por las pruebas en T-002-03:** la protección "no borrar un grupo con ejercicios" (`PROTECT`) también impedía eliminar una cuenta completa. Se cambió a `RESTRICT`, que mantiene la regla del grupo y permite borrar todo junto.
+- **La migración agrega al catálogo los ejercicios que ya registraste** y no están en la lista predefinida. En la base local apareció así "Press Inclinado en maquina".
+- **Una rutina inexistente o ajena en una sesión se ignora** en vez de rechazar la sesión: pudo eliminarse mientras el celular estaba sin señal.

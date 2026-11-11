@@ -12,6 +12,9 @@ from rest_framework.views import APIView
 from reglas import sesiones as reglas_de_sesiones
 from reglas.errores import ErrorDeValidacion
 
+from rutinas import servicios as servicios_de_rutinas
+from rutinas.vistas import ejercicio_json, grupo_json, rutina_json
+
 from . import servicios
 from .models import Serie, Sesion, SesionEjercicio
 
@@ -38,6 +41,9 @@ class Arranque(VistaDeSesiones):
         return Response(
             {
                 "sesion_en_curso": _sesion_completa(en_curso, self.ahora) if en_curso else None,
+                # Plan 002, 4.5: para empezar una sesión desde una rutina sin señal.
+                "catalogo": _catalogo(request.user),
+                "rutinas": [rutina_json(rutina) for rutina in servicios_de_rutinas.listar_rutinas(request.user)],
                 "ultima_vez": {
                     clave: {
                         "nombre": resumen["nombre"],
@@ -74,6 +80,7 @@ class DetalleDeSesion(VistaDeSesiones):
             fin=datos.get("fin"),
             nota=datos.get("nota"),
             ahora=self.ahora,
+            rutina=datos.get("rutina"),
         )
         if sesion is None:
             return Response({"sesion": None, "descartada": True})
@@ -152,6 +159,7 @@ def _sesion_completa(sesion: Sesion, ahora) -> dict:
         "inicio": sesion.inicio.isoformat(),
         "fin": sesion.fin.isoformat() if sesion.fin else None,
         "nota": sesion.nota,
+        "rutina": str(sesion.rutina_id) if sesion.rutina_id else None,
         "en_curso": en_curso,
         "ejercicios": [_ejercicio(ejercicio) for ejercicio in sesion.ejercicios.prefetch_related("series")],
     }
@@ -176,3 +184,8 @@ def _serie(serie: Serie) -> dict:
         "reps": serie.reps,
         "confirmada": serie.confirmada,
     }
+
+
+def _catalogo(usuario) -> dict:
+    grupos, ejercicios = servicios_de_rutinas.catalogo(usuario)
+    return {"grupos": [grupo_json(g) for g in grupos], "ejercicios": [ejercicio_json(e) for e in ejercicios]}
