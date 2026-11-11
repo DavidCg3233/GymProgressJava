@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | Borrador |
+| **Estado** | **Aprobada** por David el 2026-11-11 |
 | **Autor** | David Calambás |
 | **Creada** | 2026-11-11 |
 | **Requisitos de origen** | R-26 |
@@ -136,7 +136,7 @@ La app funciona, pero se ve genérica y todo pesa lo mismo. En el gimnasio, entr
 | 4 | ¿Letra? | — | **La del iPhone** (2026-11-11). |
 | 5 | ¿Cambiar peso y reps? | — | **Botones +/−, como hoy** (2026-11-11). |
 | 6 | ¿Referencia? | — | **Hevy o Strong** (2026-11-11). |
-| 7 | ¿Color de acento? | Lo elige la IA y lo muestra | **Pendiente de tu visto bueno:** verde pino (`#0B7A62` en claro, `#3CCFA8` en oscuro), en [`docs/diseno/muestra.html`](../../docs/diseno/muestra.html). |
+| 7 | ¿Color de acento? | Lo elige la IA y lo muestra | **Aprobado** (2026-11-11): verde pino (`#0B7A62` en claro, `#3CCFA8` en oscuro), en [`docs/diseno/muestra.html`](../../docs/diseno/muestra.html). |
 
 Reglas que definí yo y que puedes cambiar: la sesión oculta la barra y se minimiza a una franja (RF-007-02, 03, como en Hevy); la cuenta pasa a un botón del Inicio (RF-007-07); el formato del tiempo de la franja (RN-007-02). Y una que salió de medir la muestra: el número de la serie va dentro del círculo de confirmar, porque con +/− de 44 px no cabe una columna aparte en 375 px (ver `DESIGN.md`, Fila de serie).
 

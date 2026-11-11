@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | **Borrador**, va con la [spec 007](SPECS/007-rediseno-visual/spec.md) |
+| **Estado** | **Aprobado** con la [spec 007](SPECS/007-rediseno-visual/spec.md) (2026-11-11) |
 | **Modo** | *Operate*: la persona completa una tarea, con una mano, entre series |
 | **Muestra** | [`docs/diseno/muestra.html`](docs/diseno/muestra.html): la paleta y las piezas clave, en claro y en oscuro |
 
