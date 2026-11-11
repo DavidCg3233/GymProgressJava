@@ -10,6 +10,7 @@ admin.site.site_title = "GymProgress"
 admin.site.index_title = "Cuentas"
 
 urlpatterns = [
+    path("", vistas.pantalla, name="pantalla"),
     path("salud/", vistas.salud, name="salud"),
     path("api/acceso/", include("cuentas.urls")),
     path("api/", include("sesiones.urls")),

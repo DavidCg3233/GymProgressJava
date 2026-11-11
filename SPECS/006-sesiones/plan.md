@@ -204,3 +204,33 @@ La spec 006 depende de la 002 (una sesión parte de una rutina), y la 002 todav�
 - **Hito B — sesión desde rutina:** después de aprobar y planear la 002. Agrega RF-006-01, la precarga desde la rutina (RF-006-05) y las sugerencias del catálogo.
 
 El detalle está en [`tasks.md`](tasks.md).
+
+## 12. Revisión del 2026-11-10: de VPS a Railway
+
+**Decidido por David el 2026-11-10.** El VPS no cabía en el presupuesto: en DigitalOcean, la configuración más pequeña disponible en su cuenta costaba unos 17 dólares al mes (unos $70.000 COP), contra un tope de $20.000 COP (RNF-PLA-05). Railway, en su plan Hobby, cobra un mínimo de 5 dólares al mes que se gastan en uso.
+
+| Pieza | Plan original (sección 2) | Ahora |
+|---|---|---|
+| Hosting | VPS Linux con Docker Compose | Railway: un servicio para la app y otro de PostgreSQL |
+| HTTPS y dominio | Caddy + subdominio de DuckDNS | Los da Railway (`*.up.railway.app`) |
+| Entregar la pantalla | Caddy | Django + WhiteNoise: un solo sitio, la cookie de acceso y la protección CSRF funcionan igual |
+| Servidor de Python | — | gunicorn, 1 proceso con 4 hilos (menos memoria, que es lo que Railway cobra) |
+| Migraciones | A mano | Al arrancar cada versión (`Dockerfile`) |
+| Respaldo diario (T-006-35) | Volcado a la nube | Pendiente: revisar lo que ofrece Railway para PostgreSQL |
+| Desarrollo en el equipo | Docker Compose | Igual (`deploy/docker-compose.yml`), o SQLite con `settings_local` |
+
+**Lo que se pierde:** la práctica de administrar un servidor Linux expuesto a internet (T-006-06). Esa práctica queda para la rama de Linux del plan de estudio, en la máquina virtual.
+
+**Riesgo nuevo:** el cobro es por uso. Si la app consume más de 5 dólares al mes, se cobra la diferencia. Mitigación: límite de gasto en Railway y un solo proceso de gunicorn.
+
+**Archivos nuevos:** `Dockerfile` y `.dockerignore` en la raíz (imagen de producción en dos etapas), `railway.json` (construcción y revisión de salud en `/salud/`), `backend/config/produccion.py` (HTTPS obligatorio con `GP_HTTPS=1` y cabecera Content-Security-Policy, RNF-SEG-02 y 05). La revisión automática "Imagen de producción" construye y arranca esa imagen en cada PR.
+
+### Variables de entorno en Railway
+
+| Variable | Valor |
+|---|---|
+| `GP_SECRET_KEY` | Una clave larga al azar, generada solo para producción |
+| `GP_HTTPS` | `1` |
+| `GP_ALLOWED_HOSTS` | `<tu-dominio>.up.railway.app,healthcheck.railway.app` |
+| `GP_CSRF_TRUSTED_ORIGINS` | `https://<tu-dominio>.up.railway.app` |
+| `GP_DB_NAME`, `GP_DB_USER`, `GP_DB_PASSWORD`, `GP_DB_HOST`, `GP_DB_PORT` | Referencias a las variables del servicio PostgreSQL: `${{Postgres.PGDATABASE}}`, `${{Postgres.PGUSER}}`, `${{Postgres.PGPASSWORD}}`, `${{Postgres.PGHOST}}`, `${{Postgres.PGPORT}}` |

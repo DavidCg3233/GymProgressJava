@@ -78,6 +78,34 @@ jobs:
       - name: Auditar dependencias de JavaScript
         run: npm audit --omit=dev --audit-level=high
 
+  imagen:
+    name: Imagen de producción
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # La misma imagen que construye Railway: si aquí no se construye, allá tampoco.
+      - name: Construir
+        run: docker build --tag gymprogress .
+
+      # Arranca la imagen contra un PostgreSQL de prueba y comprueba que responde
+      # y que entrega la pantalla con su política de contenido.
+      - name: Arrancar y responder
+        run: |
+          docker network create prueba
+          docker run -d --name db --network prueba -e POSTGRES_DB=gp -e POSTGRES_USER=gp -e POSTGRES_PASSWORD=gp postgres:16-alpine
+          for intento in $(seq 1 30); do docker exec db pg_isready -U gp -d gp && break; sleep 2; done
+          docker run -d --name app --network prueba -p 8000:8000             -e GP_SECRET_KEY=$(openssl rand -hex 32) -e GP_ALLOWED_HOSTS=localhost             -e GP_DB_NAME=gp -e GP_DB_USER=gp -e GP_DB_PASSWORD=gp -e GP_DB_HOST=db             gymprogress
+          for intento in $(seq 1 30); do curl -fsS http://localhost:8000/salud/ && break; sleep 2; done
+          curl -fsS http://localhost:8000/ | grep -q '<title>GymProgress</title>'
+          curl -fsSI http://localhost:8000/ | grep -qi "content-security-policy"
+          curl -fsS http://localhost:8000/sw.js > /dev/null
+          curl -fsS http://localhost:8000/manifest.webmanifest > /dev/null
+        # Si falla, que se vea por qué.
+      - name: Registros del contenedor
+        if: failure()
+        run: docker logs app || true
+
   secretos:
     name: Sin secretos en el código
     runs-on: ubuntu-latest

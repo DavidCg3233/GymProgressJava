@@ -1,0 +1,22 @@
+# Lo que no entra a la imagen de producción.
+.git
+.github
+legacy
+docs
+SPECS
+deploy
+
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/*.sqlite3
+backend/staticfiles
+
+**/node_modules
+frontend/dist
+frontend/.vite
+
+# Secretos: nunca dentro de una imagen (RNF-SEG-03).
+**/.env
+**/.env.*
