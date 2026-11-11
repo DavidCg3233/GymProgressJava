@@ -66,6 +66,9 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField("puede entrar al panel de administración", default=False)
     creada = models.DateTimeField("creada", auto_now_add=True)
 
+    # RF-004-11 y RN-004-08: opcional, de 1 a 14 sesiones por semana.
+    meta_semanal = models.PositiveSmallIntegerField("meta de sesiones por semana", null=True, blank=True)
+
     objects = GestorDeUsuarios()
 
     USERNAME_FIELD = "usuario"
@@ -80,6 +83,10 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
             # aunque algún código se salte el normalizado de `save`.
             models.UniqueConstraint(Lower("usuario"), name="cuentas_usuario_unico_sin_mayusculas"),
             models.UniqueConstraint(Lower("correo"), name="cuentas_correo_unico_sin_mayusculas"),
+            models.CheckConstraint(
+                condition=models.Q(meta_semanal__isnull=True) | models.Q(meta_semanal__gte=1, meta_semanal__lte=14),
+                name="cuentas_meta_semanal_de_1_a_14",
+            ),
         ]
 
     def __str__(self) -> str:

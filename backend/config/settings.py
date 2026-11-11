@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "cuentas",
     "rutinas",
     "sesiones",
+    "progreso",
 ]
 
 # --- API (T-006-13) --------------------------------------------------------

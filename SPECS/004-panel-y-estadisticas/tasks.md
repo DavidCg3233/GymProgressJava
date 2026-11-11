@@ -24,7 +24,7 @@
 ## Fase 2 — Servidor
 
 - [ ] **T-004-03** Meta semanal en la cuenta.
-  - Campo `meta_semanal` con `CHECK` de 1 a 14, migración, `PUT /api/progreso/meta/`, y la meta en el estado de la cuenta.
+  - Campo `meta_semanal` con `CHECK` de 1 a 14, migración, `PUT /api/progreso/meta/`. La meta se lee en `GET /api/progreso/` (T-004-05): solo Progreso la usa.
   - Cumple: RF-004-11, RN-004-08. Hecho cuando: fijar, cambiar y quitar funcionan; 0, 15 y "4" se rechazan en la API y en la base.
 - [ ] **T-004-04** Qué cuenta y récords.
   - App `progreso`, consulta base `series_que_cuentan` (plan 4.1 y 4.2), y `records` en `GET /api/progreso/`.

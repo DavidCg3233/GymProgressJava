@@ -54,6 +54,7 @@ def test_la_cuenta_no_tiene_campos_personales_de_mas():
         "is_staff",
         "is_active",
         "creada",
+        "meta_semanal",  # RF-004-11: una preferencia, no un dato personal.
     }
 
 
