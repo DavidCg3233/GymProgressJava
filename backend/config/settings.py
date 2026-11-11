@@ -8,6 +8,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from . import entorno
+from .produccion import ajustes_https
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -19,6 +20,14 @@ SECRET_KEY = entorno.obligatoria("GP_SECRET_KEY")
 DEBUG = entorno.booleana("GP_DEBUG")
 
 ALLOWED_HOSTS = entorno.lista("GP_ALLOWED_HOSTS")
+
+# Con la app publicada, el dominio con que se llega (https://...) debe ser de confianza
+# para la protección CSRF, porque el navegador lo envía en cada formulario.
+CSRF_TRUSTED_ORIGINS = entorno.lista("GP_CSRF_TRUSTED_ORIGINS")
+
+# RNF-SEG-02: HTTPS obligatorio solo con la app publicada (GP_HTTPS=1).
+HTTPS_ACTIVO = entorno.booleana("GP_HTTPS")
+globals().update(ajustes_https(activo=HTTPS_ACTIVO))
 
 # --- Aplicaciones ----------------------------------------------------------
 
@@ -105,13 +114,19 @@ SESSION_SAVE_EVERY_REQUEST = True
 # otros sitios no pueden usarla para enviar acciones. En desarrollo (DEBUG)
 # se permite HTTP, porque en el equipo no hay certificado.
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = HTTPS_ACTIVO or not DEBUG
 SESSION_COOKIE_SAMESITE = "Lax"
-CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = HTTPS_ACTIVO or not DEBUG
 CSRF_COOKIE_SAMESITE = "Lax"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # RNF-SEG-05: la página solo ejecuta código propio. Va antes que WhiteNoise
+    # para que también cubra los archivos que este entrega, incluido el
+    # index.html que el service worker guarda en el celular.
+    "config.produccion.PoliticaDeContenido",
+    # Entrega la pantalla compilada y los archivos del panel, sin servidor web aparte.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -165,3 +180,17 @@ USE_TZ = True
 # --- Archivos estáticos ----------------------------------------------------
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
+
+# --- La pantalla (frontend compilado) --------------------------------------
+
+# Carpeta con la app compilada (`npm run build`). Django entrega index.html en "/"
+# y WhiteNoise el resto de archivos desde la raíz del sitio.
+PANTALLA_DIR = Path(entorno.opcional("GP_PANTALLA_DIR", str(BASE_DIR.parent / "frontend" / "dist")))
+WHITENOISE_ROOT = PANTALLA_DIR if PANTALLA_DIR.is_dir() else None
+# Sin este tipo, algunos navegadores no reconocen el manifiesto y no ofrecen instalar la app.
+WHITENOISE_MIMETYPES = {".webmanifest": "application/manifest+json"}

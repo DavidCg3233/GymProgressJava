@@ -180,6 +180,7 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 | 2026-11-10 | T-006-14 | Pantalla de acceso, cambio de contraseña (obligatorio con temporal) y salir | `[DAVID]` |
 | 2026-11-10 | T-006-23 a 29 | Pantallas de inicio, sesión en curso e historial. Lógica de la sesión en funciones puras con 28 pruebas; pantallas recorridas a mano en 375 px: entrar, sesión libre, agregar ejercicio, confirmar (1 toque), +0,5 kg y confirmar (2 toques), rechazo de 30,3 kg, recargar a mitad de sesión, nota de la última vez, precarga, terminar con resumen, descartar sesión vacía, historial, detalle, eliminar y salir | `[DAVID]` |
 | 2026-11-10 | T-006-30 a 33 | Sin conexión: almacén en el celular (IndexedDB), cola de pendientes, aviso de cambios por enviar, cuenta recordada para abrir sin señal, cierre a las 2 horas en el celular y app instalable con service worker. 39 pruebas nuevas. Comprobado en el navegador apagando el servidor a mitad de sesión: se registraron series, se recargó la app sin servidor, abrió con todo intacto, y al encender el servidor los pendientes se enviaron solos | `[DAVID]` |
+| 2026-11-10 | T-006-07 (Railway) | Imagen de producción en dos etapas, Django sirve la pantalla con WhiteNoise, HTTPS obligatorio y Content-Security-Policy, `railway.json`. 17 pruebas nuevas. Comprobado en el equipo: Django solo entrega la app, el service worker queda activo y la copia guardada en el celular lleva la cabecera de seguridad. **Falta publicar:** lo hace David en Railway | `[DAVID]` |
 | 2026-11-10 | T-006-03 | `e2dc212` · Docker Compose con PostgreSQL 16. **Verificada en GitHub Actions:** migraciones y 105 pruebas dentro de Docker, incluidas las 3 de PostgreSQL. En el equipo de David sigue sin poder correr (falta WSL) | `[DAVID]` |
 
 ### Bloqueos
@@ -187,6 +188,12 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 - **Docker no corre en el equipo de David: falta WSL.** No bloquea el avance, porque GitHub Actions ejecuta lo mismo en cada PR, pero sin WSL no se puede levantar el servidor completo en local. Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y, en `deploy/`, `docker compose up`.
 
 ### Notas técnicas
+
+- **La revisión "Imagen de producción" atrapó un error antes de Railway:** la app corre con un usuario sin privilegios, pero `/app` era del administrador, así que no podía crear su carpeta de archivos al construir. Corregido. La revisión ahora publica las líneas del error como anotación, visible sin iniciar sesión en GitHub.
+- **Railway falló al primer intento** porque construyó `main`, que aún no tenía el `Dockerfile`. Se resuelve al fusionar el PR #10.
+
+- **Cambio de hosting (plan 006, sección 12):** el VPS no cabía en el presupuesto; se publica en Railway. T-006-06 (contratar y asegurar el VPS) queda reemplazada por crear el proyecto en Railway. T-006-07 cambia: ya no hay Caddy.
+- **Dos errores encontrados al verificar en el navegador:** (1) la cabecera de seguridad no llegaba a los archivos que entrega WhiteNoise, incluido el `index.html` que el service worker guarda en el celular, así que sin señal la app habría corrido sin esa protección; (2) el manifiesto salía con un tipo de archivo que algunos navegadores no reconocen para instalar la app.
 
 - **Tres errores que encontraron las pruebas de la fase 6, antes de llegar al celular:**
   1. *Grave.* La cola fusionaba dos cambios sobre el mismo dato poniendo el último en el lugar del primero. Eso adelantaba el **cierre** de la sesión al lugar de su **inicio**: el servidor la habría recibido terminada y sin series, la habría descartado, y luego habría rechazado todas las series. Se perdía el entrenamiento entero. Ahora solo se fusionan cambios seguidos; con otros en medio, se conservan los dos en orden.

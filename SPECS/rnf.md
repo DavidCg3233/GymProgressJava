@@ -13,7 +13,7 @@
 | RNF-PLA-03 | Debe poder agregarse a la pantalla de inicio del iPhone y abrirse como una app, también sin conexión. *(Necesario para el uso sin señal decidido en la spec 006.)* | Se agrega, se pone modo avión y abre. | R-08 |
 | RNF-PLA-06 | El registro de sesiones debe funcionar sin conexión y sincronizar al volver la señal (detalle en RNF-006-05 a 07). | CA-006-16a y CA-006-17a. | R-04 |
 | RNF-PLA-04 | La aplicación es de uso privado: no aparece en buscadores ni tiene registro público. | No existe pantalla de registro abierta. | R-10, R-11 |
-| RNF-PLA-05 | La aplicación debe ser accesible desde cualquier lugar por internet (se usa en el gimnasio). Eso implica estar publicada, aunque sea de uso privado. Presupuesto máximo de hosting: **$20.000 COP al mes**. Decidido 2026-11-09. | Se abre con datos móviles fuera de casa. | R-07, R-11 |
+| RNF-PLA-05 | La aplicación debe ser accesible desde cualquier lugar por internet (se usa en el gimnasio). Eso implica estar publicada, aunque sea de uso privado. Presupuesto máximo de hosting: **$20.000 COP al mes**. Decidido 2026-11-09. Publicada en Railway (plan 006, sección 12), por presupuesto. | Se abre con datos móviles fuera de casa. | R-07, R-11 |
 
 ## Acceso
 
