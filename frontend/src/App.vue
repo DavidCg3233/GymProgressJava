@@ -11,6 +11,7 @@ import EditorDeRutina from './pantallas/EditorDeRutina.vue'
 import Historial from './pantallas/Historial.vue'
 import Inicio from './pantallas/Inicio.vue'
 import MisRutinas from './pantallas/MisRutinas.vue'
+import Progreso from './pantallas/Progreso.vue'
 import SesionEnCurso from './pantallas/SesionEnCurso.vue'
 
 const vista = ref('inicio')
@@ -100,6 +101,8 @@ function ir(destino) {
     @cancelar="ir('rutinas')"
   />
 
+  <Progreso v-else-if="vista === 'progreso'" @volver="ir('inicio')" />
+
   <Catalogo v-else-if="vista === 'catalogo'" @volver="ir('rutinas')" />
 
   <CambiarContrasena v-else-if="vista === 'contrasena'" @listo="ir('inicio')" @cancelar="ir('inicio')" />
@@ -110,5 +113,6 @@ function ir(destino) {
     @historial="ir('historial')"
     @contrasena="ir('contrasena')"
     @rutinas="ir('rutinas')"
+    @progreso="ir('progreso')"
   />
 </template>

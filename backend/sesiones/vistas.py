@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from reglas import sesiones as reglas_de_sesiones
 from reglas.errores import ErrorDeValidacion
 
+from progreso import servicios as servicios_de_progreso
 from rutinas import servicios as servicios_de_rutinas
 from rutinas.vistas import ejercicio_json, grupo_json, rutina_json
 
@@ -44,6 +45,9 @@ class Arranque(VistaDeSesiones):
                 # Plan 002, 4.5: para empezar una sesión desde una rutina sin señal.
                 "catalogo": _catalogo(request.user),
                 "rutinas": [rutina_json(rutina) for rutina in servicios_de_rutinas.listar_rutinas(request.user)],
+                # Plan 004, 4.5: el inicio funciona sin señal (RNF-004-01).
+                "recientes": servicios_de_progreso.recientes(request.user),
+                "hechas_hoy": servicios_de_progreso.hechas_hoy(request.user, self.ahora),
                 "ultima_vez": {
                     clave: {
                         "nombre": resumen["nombre"],

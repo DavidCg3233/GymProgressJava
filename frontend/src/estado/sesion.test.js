@@ -8,6 +8,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ErrorDeApi } from '../datos/api.js'
+import { fechaLocal, rutinasHechasHoy } from '../reglas/progreso.js'
 
 const servidor = {
   conectado: true,
@@ -16,6 +17,8 @@ const servidor = {
   ultimaVez: {},
   catalogo: { grupos: [], ejercicios: [] },
   rutinas: [],
+  recientes: [],
+  hechasHoy: null,
 }
 
 vi.mock('../datos/api.js', async (original) => {
@@ -30,6 +33,8 @@ vi.mock('../datos/api.js', async (original) => {
           ultima_vez: servidor.ultimaVez,
           catalogo: servidor.catalogo,
           rutinas: servidor.rutinas,
+          recientes: servidor.recientes,
+          hechas_hoy: servidor.hechasHoy,
         }
       }
       servidor.recibidas.push({ metodo, url, cuerpo })
@@ -85,6 +90,8 @@ beforeEach(() => {
     ultimaVez: ULTIMA_VEZ,
     catalogo: CATALOGO,
     rutinas: [PECHO],
+    recientes: [],
+    hechasHoy: null,
   })
 })
 
@@ -267,5 +274,88 @@ describe('T-002-13: empezar una sesión desde una rutina, también sin señal', 
     await app.empezarSesionLibre()
 
     expect(() => app.empezarSesionDesdeRutina(PECHO)).toThrow('Ya tienes una sesión en curso.')
+  })
+})
+
+describe('T-004-11: recientes y rutinas hechas hoy, también sin señal (RF-004-07, 10 · RNF-004-01)', () => {
+  const hoy = () => fechaLocal(new Date())
+  const RECIENTE = (n) => ({ id: `s-${n}`, nombre: `Sesión ${n}`, inicio: '2026-11-09T18:00:00-05:00', rutina: null })
+
+  async function hacerSerie(app) {
+    const ejercicio = app.estado.sesion.ejercicios[0]
+    await app.confirmarSerie(ejercicio, ejercicio.series[0], { peso: 30, reps: 10 })
+  }
+
+  it('con conexión, el arranque trae las recientes y las hechas hoy', async () => {
+    servidor.recientes = [RECIENTE(1)]
+    servidor.hechasHoy = { fecha: hoy(), rutinas: ['rutina-pecho'] }
+
+    const { estado } = await abrirApp()
+
+    expect(estado.recientes).toEqual([RECIENTE(1)])
+    expect(estado.hechasHoy).toEqual({ fecha: hoy(), rutinas: ['rutina-pecho'] })
+  })
+
+  it('al terminar una sesión de rutina sin señal, queda primera en recientes y su rutina como hecha', async () => {
+    servidor.recientes = [RECIENTE(1), RECIENTE(2), RECIENTE(3)]
+    await abrirApp()
+    servidor.conectado = false
+    const app = await abrirApp()
+    await app.empezarSesionDesdeRutina(PECHO)
+    await hacerSerie(app)
+
+    await app.terminarSesion('', '')
+
+    expect(app.estado.recientes.map((s) => s.nombre)).toEqual(['Pecho', 'Sesión 1', 'Sesión 2'])
+    expect(app.estado.recientes[0]).toMatchObject({ rutina: 'rutina-pecho' })
+    expect(rutinasHechasHoy(app.estado.hechasHoy, hoy())).toEqual(['rutina-pecho'])
+
+    const reabierta = await abrirApp() // sigue sin señal
+    expect(reabierta.estado.recientes[0].nombre).toBe('Pecho')
+    expect(rutinasHechasHoy(reabierta.estado.hechasHoy, hoy())).toEqual(['rutina-pecho'])
+  })
+
+  it('una lista de hechas de ayer se reemplaza por la de hoy', async () => {
+    servidor.hechasHoy = { fecha: '2020-01-01', rutinas: ['vieja'] }
+    await abrirApp()
+    servidor.conectado = false
+    const app = await abrirApp()
+    await app.empezarSesionDesdeRutina(PECHO)
+    await hacerSerie(app)
+
+    await app.terminarSesion('', '')
+
+    expect(app.estado.hechasHoy).toEqual({ fecha: hoy(), rutinas: ['rutina-pecho'] })
+  })
+
+  it('una sesión vacía que se descarta no entra en recientes', async () => {
+    const app = await abrirApp()
+    await app.empezarSesionLibre()
+
+    await app.terminarSesion('', '')
+
+    expect(app.estado.recientes).toEqual([])
+  })
+
+  it('una sesión libre no marca ninguna rutina', async () => {
+    const app = await abrirApp()
+    await app.empezarSesionLibre()
+    app.agregarEjercicio('Sentadilla', 'Pierna')
+    await hacerSerie(app)
+
+    await app.terminarSesion('', '')
+
+    expect(app.estado.recientes[0]).toMatchObject({ nombre: 'Sesión libre', rutina: null })
+    expect(rutinasHechasHoy(app.estado.hechasHoy, hoy())).toEqual([])
+  })
+
+  it('al salir de la cuenta se olvidan', async () => {
+    servidor.recientes = [RECIENTE(1)]
+    const app = await abrirApp()
+
+    await app.olvidarDatosLocales()
+
+    expect(app.estado.recientes).toEqual([])
+    expect(app.estado.hechasHoy).toBeNull()
   })
 })

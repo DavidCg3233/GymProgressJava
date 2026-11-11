@@ -15,6 +15,7 @@ import { crearCola } from '../datos/cola.js'
 import * as operaciones from '../datos/operaciones.js'
 import { claveDeEjercicio } from '../reglas/ejercicios.js'
 import { ErrorDeValidacion } from '../reglas/errores.js'
+import { fechaLocal } from '../reglas/progreso.js'
 import { debeCerrarse } from '../reglas/sesiones.js'
 import * as modelo from '../sesion/modelo.js'
 
@@ -27,6 +28,9 @@ export const estado = reactive({
   // Plan 002, 4.5: guardados en el celular para empezar una sesión de rutina sin señal.
   catalogo: { grupos: [], ejercicios: [] },
   rutinas: [],
+  // Plan 004, 4.5: el inicio funciona sin señal (RNF-004-01).
+  recientes: [], // RF-004-07: las 3 últimas sesiones terminadas
+  hechasHoy: null, // RF-004-10: { fecha, rutinas }
   // La sesión que se acaba de terminar, para mostrar su resumen en el inicio (RF-006-07).
   resumen: null,
   // RF-006-18: cambios guardados en el celular que el servidor aún no tiene.
@@ -54,6 +58,8 @@ function guardarLocal() {
     ultimaVez: estado.ultimaVez,
     catalogo: estado.catalogo,
     rutinas: estado.rutinas,
+    recientes: estado.recientes,
+    hechasHoy: estado.hechasHoy,
   })
 }
 
@@ -90,6 +96,8 @@ export async function cargarArranque() {
     estado.ultimaVez = guardado?.ultimaVez ?? {}
     estado.catalogo = guardado?.catalogo ?? { grupos: [], ejercicios: [] }
     estado.rutinas = guardado?.rutinas ?? []
+    estado.recientes = guardado?.recientes ?? []
+    estado.hechasHoy = guardado?.hechasHoy ?? null
     estado.pendientes = await cola.pendientes()
 
     await cerrarSiVencio()
@@ -122,6 +130,8 @@ async function traerDelServidor() {
     return
   }
   estado.ultimaVez = datos.ultima_vez
+  estado.recientes = datos.recientes ?? estado.recientes
+  estado.hechasHoy = datos.hechas_hoy ?? estado.hechasHoy
   // La sesión en curso del celular manda; la del servidor solo se adopta si aquí no hay ninguna.
   if (!estado.sesion && datos.sesion_en_curso) {
     estado.sesion = conNotasAnteriores(datos.sesion_en_curso, datos.ultima_vez)
@@ -236,9 +246,25 @@ async function cerrar(sesion, descartada) {
   if (!descartada) {
     // Lo de hoy pasa a ser "la última vez" ya mismo, aunque no haya señal.
     estado.ultimaVez = modelo.incorporarAUltimaVez(estado.ultimaVez, sesion)
+    incorporarAlInicio(sesion)
   }
   estado.sesion = null
   await registrar(operaciones.guardarSesion(sesion))
+}
+
+const SESIONES_RECIENTES = 3
+
+/** Plan 004, 4.5: la sesión recién terminada se ve en el inicio sin esperar al servidor. */
+function incorporarAlInicio(sesion) {
+  const reciente = { id: sesion.id, nombre: sesion.nombre, inicio: sesion.inicio, rutina: sesion.rutina ?? null }
+  estado.recientes = [reciente, ...estado.recientes.filter((otra) => otra.id !== sesion.id)].slice(0, SESIONES_RECIENTES)
+
+  // Cuenta para el día en que empezó (RN-004-02), igual que en el servidor.
+  const dia = fechaLocal(new Date(sesion.inicio))
+  if (sesion.rutina && dia === fechaLocal(new Date())) {
+    const deHoy = estado.hechasHoy?.fecha === dia ? estado.hechasHoy.rutinas : []
+    estado.hechasHoy = { fecha: dia, rutinas: [...new Set([...deHoy, sesion.rutina])] }
+  }
 }
 
 /** Al salir de la cuenta: nada de esta persona queda en el celular (RNF-ACC-04). */
@@ -250,6 +276,8 @@ export async function olvidarDatosLocales() {
     ultimaVez: {},
     catalogo: { grupos: [], ejercicios: [] },
     rutinas: [],
+    recientes: [],
+    hechasHoy: null,
     resumen: null,
     pendientes: 0,
     sinConexion: false,
