@@ -189,6 +189,9 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 
 ### Notas técnicas
 
+- **La revisión "Imagen de producción" atrapó un error antes de Railway:** la app corre con un usuario sin privilegios, pero `/app` era del administrador, así que no podía crear su carpeta de archivos al construir. Corregido. La revisión ahora publica las líneas del error como anotación, visible sin iniciar sesión en GitHub.
+- **Railway falló al primer intento** porque construyó `main`, que aún no tenía el `Dockerfile`. Se resuelve al fusionar el PR #10.
+
 - **Cambio de hosting (plan 006, sección 12):** el VPS no cabía en el presupuesto; se publica en Railway. T-006-06 (contratar y asegurar el VPS) queda reemplazada por crear el proyecto en Railway. T-006-07 cambia: ya no hay Caddy.
 - **Dos errores encontrados al verificar en el navegador:** (1) la cabecera de seguridad no llegaba a los archivos que entrega WhiteNoise, incluido el `index.html` que el service worker guarda en el celular, así que sin señal la app habría corrido sin esa protección; (2) el manifiesto salía con un tipo de archivo que algunos navegadores no reconocen para instalar la app.
 
