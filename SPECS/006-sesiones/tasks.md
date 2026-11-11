@@ -195,6 +195,8 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 
 #### Correr la prueba de flujo sin conexión (T-006-34) en tu equipo
 
+**Por qué en la revisión corre con `GP_DEBUG=1`:** sin DEBUG, las cookies de acceso son `Secure` y WebKit no las guarda en `http://localhost`, así que la prueba no podía ni entrar (el PR #16 se fusionó con esa revisión en rojo; lo arregló `fix/e2e-en-ci`). Se usa una segunda copia de la misma imagen solo para Playwright; las revisiones de seguridad siguen sobre la copia sin DEBUG.
+
 **Por qué apaga el servidor:** en WebKit, `setOffline` y `route` de Playwright cortan la navegación antes que el service worker, así que nunca probarían que la app abre sin señal. Apagar el servidor de verdad (`docker stop app` en la revisión automática) sí lo prueba.
 
 Necesita la pantalla construida (`npm run build`), el servidor local con `settings_local` en el puerto 8000 y una cuenta con contraseña temporal. Desde `frontend/`:
