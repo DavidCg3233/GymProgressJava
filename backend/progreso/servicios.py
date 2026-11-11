@@ -4,7 +4,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
 
-from django.db.models import F
+from django.db.models import Exists, F, OuterRef
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
@@ -12,7 +12,7 @@ from reglas import progreso as reglas
 from reglas.ejercicios import clave_de_ejercicio
 from reglas.progreso import SerieHecha, validar_meta
 from rutinas.models import GrupoMuscular
-from sesiones.models import Serie
+from sesiones.models import Serie, Sesion
 from sesiones.servicios import NoEncontrado
 
 
@@ -169,3 +169,39 @@ def evolucion(usuario, clave) -> dict:
             }
         )
     return {"nombre": suyas[-1].nombre, "peso_corporal": peso_corporal, "puntos": puntos}
+
+
+# --- Inicio sin señal: recientes y rutinas hechas hoy (plan 004, 4.5) -------
+
+SESIONES_RECIENTES = 3  # RF-004-07
+
+
+def _terminadas_con_series(usuario):
+    return Sesion.objects.filter(usuario=usuario, fin__isnull=False).filter(
+        Exists(Serie.objects.filter(ejercicio__sesion=OuterRef("pk"), confirmada=True))
+    )
+
+
+def recientes(usuario) -> list[dict]:
+    """RF-004-07: las 3 sesiones terminadas más recientes, con algo registrado."""
+    return [
+        {
+            "id": str(sesion.pk),
+            "nombre": sesion.nombre,
+            "inicio": timezone.localtime(sesion.inicio).isoformat(),
+            "rutina": str(sesion.rutina_id) if sesion.rutina_id else None,
+        }
+        for sesion in _terminadas_con_series(usuario).order_by("-inicio")[:SESIONES_RECIENTES]
+    ]
+
+
+def hechas_hoy(usuario, ahora) -> dict:
+    """RF-004-10: rutinas con una sesión terminada que empezó hoy, en hora de Colombia."""
+    hoy = timezone.localtime(ahora).date()
+    ids = (
+        _terminadas_con_series(usuario)
+        .filter(inicio__date=hoy, rutina__isnull=False)
+        .order_by("inicio")
+        .values_list("rutina_id", flat=True)
+    )
+    return {"fecha": hoy.isoformat(), "rutinas": list(dict.fromkeys(str(id) for id in ids))}
