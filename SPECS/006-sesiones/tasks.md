@@ -159,10 +159,10 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 
 | Fecha | Tarea | Código | Qué entendí (lo escribe David) |
 |---|---|---|---|
-| 2026-11-11 | T-006-34 | Playwright con WebKit corre CA-006-16a y 17a contra la imagen de producción en cada PR. Hallazgo: en WebKit, `setOffline` y `route` de Playwright cortan la navegación antes que el service worker, así que nunca probarían que la app abre sin señal. El "modo avión" de la prueba apaga el servidor de verdad (`docker stop app`). Pasó en mi equipo: abrió sin servidor, conservó la sesión al cerrar y abrir, y las 2 series llegaron al volver | IA |
 | 2026-11-10 | T-006-01 | `c570d5a` · v1.0 en `legacy/`, etiqueta `v1.0` | `[DAVID]` |
 | 2026-11-10 | T-006-02 | `98203b4` · 17 pruebas | `[DAVID]` |
 | 2026-11-10 | T-006-15 | 64 pruebas de reglas (se escribieron primero y fallaron; luego el código) | `[DAVID]` |
+| 2026-11-11 | T-006-34 | `d642ee5` · Playwright con WebKit corre CA-006-16a y 17a contra la imagen de producción en cada PR | `[DAVID]` |
 
 | 2026-11-10 | T-006-04 | `47ff882` · esqueleto Vue + Vite; página comprobada a 375 px sin desplazamiento horizontal | `[DAVID]` |
 | 2026-11-10 | T-006-16 | `47ff882` · 76 pruebas en JavaScript (mismas tablas que Python, más la precarga de una serie) | `[DAVID]` |
@@ -193,6 +193,8 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 ### Notas técnicas
 
 #### Correr la prueba de flujo sin conexión (T-006-34) en tu equipo
+
+**Por qué apaga el servidor:** en WebKit, `setOffline` y `route` de Playwright cortan la navegación antes que el service worker, así que nunca probarían que la app abre sin señal. Apagar el servidor de verdad (`docker stop app` en la revisión automática) sí lo prueba.
 
 Necesita la pantalla construida (`npm run build`), el servidor local con `settings_local` en el puerto 8000 y una cuenta con contraseña temporal. Desde `frontend/`:
 
