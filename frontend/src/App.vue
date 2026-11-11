@@ -1,9 +1,12 @@
 <script setup>
 // Decide qué pantalla se ve, según el acceso y lo que el usuario eligió.
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
+import BarraInferior from './componentes/BarraInferior.vue'
+import FranjaDeSesion from './componentes/FranjaDeSesion.vue'
 import { acceso, cargarAcceso } from './estado/acceso.js'
 import { cargarArranque, estado } from './estado/sesion.js'
+import { destinoDe, muestraBarra, muestraFranja } from './navegacion/destinos.js'
 import Acceso from './pantallas/Acceso.vue'
 import CambiarContrasena from './pantallas/CambiarContrasena.vue'
 import Catalogo from './pantallas/Catalogo.vue'
@@ -15,6 +18,8 @@ import Progreso from './pantallas/Progreso.vue'
 import SesionEnCurso from './pantallas/SesionEnCurso.vue'
 
 const vista = ref('inicio')
+// RF-007-02: "Minimizar" vuelve a la sección donde estabas antes de abrir la sesión.
+const vistaAnterior = ref('inicio')
 // La rutina que se edita: su id, o null si es nueva.
 const rutinaEnEdicion = ref(null)
 const errorDeArranque = ref('')
@@ -63,11 +68,28 @@ function editarRutina(id) {
 
 function ir(destino) {
   estado.resumen = null
+  if (destino === 'sesion' && vista.value !== 'sesion') {
+    vistaAnterior.value = vista.value
+  }
   vista.value = destino
 }
+
+function minimizar() {
+  ir(vistaAnterior.value === 'sesion' ? 'inicio' : vistaAnterior.value)
+}
+
+// --- Navegación (spec 007) --------------------------------------------------
+
+// Sin sesión en curso, la vista "sesion" muestra el Inicio (ver la plantilla).
+const vistaVisible = computed(() => (vista.value === 'sesion' && !estado.sesion ? 'inicio' : vista.value))
+const appLista = computed(() => !acceso.cargando && !errorDeArranque.value && puedeUsarLaApp() && !estado.cargando)
+const conBarra = computed(() => appLista.value && muestraBarra(vistaVisible.value))
+const conFranja = computed(() => conBarra.value && muestraFranja(vistaVisible.value, Boolean(estado.sesion)))
 </script>
 
 <template>
+  <!-- El espacio de abajo deja ver lo último de la pantalla sobre la barra y la franja. -->
+  <div class="app" :class="{ 'app--con-barra': conBarra, 'app--con-franja': conFranja }">
   <main v-if="acceso.cargando" class="pantalla"><p class="suave">Cargando…</p></main>
 
   <main v-else-if="errorDeArranque" class="pantalla">
@@ -81,7 +103,7 @@ function ir(destino) {
 
   <main v-else-if="estado.cargando" class="pantalla"><p class="suave">Cargando…</p></main>
 
-  <SesionEnCurso v-else-if="vista === 'sesion' && estado.sesion" @volver="ir('inicio')" />
+  <SesionEnCurso v-else-if="vista === 'sesion' && estado.sesion" @volver="minimizar" />
 
   <Historial v-else-if="vista === 'historial'" @volver="ir('inicio')" />
 
@@ -110,9 +132,21 @@ function ir(destino) {
   <Inicio
     v-else
     @sesion="ir('sesion')"
-    @historial="ir('historial')"
     @contrasena="ir('contrasena')"
     @rutinas="ir('rutinas')"
-    @progreso="ir('progreso')"
   />
+  </div>
+
+  <FranjaDeSesion v-if="conFranja" :sesion="estado.sesion" @abrir="ir('sesion')" />
+  <BarraInferior v-if="conBarra" :actual="destinoDe(vistaVisible)" @ir="ir" />
 </template>
+
+<style>
+.app--con-barra {
+  padding-bottom: calc(var(--alto-barra) + env(safe-area-inset-bottom) + var(--espacio-4));
+}
+
+.app--con-franja {
+  padding-bottom: calc(var(--alto-barra) + var(--alto-franja) + env(safe-area-inset-bottom) + var(--espacio-6));
+}
+</style>

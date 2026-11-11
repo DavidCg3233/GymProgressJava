@@ -77,7 +77,8 @@ async function terminar() {
         <h1>Sesión en curso</h1>
         <p class="suave">{{ confirmadas }} {{ confirmadas === 1 ? 'serie confirmada' : 'series confirmadas' }}</p>
       </div>
-      <button class="boton boton--texto" type="button" @click="emit('volver')">Inicio</button>
+      <!-- RF-007-02: la sesión sigue; se ve en la franja sobre la barra. -->
+      <button class="boton boton--texto" type="button" @click="emit('volver')">Minimizar</button>
     </header>
 
     <EstadoDeSincronizacion />

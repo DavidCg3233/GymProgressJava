@@ -27,3 +27,12 @@ export function destinoDe(vista) {
 export function muestraBarra(vista) {
   return vista !== 'sesion'
 }
+
+/**
+ * RF-007-03: la franja de la sesión en curso se ve fuera de la sesión.
+ * En el Inicio no: ahí "Continuar sesión" ya es lo primero (RF-004-02, CA-004-02a)
+ * y repetirlo sería el mismo botón dos veces.
+ */
+export function muestraFranja(vista, haySesion) {
+  return haySesion && vista !== 'sesion' && vista !== 'inicio'
+}
