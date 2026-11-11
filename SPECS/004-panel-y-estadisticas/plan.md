@@ -47,10 +47,11 @@ Los datos de la v1.0 que el récord leía mal (H-08: tomaba el peso de la rutina
 
 ### 4.2 El ejercicio de una serie
 
-Una serie pertenece al ejercicio por su **clave** (`sesion_ejercicio.clave`, el nombre sin mayúsculas ni tildes, RN-002-07). Así:
+Una serie pertenece al ejercicio por su **clave** (el nombre sin mayúsculas ni tildes, RN-002-07): la del catálogo **hoy** si el ejercicio sigue enlazado, o la copiada en la sesión si ya no está. Así:
 
 - "Press inclinado" de una sesión libre y el de una rutina son el mismo ejercicio.
 - Un ejercicio eliminado del catálogo sigue teniendo récord y gráfica con el nombre que tenía (RN-004-10).
+- Renombrar un ejercicio en el catálogo junta sus series viejas y nuevas bajo el nombre nuevo (ajuste del 2026-11-10, al construir T-004-04).
 - El nombre que se muestra es el del catálogo si sigue ahí; si no, el último nombre con que se registró.
 
 **Grupo de una serie (RN-004-09 y 10):** el grupo que el ejercicio tiene **hoy** en el catálogo. Si el ejercicio ya no está en el catálogo, el grupo copiado en la sesión.
