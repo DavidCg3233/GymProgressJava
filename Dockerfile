@@ -39,6 +39,7 @@ RUN GP_SECRET_KEY=solo-para-compilar GP_DB_NAME=x GP_DB_USER=x GP_DB_PASSWORD=x 
     python manage.py collectstatic --noinput
 
 # Railway indica el puerto en PORT. Antes de atender, aplica las migraciones
-# pendientes (RNF-MAN-02). Un proceso con 4 hilos: suficiente para 5 cuentas y
-# usa menos memoria (lo que Railway cobra) que varios procesos.
-CMD ["sh", "-c", "python manage.py migrate --noinput && exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 1 --threads 4 --worker-class gthread --timeout 30 --access-logfile -"]
+# pendientes (RNF-MAN-02) y crea la cuenta del dueño si aún no existe. Un proceso
+# con 4 hilos: suficiente para 5 cuentas y usa menos memoria (lo que Railway
+# cobra) que varios procesos.
+CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py crear_dueno && exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 1 --threads 4 --worker-class gthread --timeout 30 --access-logfile -"]
