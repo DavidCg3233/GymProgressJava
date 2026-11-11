@@ -91,8 +91,7 @@ jobs:
         run: |
           set -o pipefail
           if ! docker build --progress=plain --tag gymprogress . 2>&1 | tee construccion.log; then
-            resumen=$(grep -iE 'error|denied|not found|failed|no such' construccion.log | tail -n 15 | tr '
-' ' ' | cut -c1-3000)
+            resumen=$(grep -iE 'error|denied|not found|failed|no such' construccion.log | tail -n 15 | tr '\n' ' ' | cut -c1-3000)
             echo "::error title=Falló la construcción de la imagen::${resumen}"
             exit 1
           fi
