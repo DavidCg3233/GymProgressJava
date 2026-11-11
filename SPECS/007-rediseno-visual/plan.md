@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | **Borrador**, esperando la aprobación de David |
+| **Estado** | **Aprobado** por David el 2026-11-11 |
 | **Spec** | [spec.md](spec.md) (Aprobada el 2026-11-11) · [DESIGN.md](../../DESIGN.md) (Aprobado el 2026-11-11) |
 | **Stack** | El de siempre: Vue 3 con su CSS, sin librerías nuevas |
 | **Creado** | 2026-11-11 |

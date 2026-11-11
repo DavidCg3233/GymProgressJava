@@ -16,7 +16,7 @@ Proceso de la clase: requisitos → RF / RNF → épicas → historias → espec
 | 002 | [Rutinas y catálogo](002-rutinas/spec.md) | Rutinas | **Aprobada** (2026-11-10) | [**Aprobado**](002-rutinas/plan.md) (2026-11-10) | [Escritas](002-rutinas/tasks.md) · 0 de 20 |
 | 004 | [Inicio y progreso](004-panel-y-estadisticas/spec.md) | Progreso | **Aprobada** (2026-11-10) | [**Aprobado**](004-panel-y-estadisticas/plan.md) (2026-11-10) | [Escritas](004-panel-y-estadisticas/tasks.md) · 16 de 18 con código |
 | 003 | [Progreso corporal](003-progreso-corporal/spec.md) | Cuerpo | **Aprobada** (2026-11-10) | [**Aprobado**](003-progreso-corporal/plan.md) (2026-11-11) | [Escritas](003-progreso-corporal/tasks.md) · 14 de 16 con código |
-| 007 | [Rediseño visual](007-rediseno-visual/spec.md) | Diseño | **Aprobada** (2026-11-11) · con [DESIGN.md](../DESIGN.md) y su [muestra](../docs/diseno/muestra.html) | [Borrador](007-rediseno-visual/plan.md) | [Escritas](007-rediseno-visual/tasks.md) · 0 de 18 |
+| 007 | [Rediseño visual](007-rediseno-visual/spec.md) | Diseño | **Aprobada** (2026-11-11) · con [DESIGN.md](../DESIGN.md) y su [muestra](../docs/diseno/muestra.html) | [**Aprobado**](007-rediseno-visual/plan.md) (2026-11-11) | [Escritas](007-rediseno-visual/tasks.md) · 0 de 18 |
 | ~~001~~ | ~~Cuentas y acceso~~ | — | Retirada: es RNF → `rnf.md` | | |
 | ~~005~~ | ~~Perfil~~ | — | Retirada: es RNF → `rnf.md` | | |
 
