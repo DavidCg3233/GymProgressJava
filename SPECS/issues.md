@@ -20,10 +20,10 @@
 | F-04 | Historial de sesiones y eliminar | 006 · RF-006-09 a 11, 15 | Aprobada |
 | F-11 | Registro sin conexión y sincronización | 006 · RF-006-16 a 18 | Aprobada |
 | F-12 | Peso corporal, IMC y peso objetivo | 003 | Aprobada |
-| F-05 | Crear, modificar, duplicar y eliminar rutinas con días de la semana | 002 | En revisión |
-| F-06 | Catálogo propio de ejercicios y grupos, con lista predefinida | 002 · RF-002-08 a 10, 14 a 19 | En revisión |
-| F-07 | Progreso: evolución por ejercicio, récords, sesiones por semana con meta, series por grupo | 004 | En revisión |
-| F-08 | Inicio con la rutina de hoy | 004 · RF-004-01 a 03, 07, 10 | En revisión |
+| F-05 | Crear, modificar, duplicar y eliminar rutinas con días de la semana | 002 | Aprobada |
+| F-06 | Catálogo propio de ejercicios y grupos, con lista predefinida | 002 · RF-002-08 a 10, 14 a 19 | Aprobada |
+| F-07 | Progreso: evolución por ejercicio, récords, sesiones por semana con meta, series por grupo | 004 | Aprobada |
+| F-08 | Inicio con la rutina de hoy | 004 · RF-004-01 a 03, 07, 10 | Aprobada |
 | F-09 | Acceso recordado 7 días, cierre de acceso, cuentas por invitación | rnf.md · RNF-ACC | — (RNF: se automatiza) |
 | F-10 | Base del proyecto: stack nuevo, pruebas, migraciones, despliegue | rnf.md · RNF-MAN, RNF-PLA | — (RNF: se automatiza) |
 

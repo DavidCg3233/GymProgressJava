@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | En revisión (decisiones tomadas; falta la lectura final de David) |
+| **Estado** | **Aprobada** por David el 2026-11-10 |
 | **Autor** | David Calambás |
 | **Creada** | 2026-11-09 (ingeniería inversa de v1.0) · reescrita el 2026-11-10 con las decisiones del usuario |
 | **Requisitos de origen** | R-24, R-01, R-03, R-08, R-18 |
