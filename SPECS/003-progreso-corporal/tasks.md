@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Plan** | [plan.md](plan.md) (**Borrador**: no se empieza hasta que lo apruebes) |
+| **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-11) |
 | **Creado** | 2026-11-11 |
 | **Avance** | 0 de 16 |
 

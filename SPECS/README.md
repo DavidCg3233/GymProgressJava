@@ -15,7 +15,7 @@ Proceso de la clase: requisitos → RF / RNF → épicas → historias → espec
 | 006 | [Sesiones de entrenamiento](006-sesiones/spec.md) | Sesiones | **Aprobada** (2026-11-10) | [**Aprobado**](006-sesiones/plan.md) (2026-11-10) | [Escritas](006-sesiones/tasks.md) · 0 de 38 |
 | 002 | [Rutinas y catálogo](002-rutinas/spec.md) | Rutinas | **Aprobada** (2026-11-10) | [**Aprobado**](002-rutinas/plan.md) (2026-11-10) | [Escritas](002-rutinas/tasks.md) · 0 de 20 |
 | 004 | [Inicio y progreso](004-panel-y-estadisticas/spec.md) | Progreso | **Aprobada** (2026-11-10) | [**Aprobado**](004-panel-y-estadisticas/plan.md) (2026-11-10) | [Escritas](004-panel-y-estadisticas/tasks.md) · 16 de 18 con código |
-| 003 | [Progreso corporal](003-progreso-corporal/spec.md) | Cuerpo | **Aprobada** (2026-11-10) | [Borrador](003-progreso-corporal/plan.md) | [Escritas](003-progreso-corporal/tasks.md) · 0 de 16 |
+| 003 | [Progreso corporal](003-progreso-corporal/spec.md) | Cuerpo | **Aprobada** (2026-11-10) | [**Aprobado**](003-progreso-corporal/plan.md) (2026-11-11) | [Escritas](003-progreso-corporal/tasks.md) · 0 de 16 |
 | ~~001~~ | ~~Cuentas y acceso~~ | — | Retirada: es RNF → `rnf.md` | | |
 | ~~005~~ | ~~Perfil~~ | — | Retirada: es RNF → `rnf.md` | | |
 
