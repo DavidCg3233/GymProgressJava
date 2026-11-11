@@ -4,12 +4,15 @@
 // Todo sale de lo guardado en el celular: funciona sin señal (RNF-004-01).
 import { computed, ref } from 'vue'
 
+import Encabezado from '../componentes/Encabezado.vue'
 import EstadoDeSincronizacion from '../componentes/EstadoDeSincronizacion.vue'
-import { acceso, salir } from '../estado/acceso.js'
-import { empezarSesionDesdeRutina, empezarSesionLibre, estado, olvidarDatosLocales } from '../estado/sesion.js'
+import MenuDeCuenta from '../componentes/MenuDeCuenta.vue'
+import { acceso } from '../estado/acceso.js'
+import { empezarSesionDesdeRutina, empezarSesionLibre, estado } from '../estado/sesion.js'
 import { fechaLocal, rutinasHechasHoy } from '../reglas/progreso.js'
 
-const emit = defineEmits(['sesion', 'historial', 'contrasena', 'rutinas', 'progreso'])
+// Las demás secciones se abren desde la barra inferior (RF-007-01).
+const emit = defineEmits(['sesion', 'contrasena', 'rutinas'])
 
 // RF-004-01 y RN-004-11: rutinas que tienen marcado hoy (1 = lunes ... 7 = domingo).
 const ahora = new Date()
@@ -32,23 +35,12 @@ function empezarRutina(rutina) {
 }
 
 const error = ref('')
-const confirmandoSalida = ref(false)
 
-// RNF-ACC-04: al salir no queda nada de esta persona en el celular.
-// Si hay cambios sin enviar, se perderían: primero se avisa (RNF-USA-04).
-async function salirDeLaCuenta() {
-  if (estado.pendientes > 0 && !confirmandoSalida.value) {
-    confirmandoSalida.value = true
-    return
-  }
-  error.value = ''
-  try {
-    await salir()
-    await olvidarDatosLocales()
-  } catch (fallo) {
-    error.value = fallo.sinConexion ? 'Para salir de la cuenta necesitas conexión.' : fallo.mensaje
-  }
-}
+const formatoDeHoy = new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })
+const textoDeHoy = (() => {
+  const texto = formatoDeHoy.format(ahora)
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+})()
 
 function empezar() {
   error.value = ''
@@ -63,9 +55,12 @@ function empezar() {
 
 <template>
   <main class="pantalla">
-    <header>
-      <h1>Hola, {{ acceso.cuenta.nombre }}</h1>
-    </header>
+    <Encabezado :titulo="`Hola, ${acceso.cuenta.nombre}`" :subtitulo="textoDeHoy">
+      <template #accion>
+        <!-- RF-007-07 -->
+        <MenuDeCuenta @contrasena="emit('contrasena')" />
+      </template>
+    </Encabezado>
 
     <!-- RF-006-07: resumen de la sesión que se acaba de terminar. -->
     <section v-if="estado.resumen" class="tarjeta" role="status">
@@ -135,27 +130,6 @@ function empezar() {
       </ul>
     </section>
 
-    <div class="inicio__menu">
-      <button class="boton" type="button" @click="emit('rutinas')">Rutinas</button>
-      <button class="boton" type="button" @click="emit('progreso')">Progreso</button>
-      <button class="boton" type="button" @click="emit('historial')">Historial</button>
-    </div>
-
-    <section v-if="confirmandoSalida" class="tarjeta">
-      <p>
-        Tienes {{ estado.pendientes }} {{ estado.pendientes === 1 ? 'cambio' : 'cambios' }} sin enviar al servidor.
-        Si sales ahora, se pierden.
-      </p>
-      <div class="fila">
-        <button class="boton boton--peligro" type="button" @click="salirDeLaCuenta">Salir y perderlos</button>
-        <button class="boton boton--texto" type="button" @click="confirmandoSalida = false">Cancelar</button>
-      </div>
-    </section>
-
-    <footer class="fila fila--separada">
-      <button class="boton boton--texto" type="button" @click="emit('contrasena')">Cambiar contraseña</button>
-      <button class="boton boton--texto" type="button" @click="salirDeLaCuenta">Salir</button>
-    </footer>
   </main>
 </template>
 
@@ -168,18 +142,12 @@ function empezar() {
 .inicio__hecha {
   display: grid;
   gap: var(--espacio-1);
-  background: var(--color-hecho);
+  background: var(--acento-tinte);
 }
 
 .inicio__hecha small {
-  color: var(--color-texto-suave);
+  color: var(--tinta-suave);
   font-size: 0.875rem;
-}
-
-.inicio__menu {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--espacio-2);
 }
 
 .recientes {

@@ -162,7 +162,7 @@ function renombrarGrupo(grupo) {
 
 <style scoped>
 .ejercicio {
-  border-top: 1px solid var(--color-borde);
+  border-top: 1px solid var(--linea);
   padding-top: var(--espacio-2);
 }
 
@@ -175,8 +175,8 @@ function renombrarGrupo(grupo) {
 .ejercicio__edicion select {
   min-height: var(--tamano-toque);
   padding: var(--espacio-2) var(--espacio-3);
-  border: 1px solid var(--color-borde);
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
-  background: var(--color-superficie);
+  background: var(--superficie);
 }
 </style>

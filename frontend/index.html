@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <!-- viewport-fit=cover: la app ocupa toda la pantalla del iPhone, incluida la zona de la muesca. -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#1e1f1c" />
+    <!-- T-007-04: la barra de estado acompaña al tema del teléfono (fichas.css: --fondo). -->
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F6F6F3" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B0C0D" />
+    <meta name="color-scheme" content="light dark" />
     <!-- La app es privada: que los buscadores no la listen (RNF-PLA-04). -->
     <meta name="robots" content="noindex, nofollow" />
     <!-- RNF-PLA-03: al agregarla a la pantalla de inicio del iPhone se abre como una app. -->

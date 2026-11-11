@@ -200,7 +200,7 @@ onMounted(cargar)
 .pestanas {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border: 1px solid var(--color-borde);
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
   overflow: hidden;
 }
@@ -208,15 +208,15 @@ onMounted(cargar)
 .pestanas__pestana {
   min-height: var(--tamano-toque);
   border: 0;
-  background: var(--color-superficie);
-  color: var(--color-texto);
+  background: var(--superficie);
+  color: var(--tinta);
   font: inherit;
   cursor: pointer;
 }
 
 .pestanas__pestana--activa {
-  background: var(--color-acento);
-  color: var(--color-sobre-acento);
+  background: var(--acento);
+  color: var(--sobre-acento);
   font-weight: 600;
 }
 
@@ -227,7 +227,7 @@ onMounted(cargar)
 }
 
 .leyenda {
-  color: var(--color-acento);
+  color: var(--acento);
 }
 
 .cifra {
@@ -262,22 +262,22 @@ onMounted(cargar)
 
 .semanas__cifra {
   font-size: 0.75rem;
-  color: var(--color-texto-suave);
+  color: var(--tinta-suave);
 }
 
 .semanas__barra {
   width: 100%;
   min-height: 2px;
   border-radius: 4px 4px 0 0;
-  background: var(--color-borde);
+  background: var(--linea);
 }
 
 .semanas__semana--cumple .semanas__barra {
-  background: var(--color-acento);
+  background: var(--acento);
 }
 
 .semanas__semana:last-child .semanas__cifra {
-  color: var(--color-texto);
+  color: var(--tinta);
   font-weight: 700;
 }
 
@@ -308,14 +308,14 @@ onMounted(cargar)
 .grupos__barra {
   height: 0.6rem;
   border-radius: 999px;
-  background: var(--color-fondo);
+  background: var(--fondo);
   overflow: hidden;
 }
 
 .grupos__barra span {
   display: block;
   height: 100%;
-  background: var(--color-acento);
+  background: var(--acento);
 }
 
 .record {
@@ -326,9 +326,9 @@ onMounted(cargar)
   min-height: var(--tamano-toque);
   padding: var(--espacio-2) 0;
   border: 0;
-  border-top: 1px solid var(--color-borde);
+  border-top: 1px solid var(--linea);
   background: none;
-  color: var(--color-texto);
+  color: var(--tinta);
   text-align: left;
   font: inherit;
   cursor: pointer;
@@ -343,6 +343,6 @@ onMounted(cargar)
   grid-column: 2;
   grid-row: 1 / span 2;
   font-size: 1.5rem;
-  color: var(--color-texto-suave);
+  color: var(--tinta-suave);
 }
 </style>

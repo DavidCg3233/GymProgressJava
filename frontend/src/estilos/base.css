@@ -1,51 +1,17 @@
-/* Estilos base. Pensados primero para un celular en vertical, con una mano (RNF-PLA-02, RNF-006-04). */
+/*
+ * Estilos base (DESIGN.md). Pensados primero para un celular en vertical,
+ * con una mano (RNF-PLA-02, RNF-006-04). Los valores salen de fichas.css.
+ */
 
 :root {
-  --color-fondo: #f6f5f1;
-  --color-superficie: #ffffff;
-  --color-borde: #dedbd2;
-  --color-texto: #1e1f1c;
-  --color-texto-suave: #5d605a;
-  --color-acento: #2f6b4f;
-  --color-sobre-acento: #ffffff;
-  --color-hecho: #e3f1e8;
-  --color-error: #a3271b;
-  --color-fondo-error: #fbe9e6;
-  --color-aviso: #7a5200;
-  --color-fondo-aviso: #fdf3d8;
-
-  --espacio-1: 0.25rem;
-  --espacio-2: 0.5rem;
-  --espacio-3: 0.75rem;
-  --espacio-4: 1rem;
-  --espacio-6: 1.5rem;
-
-  --radio: 0.75rem;
-
-  /* Tamaño mínimo de un botón para acertarle con el pulgar. */
-  --tamano-toque: 2.75rem;
-
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* La letra del iPhone: nada se descarga (RNF-007-05). */
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-size: 17px;
   line-height: 1.4;
-  color: var(--color-texto);
-  background: var(--color-fondo);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-fondo: #151613;
-    --color-superficie: #1e1f1c;
-    --color-borde: #33352f;
-    --color-texto: #f1efe9;
-    --color-texto-suave: #a9aca4;
-    --color-acento: #7fc7a1;
-    --color-sobre-acento: #10231a;
-    --color-hecho: #1d3327;
-    --color-error: #ff9d92;
-    --color-fondo-error: #3a1a16;
-    --color-aviso: #f1cf7a;
-    --color-fondo-aviso: #3a2f12;
-  }
+  color: var(--tinta);
+  background: var(--fondo);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 
 *,
@@ -60,11 +26,12 @@ body {
   /* Nada puede forzar desplazamiento horizontal en el celular. */
   max-width: 100%;
   overflow-x: hidden;
+  background: var(--fondo);
 }
 
 body {
-  /* Respeta la muesca y la barra inferior del iPhone. */
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  /* Respeta la muesca del iPhone; la parte de abajo la maneja la barra inferior. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
 }
 
 h1,
@@ -74,12 +41,18 @@ p {
   margin: 0;
 }
 
+/* Título grande, uno por pantalla (DESIGN.md, sección 3). */
 h1 {
-  font-size: 1.5rem;
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 h2 {
-  font-size: 1.125rem;
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 600;
 }
 
 button,
@@ -92,23 +65,36 @@ textarea {
   font-size: max(1rem, 16px);
 }
 
+/* RN-007-03: los números no "bailan" al cambiar. */
+input,
+.numeros {
+  font-variant-numeric: tabular-nums;
+}
+
 /* --- Piezas comunes ------------------------------------------------------ */
 
 .pantalla {
   max-width: 34rem;
   margin: 0 auto;
-  padding: var(--espacio-4);
+  padding: var(--espacio-2) var(--espacio-4) var(--espacio-8);
   display: grid;
-  gap: var(--espacio-4);
+  gap: var(--espacio-6);
 }
 
+/* Grupo de filas: superficie sin borde (DESIGN.md, sección 5). */
 .tarjeta {
-  background: var(--color-superficie);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio);
+  background: var(--superficie);
+  border-radius: var(--radio-grupo);
   padding: var(--espacio-4);
   display: grid;
   gap: var(--espacio-3);
+}
+
+/* Un grupo dentro de otro no lleva su propia caja. */
+.tarjeta .tarjeta {
+  background: var(--superficie-2);
+  border-radius: var(--radio);
+  padding: var(--espacio-3);
 }
 
 .fila {
@@ -122,36 +108,63 @@ textarea {
 }
 
 .suave {
-  color: var(--color-texto-suave);
-  font-size: 0.875rem;
+  color: var(--tinta-suave);
+  font-size: 15px;
+}
+
+/* Encabezado de un grupo o de una columna. */
+.etiqueta {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-suave);
 }
 
 .boton {
   min-height: var(--tamano-toque);
+  min-width: var(--tamano-toque);
   padding: 0 var(--espacio-4);
-  border: 1px solid var(--color-borde);
+  border: 0;
   border-radius: var(--radio);
-  background: var(--color-superficie);
+  background: var(--superficie-2);
+  color: var(--tinta);
+  font-weight: 500;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation; /* sin la espera del doble toque */
+  transition:
+    transform var(--duracion) var(--curva),
+    filter var(--duracion) var(--curva);
+}
+
+.boton:active:not(:disabled) {
+  transform: scale(0.98);
+  filter: brightness(0.92);
 }
 
 .boton:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
 }
 
 .boton--principal {
-  background: var(--color-acento);
-  border-color: var(--color-acento);
-  color: var(--color-sobre-acento);
+  min-height: 50px;
+  background: var(--acento);
+  color: var(--sobre-acento);
+  font-weight: 600;
+}
+
+.boton--secundario {
+  background: var(--acento-tinte);
+  color: var(--acento);
   font-weight: 600;
 }
 
 .boton--peligro {
-  color: var(--color-error);
-  border-color: var(--color-error);
+  background: transparent;
+  color: var(--error);
 }
 
 .boton--ancho {
@@ -159,9 +172,8 @@ textarea {
 }
 
 .boton--texto {
-  border-color: transparent;
   background: transparent;
-  color: var(--color-acento);
+  color: var(--acento);
   padding: 0 var(--espacio-2);
 }
 
@@ -171,8 +183,9 @@ textarea {
 }
 
 .campo > span {
-  font-size: 0.875rem;
-  color: var(--color-texto-suave);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--tinta-suave);
 }
 
 .campo input,
@@ -181,28 +194,48 @@ textarea {
   width: 100%;
   min-height: var(--tamano-toque);
   padding: var(--espacio-2) var(--espacio-3);
-  border: 1px solid var(--color-borde);
+  border: 0;
   border-radius: var(--radio);
-  background: var(--color-superficie);
+  background: var(--superficie-2);
 }
 
+/* Mensajes: texto con color, sin caja (DESIGN.md, sección 5). */
 .mensaje {
-  padding: var(--espacio-3);
-  border-radius: var(--radio);
-  font-size: 0.9375rem;
+  font-size: 15px;
 }
 
 .mensaje--error {
-  background: var(--color-fondo-error);
-  color: var(--color-error);
+  color: var(--error);
 }
 
 .mensaje--aviso {
-  background: var(--color-fondo-aviso);
-  color: var(--color-aviso);
+  color: var(--tinta-suave);
+}
+
+.mensaje--aviso::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--espacio-2);
+  border-radius: 50%;
+  background: var(--aviso);
+  vertical-align: 1px;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-acento);
+  outline: 2px solid var(--acento);
   outline-offset: 2px;
+}
+
+/* RNF-007-04: con "Reducir movimiento", nada se anima. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
