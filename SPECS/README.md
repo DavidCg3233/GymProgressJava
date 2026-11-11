@@ -16,6 +16,7 @@ Proceso de la clase: requisitos → RF / RNF → épicas → historias → espec
 | 002 | [Rutinas y catálogo](002-rutinas/spec.md) | Rutinas | **Aprobada** (2026-11-10) | [**Aprobado**](002-rutinas/plan.md) (2026-11-10) | [Escritas](002-rutinas/tasks.md) · 0 de 20 |
 | 004 | [Inicio y progreso](004-panel-y-estadisticas/spec.md) | Progreso | **Aprobada** (2026-11-10) | [**Aprobado**](004-panel-y-estadisticas/plan.md) (2026-11-10) | [Escritas](004-panel-y-estadisticas/tasks.md) · 16 de 18 con código |
 | 003 | [Progreso corporal](003-progreso-corporal/spec.md) | Cuerpo | **Aprobada** (2026-11-10) | [**Aprobado**](003-progreso-corporal/plan.md) (2026-11-11) | [Escritas](003-progreso-corporal/tasks.md) · 14 de 16 con código |
+| 007 | [Rediseño visual](007-rediseno-visual/spec.md) | Diseño | **Aprobada** (2026-11-11) · con [DESIGN.md](../DESIGN.md) y su [muestra](../docs/diseno/muestra.html) | [Borrador](007-rediseno-visual/plan.md) | [Escritas](007-rediseno-visual/tasks.md) · 0 de 18 |
 | ~~001~~ | ~~Cuentas y acceso~~ | — | Retirada: es RNF → `rnf.md` | | |
 | ~~005~~ | ~~Perfil~~ | — | Retirada: es RNF → `rnf.md` | | |
 
@@ -23,7 +24,7 @@ Estados de un documento: `Borrador` → `En revisión` → `Aprobada` → `Imple
 
 ## Reglas
 
-1. **Una spec nueva** = copiar `_plantilla/` a `NNN-nombre-corto/` con el siguiente número (el próximo es 007).
+1. **Una spec nueva** = copiar `_plantilla/` a `NNN-nombre-corto/` con el siguiente número (el próximo es 008).
 2. `plan.md` no se crea hasta que `spec.md` esté `Aprobada`. `tasks.md` no se crea hasta que `plan.md` esté `Aprobado`.
 3. Los IDs nunca se reutilizan. Lo que se elimina se tacha y se deja con el motivo.
 4. Solo los RF tienen spec. Un RNF va a `rnf.md`.
