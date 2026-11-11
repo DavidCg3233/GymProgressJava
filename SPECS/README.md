@@ -13,8 +13,8 @@ Proceso de la clase: requisitos → RF / RNF → épicas → historias → espec
 | # | Spec (RF) | Épica | spec.md | plan.md | tasks.md |
 |---|---|---|---|---|---|
 | 006 | [Sesiones de entrenamiento](006-sesiones/spec.md) | Sesiones | **Aprobada** (2026-11-10) | [**Aprobado**](006-sesiones/plan.md) (2026-11-10) | [Escritas](006-sesiones/tasks.md) · 0 de 38 |
-| 002 | [Rutinas y catálogo](002-rutinas/spec.md) | Rutinas | En revisión · falta revisar la lista predefinida | — | — |
-| 004 | [Inicio y progreso](004-panel-y-estadisticas/spec.md) | Progreso | En revisión · falta la lectura final | — | — |
+| 002 | [Rutinas y catálogo](002-rutinas/spec.md) | Rutinas | **Aprobada** (2026-11-10) | — | — |
+| 004 | [Inicio y progreso](004-panel-y-estadisticas/spec.md) | Progreso | **Aprobada** (2026-11-10) | — | — |
 | 003 | [Progreso corporal](003-progreso-corporal/spec.md) | Cuerpo | **Aprobada** (2026-11-10) | — | — |
 | ~~001~~ | ~~Cuentas y acceso~~ | — | Retirada: es RNF → `rnf.md` | | |
 | ~~005~~ | ~~Perfil~~ | — | Retirada: es RNF → `rnf.md` | | |
@@ -33,6 +33,6 @@ Estados de un documento: `Borrador` → `En revisión` → `Aprobada` → `Imple
 
 1. ~~`requirements.md` y `rnf.md`~~: completos y aprobados.
 2. ~~006 Sesiones y 003 Progreso corporal~~: aprobadas.
-3. **002 Rutinas** y **004 Inicio y progreso**: en revisión. Leer las "reglas que definí yo" de cada una y aprobar.
+3. ~~002 Rutinas y 004 Inicio y progreso~~: aprobadas el 2026-11-10. Siguen sus `plan.md` y `tasks.md`.
 4. ~~`plan.md` de la 006~~: aprobado. Stack: Django + DRF, PostgreSQL, Vue 3 como app instalable, Caddy y Docker Compose en un VPS.
 5. **[Tasks de la 006](006-sesiones/tasks.md)**: 38 tareas en dos hitos. El hito A (sesión libre) se puede empezar ya; el hito B espera a la spec 002.

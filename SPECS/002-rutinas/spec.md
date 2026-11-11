@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | En revisión (decisiones tomadas; falta la lectura final de David) |
+| **Estado** | **Aprobada** por David el 2026-11-10 |
 | **Autor** | David Calambás |
 | **Creada** | 2026-11-09 (ingeniería inversa de v1.0) · reescrita el 2026-11-10 con las decisiones del usuario |
 | **Requisitos de origen** | R-03, y el catálogo implícito en R-02 y R-04 |
@@ -95,7 +95,7 @@ Cada usuario tiene su propio catálogo de ejercicios y grupos musculares. Arranc
 
 ### Catálogo predefinido (RF-002-14)
 
-`[PROPUESTA]` 8 grupos y 40 ejercicios. Tacha, cambia o agrega lo que quieras antes de aprobar.
+8 grupos y 40 ejercicios, aprobados por David el 2026-11-10. Cada usuario puede cambiarlos o borrarlos en su catálogo (RF-002-15, 16).
 
 | Grupo | Ejercicios |
 |---|---|
@@ -198,7 +198,7 @@ Los generales están en [`rnf.md`](../rnf.md). Propio de esta spec:
 | 2 | ¿De quién es el catálogo? | **De cada usuario, con una lista predefinida que puede cambiar o eliminar** (2026-11-10). |
 | 3 | ¿Varios días por rutina? | **Sí** (2026-11-10). |
 | 4 | ¿Modificar con sesión en curso? | **Aplica desde la siguiente** (2026-11-10). |
-| 5 | ¿Quién define la lista predefinida? | **Propuesta en la sección 5**, pendiente de tu revisión. |
+| 5 | ¿Quién define la lista predefinida? | **La de la sección 5**, aprobada el 2026-11-10. |
 
 Reglas que definí yo para que la spec fuera comprobable y que puedes cambiar: nombres únicos, máximo 20 ejercicios por rutina, un ejercicio una sola vez por rutina, grupo muscular obligatorio, duplicar rutina, y qué pasa al eliminar un ejercicio o un grupo en uso.
 
