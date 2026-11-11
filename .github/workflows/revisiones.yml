@@ -101,7 +101,7 @@ jobs:
       - name: Arrancar y responder
         run: |
           docker network create prueba
-          docker run -d --name db --network prueba -e POSTGRES_DB=gp -e POSTGRES_USER=gp -e POSTGRES_PASSWORD=gp postgres:16-alpine
+          docker run -d --name db --network prueba -p 5432:5432 -e POSTGRES_DB=gp -e POSTGRES_USER=gp -e POSTGRES_PASSWORD=gp postgres:16-alpine
           for intento in $(seq 1 30); do docker exec db pg_isready -U gp -d gp && break; sleep 2; done
           docker run -d --name app --network prueba -p 8000:8000             -e GP_SECRET_KEY=$(openssl rand -hex 32) -e GP_ALLOWED_HOSTS=localhost             -e GP_DB_NAME=gp -e GP_DB_USER=gp -e GP_DB_PASSWORD=gp -e GP_DB_HOST=db -e GP_DUENO_USUARIO=dueno -e GP_DUENO_CORREO=dueno@ejemplo.com -e GP_DUENO_NOMBRE=Dueno -e GP_DUENO_CONTRASENA_TEMPORAL=Temporal-de-la-revision-7             gymprogress
           for intento in $(seq 1 30); do curl -fsS http://localhost:8000/salud/ && break; sleep 2; done
@@ -133,6 +133,21 @@ jobs:
           npm ci
           npx playwright install --with-deps webkit
           npx playwright test
+      # T-006-35: los scripts del respaldo diario, sobre esta base con datos de la
+      # prueba anterior. Respalda, restaura en otra base vacía y cuenta las filas.
+      - name: Respaldo cifrado y restauración en limpio
+        env:
+          GP_RESPALDO_DB_URL: postgresql://gp:gp@localhost:5432/gp
+          GP_RESPALDO_CLAVE: clave-solo-para-la-revision
+          GP_PRUEBA_DB_URL: postgresql://prueba:prueba@localhost:5433/prueba
+        run: |
+          docker run -d --name restaurada -p 5433:5432 -e POSTGRES_DB=prueba -e POSTGRES_USER=prueba -e POSTGRES_PASSWORD=prueba postgres:18-alpine
+          for intento in $(seq 1 30); do docker exec restaurada pg_isready -U prueba -d prueba && break; sleep 2; done
+          bash deploy/respaldo.sh prueba.dump.gpg
+          bash deploy/comprobar-respaldo.sh prueba.dump.gpg | tee restaurado.txt
+          grep -qx "sesiones 1" restaurado.txt
+          grep -qx "series 2" restaurado.txt
+
       - name: Rastro de Playwright
         if: failure()
         uses: actions/upload-artifact@v4

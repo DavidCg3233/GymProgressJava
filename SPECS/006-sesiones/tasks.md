@@ -163,6 +163,7 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 | 2026-11-10 | T-006-02 | `98203b4` · 17 pruebas | `[DAVID]` |
 | 2026-11-10 | T-006-15 | 64 pruebas de reglas (se escribieron primero y fallaron; luego el código) | `[DAVID]` |
 | 2026-11-11 | T-006-34 | `d642ee5` · Playwright con WebKit corre CA-006-16a y 17a contra la imagen de producción en cada PR | `[DAVID]` |
+| 2026-11-11 | T-006-35 | Respaldo diario cifrado en GitHub Actions, comprobado restaurándolo en limpio; los mismos scripts se prueban en cada PR. Falta que configures los 2 secretos y restaures una copia en tu máquina virtual (`deploy/RESPALDO.md`) | `[DAVID]` |
 
 | 2026-11-10 | T-006-04 | `47ff882` · esqueleto Vue + Vite; página comprobada a 375 px sin desplazamiento horizontal | `[DAVID]` |
 | 2026-11-10 | T-006-16 | `47ff882` · 76 pruebas en JavaScript (mismas tablas que Python, más la precarga de una serie) | `[DAVID]` |
