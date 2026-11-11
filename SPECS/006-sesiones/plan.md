@@ -234,3 +234,4 @@ El detalle está en [`tasks.md`](tasks.md).
 | `GP_ALLOWED_HOSTS` | `<tu-dominio>.up.railway.app,healthcheck.railway.app` |
 | `GP_CSRF_TRUSTED_ORIGINS` | `https://<tu-dominio>.up.railway.app` |
 | `GP_DB_NAME`, `GP_DB_USER`, `GP_DB_PASSWORD`, `GP_DB_HOST`, `GP_DB_PORT` | Referencias a las variables del servicio PostgreSQL: `${{Postgres.PGDATABASE}}`, `${{Postgres.PGUSER}}`, `${{Postgres.PGPASSWORD}}`, `${{Postgres.PGHOST}}`, `${{Postgres.PGPORT}}` |
+| `GP_DUENO_USUARIO`, `GP_DUENO_CORREO`, `GP_DUENO_NOMBRE`, `GP_DUENO_CONTRASENA_TEMPORAL` | Solo para crear la cuenta del dueño la primera vez (comando `crear_dueno`, corre en cada arranque y no hace nada si ya hay dueño). La contraseña es temporal: la app obliga a cambiarla al entrar. Después de entrar, borrar la de la contraseña |
