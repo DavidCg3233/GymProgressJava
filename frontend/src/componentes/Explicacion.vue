@@ -16,10 +16,10 @@ const abierta = ref(false)
 .explicacion__boton {
   width: 1.75rem;
   height: 1.75rem;
-  border: 1px solid var(--color-borde);
+  border: 1px solid var(--linea);
   border-radius: 50%;
-  background: var(--color-superficie);
-  color: var(--color-texto-suave);
+  background: var(--superficie);
+  color: var(--tinta-suave);
   font-weight: 600;
   cursor: pointer;
   flex: none;

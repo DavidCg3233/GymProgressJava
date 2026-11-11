@@ -343,7 +343,7 @@ onMounted(cargar)
 }
 
 .historial li {
-  border-top: 1px solid var(--color-borde);
+  border-top: 1px solid var(--linea);
   padding-top: var(--espacio-2);
 }
 </style>

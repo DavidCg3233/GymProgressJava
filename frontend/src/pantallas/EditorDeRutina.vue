@@ -228,17 +228,17 @@ async function guardar() {
 
 .dias__dia {
   min-height: var(--tamano-toque);
-  border: 1px solid var(--color-borde);
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
-  background: var(--color-superficie);
+  background: var(--superficie);
   cursor: pointer;
   touch-action: manipulation;
 }
 
 .dias__dia--activo {
-  background: var(--color-acento);
-  border-color: var(--color-acento);
-  color: var(--color-sobre-acento);
+  background: var(--acento);
+  border-color: var(--acento);
+  color: var(--sobre-acento);
   font-weight: 600;
 }
 
@@ -246,7 +246,7 @@ async function guardar() {
   display: grid;
   gap: var(--espacio-2);
   padding-bottom: var(--espacio-3);
-  border-bottom: 1px solid var(--color-borde);
+  border-bottom: 1px solid var(--linea);
 }
 
 .previsto__valores {

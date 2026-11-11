@@ -73,32 +73,32 @@ watch(
 .grafica svg {
   width: 100%;
   height: auto;
-  background: var(--color-fondo);
+  background: var(--fondo);
   border-radius: var(--radio);
   overflow: visible;
 }
 
 .grafica__linea {
   fill: none;
-  stroke: var(--color-acento);
+  stroke: var(--acento);
   stroke-width: 2.5;
   stroke-linejoin: round;
 }
 
 .grafica__referencia line {
-  stroke: var(--color-texto-suave);
+  stroke: var(--tinta-suave);
   stroke-width: 1.5;
   stroke-dasharray: 5 4;
 }
 
 .grafica__referencia text {
-  fill: var(--color-texto-suave);
+  fill: var(--tinta-suave);
   font-size: 11px;
 }
 
 .grafica__punto {
-  fill: var(--color-superficie);
-  stroke: var(--color-acento);
+  fill: var(--superficie);
+  stroke: var(--acento);
   stroke-width: 2.5;
   cursor: pointer;
 }
@@ -113,7 +113,7 @@ watch(
 }
 
 .grafica__punto--elegido {
-  fill: var(--color-acento);
+  fill: var(--acento);
 }
 
 .grafica__detalle {

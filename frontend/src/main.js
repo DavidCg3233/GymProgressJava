@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 
 import App from './App.vue'
 import { iniciarSincronizacion } from './estado/sesion.js'
+import './estilos/fichas.css'
 import './estilos/base.css'
 
 createApp(App).mount('#app')

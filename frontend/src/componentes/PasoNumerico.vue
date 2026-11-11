@@ -44,9 +44,9 @@ function mover(direccion) {
   display: grid;
   grid-template-columns: var(--tamano-toque) minmax(0, 1fr) var(--tamano-toque);
   align-items: stretch;
-  border: 1px solid var(--color-borde);
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
-  background: var(--color-superficie);
+  background: var(--superficie);
   overflow: hidden;
 }
 
@@ -62,7 +62,7 @@ function mover(direccion) {
 }
 
 .paso__boton:active {
-  background: var(--color-borde);
+  background: var(--linea);
 }
 
 .paso__centro {
@@ -84,7 +84,7 @@ function mover(direccion) {
 
 .paso__unidad {
   font-size: 0.6875rem;
-  color: var(--color-texto-suave);
+  color: var(--tinta-suave);
   line-height: 1;
   padding-bottom: 0.2rem;
 }

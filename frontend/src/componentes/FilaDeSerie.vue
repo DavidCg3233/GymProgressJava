@@ -88,7 +88,7 @@ function confirmar() {
 }
 
 .serie--hecha {
-  background: var(--color-hecho);
+  background: var(--acento-tinte);
 }
 
 .serie__fila {
@@ -101,16 +101,16 @@ function confirmar() {
 .serie__numero {
   text-align: center;
   font-weight: 600;
-  color: var(--color-texto-suave);
+  color: var(--tinta-suave);
 }
 
 .serie__confirmar {
   width: var(--tamano-toque);
   height: var(--tamano-toque);
   border-radius: 50%;
-  border: 2px solid var(--color-acento);
+  border: 2px solid var(--acento);
   background: transparent;
-  color: var(--color-acento);
+  color: var(--acento);
   font-size: 1.25rem;
   font-weight: 700;
   cursor: pointer;
@@ -119,8 +119,8 @@ function confirmar() {
 }
 
 .serie--hecha .serie__confirmar {
-  background: var(--color-acento);
-  color: var(--color-sobre-acento);
+  background: var(--acento);
+  color: var(--sobre-acento);
 }
 
 .serie__pie {
@@ -134,6 +134,6 @@ function confirmar() {
 .serie__quitar {
   min-height: 1.75rem;
   font-size: 0.875rem;
-  color: var(--color-texto-suave);
+  color: var(--tinta-suave);
 }
 </style>

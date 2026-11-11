@@ -96,7 +96,7 @@ onMounted(cargar)
 .selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border: 1px solid var(--color-borde);
+  border: 1px solid var(--linea);
   border-radius: var(--radio);
   overflow: hidden;
 }
@@ -104,14 +104,14 @@ onMounted(cargar)
 .selector__opcion {
   min-height: var(--tamano-toque);
   border: 0;
-  background: var(--color-superficie);
-  color: var(--color-texto);
+  background: var(--superficie);
+  color: var(--tinta);
   cursor: pointer;
 }
 
 .selector__opcion--activa {
-  background: var(--color-acento);
-  color: var(--color-sobre-acento);
+  background: var(--acento);
+  color: var(--sobre-acento);
   font-weight: 600;
 }
 </style>

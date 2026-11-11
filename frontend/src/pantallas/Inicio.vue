@@ -168,11 +168,11 @@ function empezar() {
 .inicio__hecha {
   display: grid;
   gap: var(--espacio-1);
-  background: var(--color-hecho);
+  background: var(--acento-tinte);
 }
 
 .inicio__hecha small {
-  color: var(--color-texto-suave);
+  color: var(--tinta-suave);
   font-size: 0.875rem;
 }
 
