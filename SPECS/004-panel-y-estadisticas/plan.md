@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | **Borrador**, esperando la aprobación de David |
+| **Estado** | **Aprobado** por David el 2026-11-10 |
 | **Spec** | [spec.md](spec.md) (Aprobada el 2026-11-10) |
 | **Stack** | El de la spec 006 ([plan 006](../006-sesiones/plan.md), secciones 2 y 12): Django + DRF, PostgreSQL, Vue 3 como app instalable, publicada en Railway |
 | **Creado** | 2026-11-10 |
