@@ -12,7 +12,9 @@ import { seriesConfirmadas } from '../sesion/modelo.js'
 const emit = defineEmits(['volver'])
 
 // Grupos de la lista predefinida de la spec 002. Con el catálogo propio (hito B) saldrán de ahí.
-const GRUPOS = ['Pecho', 'Espalda', 'Hombro', 'Bíceps', 'Tríceps', 'Pierna', 'Pantorrilla', 'Abdomen']
+// RF-002-08: los grupos y las sugerencias salen del catálogo propio, guardado en el celular.
+const grupos = computed(() => estado.catalogo.grupos.map((g) => g.nombre))
+const nombreDeGrupo = (id) => estado.catalogo.grupos.find((g) => g.id === id)?.nombre ?? ''
 
 const sesion = computed(() => estado.sesion)
 const confirmadas = computed(() => (sesion.value ? seriesConfirmadas(sesion.value) : 0))
@@ -24,10 +26,13 @@ const grupo = ref('')
 const errorDeEjercicio = ref('')
 
 // Ejercicios que ya he hecho: se sugieren al escribir y traen su grupo.
-const conocidos = computed(() => Object.values(estado.ultimaVez))
+const conocidos = computed(() =>
+  estado.catalogo.ejercicios.map((ejercicio) => ({ nombre: ejercicio.nombre, grupo: nombreDeGrupo(ejercicio.grupo) })),
+)
 
 function alEscribirNombre() {
-  const conocido = estado.ultimaVez[claveDeEjercicio(nombre.value)]
+  const clave = claveDeEjercicio(nombre.value)
+  const conocido = conocidos.value.find((c) => claveDeEjercicio(c.nombre) === clave) ?? estado.ultimaVez[clave]
   if (conocido) {
     grupo.value = conocido.grupo
   }
@@ -104,8 +109,8 @@ async function terminar() {
         <span>Grupo muscular</span>
         <select v-model="grupo">
           <option value="" disabled>Elige uno</option>
-          <option v-for="opcion in GRUPOS" :key="opcion" :value="opcion">{{ opcion }}</option>
-          <option v-if="grupo && !GRUPOS.includes(grupo)" :value="grupo">{{ grupo }}</option>
+          <option v-for="opcion in grupos" :key="opcion" :value="opcion">{{ opcion }}</option>
+          <option v-if="grupo && !grupos.includes(grupo)" :value="grupo">{{ grupo }}</option>
         </select>
       </label>
       <p v-if="errorDeEjercicio" class="mensaje mensaje--error" role="alert">{{ errorDeEjercicio }}</p>

@@ -6,11 +6,16 @@ import { acceso, cargarAcceso } from './estado/acceso.js'
 import { cargarArranque, estado } from './estado/sesion.js'
 import Acceso from './pantallas/Acceso.vue'
 import CambiarContrasena from './pantallas/CambiarContrasena.vue'
+import Catalogo from './pantallas/Catalogo.vue'
+import EditorDeRutina from './pantallas/EditorDeRutina.vue'
 import Historial from './pantallas/Historial.vue'
 import Inicio from './pantallas/Inicio.vue'
+import MisRutinas from './pantallas/MisRutinas.vue'
 import SesionEnCurso from './pantallas/SesionEnCurso.vue'
 
 const vista = ref('inicio')
+// La rutina que se edita: su id, o null si es nueva.
+const rutinaEnEdicion = ref(null)
 const errorDeArranque = ref('')
 
 const puedeUsarLaApp = () => acceso.cuenta && !acceso.cuenta.debe_cambiar_contrasena
@@ -50,6 +55,11 @@ watch(
   },
 )
 
+function editarRutina(id) {
+  rutinaEnEdicion.value = id
+  vista.value = 'editor'
+}
+
 function ir(destino) {
   estado.resumen = null
   vista.value = destino
@@ -74,7 +84,31 @@ function ir(destino) {
 
   <Historial v-else-if="vista === 'historial'" @volver="ir('inicio')" />
 
+  <MisRutinas
+    v-else-if="vista === 'rutinas'"
+    @volver="ir('inicio')"
+    @editar="editarRutina"
+    @sesion="ir('sesion')"
+    @catalogo="ir('catalogo')"
+  />
+
+  <EditorDeRutina
+    v-else-if="vista === 'editor'"
+    :key="rutinaEnEdicion ?? 'nueva'"
+    :rutina-id="rutinaEnEdicion"
+    @listo="ir('rutinas')"
+    @cancelar="ir('rutinas')"
+  />
+
+  <Catalogo v-else-if="vista === 'catalogo'" @volver="ir('rutinas')" />
+
   <CambiarContrasena v-else-if="vista === 'contrasena'" @listo="ir('inicio')" @cancelar="ir('inicio')" />
 
-  <Inicio v-else @sesion="ir('sesion')" @historial="ir('historial')" @contrasena="ir('contrasena')" />
+  <Inicio
+    v-else
+    @sesion="ir('sesion')"
+    @historial="ir('historial')"
+    @contrasena="ir('contrasena')"
+    @rutinas="ir('rutinas')"
+  />
 </template>

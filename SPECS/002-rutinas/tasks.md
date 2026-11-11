@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 20 cerradas · 11 con código (T-002-01 a 11): servidor completo |
+| **Avance** | 0 de 20 cerradas · 18 con código (T-002-01 a 18). Faltan T-002-19 y 20, que son de David |
 
 > Mismas reglas que en la spec 006:
 > - **Una tarea = un commit**, en orden, con TDD: primero la prueba, verla fallar, después el código.
@@ -87,7 +87,16 @@
 | 2026-11-10 | T-002-06 a 09 | API del catálogo y de las rutinas: crear, renombrar, eliminar con aviso, duplicar con numeración | `[DAVID]` |
 | 2026-11-10 | T-002-10 y 11 | La sesión recuerda su rutina, cada ejercicio de sesión entra solo al catálogo, el arranque trae catálogo y rutinas | `[DAVID]` |
 
+| 2026-11-10 | T-002-12 y 13 | Catálogo y rutinas guardados en el celular; empezar una sesión desde una rutina con y sin señal (cierra T-006-37). Una sesión de rutina conserva el nombre de la rutina al terminar | `[DAVID]` |
+| 2026-11-10 | T-002-14 a 17 | Pantallas: mis rutinas, editor, catálogo; "Hoy toca" en el inicio; la sesión toma grupos y sugerencias del catálogo | `[DAVID]` |
+| 2026-11-10 | T-002-18 | Recorrido en el navegador a 375 px con una cuenta de prueba nueva: crear rutina con un ejercicio del catálogo y uno nuevo, empezarla desde "Hoy toca", cambiar la rutina con la sesión en curso (la sesión no cambió: CA-002-13a), terminar, empezar otra vez (ya con el cambio), duplicar dos veces ("(copia)" y "(copia 2)"), eliminar un ejercicio usado en tres rutinas, intentar eliminar un grupo con ejercicios. Sin desplazamiento horizontal ni errores del servidor | `[DAVID]` |
+
 ### Notas técnicas
+
+- **Recorrido del 2026-11-10 (T-002-18):** se hizo con una cuenta nueva, `recorrido`, para no tocar la sesión en curso que había en la cuenta `prueba`.
+- **Detalle pendiente, cosmético:** la lista de rutinas ordena "Pecho (copia 2)" antes que "Pecho (copia)", porque así queda en orden alfabético.
+- **"Hoy toca" y "Continuar sesión" en el inicio** adelantan una parte de la spec 004 (RF-004-01 a 03), porque sin ellos no había forma rápida de empezar una rutina (RNF-006-03).
+- **Desviación del proceso en T-002-01:** la prueba y el código de Python se escribieron juntos, sin ver el rojo primero. Se compensó introduciendo 7 errores a propósito; todos fueron detectados.
 
 - **Error encontrado por las pruebas en T-002-03:** la protección "no borrar un grupo con ejercicios" (`PROTECT`) también impedía eliminar una cuenta completa. Se cambió a `RESTRICT`, que mantiene la regla del grupo y permite borrar todo junto.
 - **La migración agrega al catálogo los ejercicios que ya registraste** y no están en la lista predefinida. En la base local apareció así "Press Inclinado en maquina".
