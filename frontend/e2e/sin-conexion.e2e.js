@@ -37,6 +37,42 @@ async function confirmarSerie(pagina, numero, peso, reps) {
   await expect(pagina.getByRole('button', { name: `Serie ${numero} confirmada` })).toBeVisible()
 }
 
+/**
+ * RNF-007-02 (T-007-09): todo lo que se toca mide al menos 44 × 44, y dos
+ * objetivos vecinos en la misma fila quedan a 8 px o más.
+ * Devuelve la lista de problemas: vacía si todo cumple.
+ */
+async function objetivosPequenos(pagina) {
+  return pagina.evaluate(() => {
+    const visibles = [...document.querySelectorAll('button, a[href], input, select, textarea, [role="button"]')].filter(
+      (el) => el.offsetParent !== null || getComputedStyle(el).position === 'fixed',
+    )
+    const cajas = visibles.map((el) => ({
+      nombre: (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 40),
+      caja: el.getBoundingClientRect(),
+    }))
+    const problemas = []
+    for (const { nombre, caja } of cajas) {
+      if (caja.width < 44 - 0.5 || caja.height < 44 - 0.5) {
+        problemas.push(`"${nombre}" mide ${Math.round(caja.width)} × ${Math.round(caja.height)}`)
+      }
+    }
+    for (const [i, a] of cajas.entries()) {
+      for (const b of cajas.slice(i + 1)) {
+        const mismaFila = a.caja.top < b.caja.bottom && b.caja.top < a.caja.bottom
+        const separacion = Math.max(b.caja.left - a.caja.right, a.caja.left - b.caja.right)
+        // La separación cuida a los botones pequeños vecinos (como los +/−). Las áreas
+        // grandes contiguas, como las pestañas de la barra (≈ 94 px), no cuentan.
+        const pequeno = Math.min(a.caja.width, b.caja.width) < 60
+        if (pequeno && mismaFila && separacion >= 0 && separacion < 8 - 0.5) {
+          problemas.push(`"${a.nombre}" y "${b.nombre}" quedan a ${separacion.toFixed(1)} px`)
+        }
+      }
+    }
+    return problemas
+  })
+}
+
 const saludo = (pagina) => pagina.getByRole('heading', { name: /^Hola/ })
 
 test('CA-006-16a y 17a: en modo avión se registra, se cierra, se abre y todo llega al volver la señal', async ({
@@ -60,6 +96,9 @@ test('CA-006-16a y 17a: en modo avión se registra, se cierra, se abre y todo ll
   await page.getByLabel('Repite la contraseña nueva').fill(NUEVA)
   await page.locator('form button[type="submit"]').click()
   await expect(saludo(page)).toBeVisible()
+
+  // RNF-007-02 en el Inicio, con la barra inferior (T-007-09).
+  expect(await objetivosPequenos(page)).toEqual([])
 
   // El service worker guarda la app; desde la siguiente carga, él la sirve.
   await page.evaluate(() => navigator.serviceWorker.ready)
