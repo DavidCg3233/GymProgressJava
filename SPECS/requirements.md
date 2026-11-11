@@ -33,6 +33,7 @@
 | R-23 | *(¿peso corporal, IMC y peso objetivo entran en la versión nueva?)* "Sí, desde el inicio" | RF | Cuerpo | [003](003-progreso-corporal/spec.md) |
 | R-24 | *(¿qué necesitas ver para decidir sobre tus rutinas?)* "Evolución por ejercicio, Récords por ejercicio, Sesiones por semana, Por grupo muscular" | RF | Progreso | [004](004-panel-y-estadisticas/spec.md) |
 | R-25 | *(sesión libre, notas por sesión y por ejercicio, corregir y eliminar)* respuestas del 2026-11-09 | RF | Sesiones | [006](006-sesiones/spec.md), sección 9 |
+| R-26 | "necesito que cambies el diseño del frontend" · *(respuestas del 2026-11-11)* "Minimal y calmado", "Seguir al iPhone", "Barra inferior fija", "La del iPhone", "Botones +/− (como hoy)", referencia "Hevy o Strong", en todas las pantallas | RF | Diseño | [007](007-rediseno-visual/spec.md) |
 
 *Entre paréntesis y en cursiva: la pregunta o propuesta del analista a la que el usuario respondió.*
 
