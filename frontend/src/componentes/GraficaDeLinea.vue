@@ -9,11 +9,16 @@ const props = defineProps({
   // Texto de cada punto al tocarlo, por ejemplo "16 nov · 35 kg × 6".
   detalles: { type: Array, required: true },
   formato: { type: Function, required: true },
+  // RF-003-07: una línea horizontal, como el peso objetivo, con su texto.
+  referencia: { type: Number, default: null },
+  textoDeReferencia: { type: String, default: '' },
+  // Lo que cuenta cada punto, para los lectores de pantalla.
+  unidad: { type: String, default: 'sesiones' },
 })
 
 const AREA = { ancho: 300, alto: 160, margen: 16 }
 
-const grafica = computed(() => puntosDeLaGrafica(props.valores, AREA))
+const grafica = computed(() => puntosDeLaGrafica(props.valores, AREA, props.referencia))
 const linea = computed(() => grafica.value.puntos.map(({ x, y }) => `${x},${y}`).join(' '))
 
 // Arranca mostrando el último punto: lo más reciente es lo que más interesa.
@@ -28,7 +33,11 @@ watch(
 
 <template>
   <figure class="grafica">
-    <svg :viewBox="`0 0 ${AREA.ancho} ${AREA.alto}`" role="img" :aria-label="`Gráfica con ${valores.length} sesiones`">
+    <svg :viewBox="`0 0 ${AREA.ancho} ${AREA.alto}`" role="img" :aria-label="`Gráfica con ${valores.length} ${unidad}`">
+      <g v-if="grafica.referencia !== null" class="grafica__referencia">
+        <line :x1="0" :x2="AREA.ancho" :y1="grafica.referencia" :y2="grafica.referencia" />
+        <text :x="AREA.ancho - 4" :y="grafica.referencia - 5" text-anchor="end">{{ textoDeReferencia }}</text>
+      </g>
       <polyline v-if="grafica.puntos.length > 1" class="grafica__linea" :points="linea" />
       <circle
         v-for="(punto, indice) in grafica.puntos"
@@ -73,6 +82,17 @@ watch(
   stroke: var(--color-acento);
   stroke-width: 2.5;
   stroke-linejoin: round;
+}
+
+.grafica__referencia line {
+  stroke: var(--color-texto-suave);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.grafica__referencia text {
+  fill: var(--color-texto-suave);
+  font-size: 11px;
 }
 
 .grafica__punto {
