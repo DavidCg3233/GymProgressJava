@@ -102,7 +102,9 @@ def test_una_sesion_en_curso_no_se_elimina_desde_el_historial(api, ahora):
 
 
 def test_sin_datos_el_arranque_viene_vacio(api):
-    assert api.get(ARRANQUE).json() == {"sesion_en_curso": None, "ultima_vez": {}}
+    datos = api.get(ARRANQUE).json()
+
+    assert (datos["sesion_en_curso"], datos["ultima_vez"], datos["rutinas"]) == (None, {}, [])
 
 
 def test_el_arranque_trae_la_sesion_en_curso_completa(api, ahora):

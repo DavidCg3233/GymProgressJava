@@ -9,6 +9,7 @@ import {
   agregarSerie,
   confirmarSerie,
   incorporarAUltimaVez,
+  nuevaSesionDesdeRutina,
   nuevaSesionLibre,
   quitarSerie,
   seriesConfirmadas,
@@ -45,7 +46,7 @@ describe('RF-006-20: empezar una sesión libre', () => {
   it('nace en curso, sin nombre y sin ejercicios', () => {
     const sesion = nuevaSesionLibre({ id: 'abc', ahora: AHORA })
 
-    expect(sesion).toEqual({ id: 'abc', nombre: '', inicio: AHORA.toISOString(), fin: null, nota: '', ejercicios: [] })
+    expect(sesion).toEqual({ id: 'abc', nombre: '', rutina: null, inicio: AHORA.toISOString(), fin: null, nota: '', ejercicios: [] })
   })
 })
 
@@ -300,5 +301,90 @@ describe('RN-006-08: al terminar, lo de hoy pasa a ser "la última vez" (tambié
     incorporarAUltimaVez(ULTIMA_VEZ, terminadaHoy())
 
     expect(ULTIMA_VEZ).toEqual(copia)
+  })
+})
+
+describe('RF-006-01: empezar una sesión desde una rutina', () => {
+  const PECHO = {
+    id: 'rutina-pecho',
+    nombre: 'Pecho',
+    dias: [1, 4],
+    ejercicios: [
+      { ejercicio: 'e-press', nombre: 'Press inclinado', grupo: 'Pecho', series: 3, reps: 10, peso: 30 },
+      { ejercicio: 'e-aperturas', nombre: 'Aperturas con mancuernas', grupo: 'Pecho', series: 2, reps: 12, peso: 12 },
+    ],
+  }
+
+  function empezar(ultimaVez = ULTIMA_VEZ) {
+    return nuevaSesionDesdeRutina({ rutina: PECHO, ahora: AHORA, ultimaVez, nuevoId: id })
+  }
+
+  it('lleva el nombre y el enlace de la rutina', () => {
+    const sesion = empezar()
+
+    expect(sesion).toMatchObject({ nombre: 'Pecho', rutina: 'rutina-pecho', inicio: AHORA.toISOString(), fin: null })
+  })
+
+  it('RF-002-20: los ejercicios salen en el orden de la rutina, con tantas series como las previstas', () => {
+    const sesion = empezar()
+
+    expect(sesion.ejercicios.map((e) => [e.nombre, e.orden, e.series.length])).toEqual([
+      ['Press inclinado', 1, 3],
+      ['Aperturas con mancuernas', 2, 2],
+    ])
+  })
+
+  it('CA-006-04a: cada serie trae lo de la última vez', () => {
+    const press = empezar().ejercicios[0]
+
+    expect(press.series.map((s) => [s.peso, s.reps, s.origen])).toEqual([
+      [30, 10, 'ultima-vez'],
+      [32.5, 8, 'ultima-vez'],
+      [32.5, 6, 'ultima-vez'],
+    ])
+    expect(press.notaAnterior).toBe('subir a 35')
+  })
+
+  it('CA-006-05a: si nunca lo he hecho, trae lo previsto en la rutina', () => {
+    const aperturas = empezar().ejercicios[1]
+
+    expect(aperturas.series.map((s) => [s.peso, s.reps, s.origen])).toEqual([
+      [12, 12, 'rutina'],
+      [12, 12, 'rutina'],
+    ])
+  })
+
+  it('ninguna serie empieza confirmada y cada una tiene su propio identificador', () => {
+    const series = empezar().ejercicios.flatMap((e) => e.series)
+
+    expect(series.every((s) => s.confirmada === false)).toBe(true)
+    expect(new Set(series.map((s) => s.id)).size).toBe(series.length)
+  })
+
+  it('RF-002-13: la sesión es una copia; cambiar la rutina después no la toca', () => {
+    const sesion = empezar()
+
+    PECHO.ejercicios[0].series = 5
+
+    expect(sesion.ejercicios[0].series).toHaveLength(3)
+    PECHO.ejercicios[0].series = 3
+  })
+
+  it('al terminarla sin escribir nombre, conserva el de la rutina', () => {
+    const sesion = empezar()
+    confirmarSerie(sesion.ejercicios[0].series[0], { peso: 30, reps: 10 })
+
+    terminarSesion(sesion, { ahora: despues(50), nombre: '', nota: '' })
+
+    expect(sesion.nombre).toBe('Pecho')
+  })
+
+  it('si al terminar escribo otro nombre, se usa ese', () => {
+    const sesion = empezar()
+    confirmarSerie(sesion.ejercicios[0].series[0], { peso: 30, reps: 10 })
+
+    terminarSesion(sesion, { ahora: despues(50), nombre: 'Pecho en el hotel', nota: '' })
+
+    expect(sesion.nombre).toBe('Pecho en el hotel')
   })
 })

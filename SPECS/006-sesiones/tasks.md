@@ -146,7 +146,7 @@
 
 > **Bloqueada** hasta que la spec 002 esté aprobada y tenga su plan y sus tareas hechas.
 
-- [ ] **T-006-37** Empezar sesión desde una rutina.
+- [ ] **T-006-37** Empezar sesión desde una rutina. **Construida el 2026-11-10 como T-002-13** ([tasks de la 002](../002-rutinas/tasks.md)).
   - Copiar ejercicios y series previstas; precargar con "última vez" o, si no hay, con lo previsto; sugerencias del catálogo al agregar un ejercicio.
   - Cumple: RF-006-01, 05, 11. Hecho cuando: CA-006-01a, 04a, 05a y 11a pasan en API y en pantalla.
 - [ ] **T-006-38** `[D]` Recorrido final y cierre.

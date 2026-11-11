@@ -21,6 +21,11 @@ from reglas import textos as reglas_de_textos
 class Sesion(models.Model):
     id = models.UUIDField(primary_key=True, editable=False)
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sesiones")
+    # La rutina de la que salió, si salió de una. Si la rutina se elimina, la sesión
+    # se conserva con su propio nombre (RF-002-06, RF-006-11).
+    rutina = models.ForeignKey(
+        "rutinas.Rutina", on_delete=models.SET_NULL, null=True, blank=True, related_name="sesiones"
+    )
     nombre = models.CharField(max_length=reglas_de_textos.LARGO_MAXIMO_NOMBRE)
     inicio = models.DateTimeField()
     fin = models.DateTimeField(null=True, blank=True)
@@ -55,6 +60,11 @@ class SesionEjercicio(models.Model):
     # Forma canónica del nombre, para reconocer el mismo ejercicio escrito distinto (RN-006-08).
     clave = models.CharField(max_length=reglas_de_ejercicios.LARGO_MAXIMO_NOMBRE_DE_EJERCICIO, db_index=True)
     grupo = models.CharField(max_length=reglas_de_ejercicios.LARGO_MAXIMO_GRUPO)
+    # Enlace al catálogo, que el servidor llena solo (plan 002, sección 4.3). La
+    # sesión conserva su copia de nombre y grupo aunque el ejercicio se borre.
+    ejercicio = models.ForeignKey(
+        "rutinas.Ejercicio", on_delete=models.SET_NULL, null=True, blank=True, related_name="en_sesiones"
+    )
     orden = models.PositiveSmallIntegerField()
     nota = models.CharField(max_length=reglas_de_textos.LARGO_MAXIMO_NOTA, blank=True)
 

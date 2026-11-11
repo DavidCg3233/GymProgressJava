@@ -1,12 +1,26 @@
 <script setup>
 // Pantalla de inicio: lo primero es empezar o continuar la sesión (RNF-006-03).
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import EstadoDeSincronizacion from '../componentes/EstadoDeSincronizacion.vue'
 import { acceso, salir } from '../estado/acceso.js'
-import { empezarSesionLibre, estado, olvidarDatosLocales } from '../estado/sesion.js'
+import { empezarSesionDesdeRutina, empezarSesionLibre, estado, olvidarDatosLocales } from '../estado/sesion.js'
 
-const emit = defineEmits(['sesion', 'historial', 'contrasena'])
+const emit = defineEmits(['sesion', 'historial', 'contrasena', 'rutinas'])
+
+// Rutinas asignadas al día de hoy (1 = lunes ... 7 = domingo), para empezar en un toque (RNF-006-03).
+const hoy = ((new Date().getDay() + 6) % 7) + 1
+const rutinasDeHoy = computed(() => estado.rutinas.filter((rutina) => rutina.dias.includes(hoy)))
+
+function empezarRutina(rutina) {
+  error.value = ''
+  try {
+    empezarSesionDesdeRutina(rutina)
+    emit('sesion')
+  } catch (fallo) {
+    error.value = fallo.mensaje
+  }
+}
 
 const error = ref('')
 const confirmandoSalida = ref(false)
@@ -72,6 +86,19 @@ function empezar() {
       Empezar sesión libre
     </button>
 
+    <template v-if="!estado.sesion">
+      <button
+        v-for="rutina in rutinasDeHoy"
+        :key="rutina.id"
+        class="boton boton--principal boton--ancho inicio__principal"
+        type="button"
+        @click="empezarRutina(rutina)"
+      >
+        Hoy toca: {{ rutina.nombre }}
+      </button>
+    </template>
+
+    <button class="boton boton--ancho" type="button" @click="emit('rutinas')">Mis rutinas</button>
     <button class="boton boton--ancho" type="button" @click="emit('historial')">Historial</button>
 
     <section v-if="confirmandoSalida" class="tarjeta">

@@ -14,5 +14,6 @@ urlpatterns = [
     path("salud/", vistas.salud, name="salud"),
     path("api/acceso/", include("cuentas.urls")),
     path("api/", include("sesiones.urls")),
+    path("api/", include("rutinas.urls")),
     path("panel/", admin.site.urls),
 ]
