@@ -27,3 +27,7 @@ build
 
 # Base de datos local de desarrollo
 *.sqlite3
+
+# Playwright: resultados de las pruebas de flujo
+frontend/test-results/
+frontend/playwright-report/

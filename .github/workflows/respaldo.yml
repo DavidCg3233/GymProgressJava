@@ -1,0 +1,69 @@
+# Respaldo diario de la base de producción (T-006-35 · RNF-MAN-06).
+#
+# Cada madrugada: vuelca la base de Railway, la cifra, comprueba que se restaura
+# en una base vacía y guarda el archivo cifrado 30 días en GitHub.
+# Cómo configurarlo y cómo restaurar: deploy/RESPALDO.md.
+
+name: Respaldo diario
+
+on:
+  schedule:
+    - cron: "0 8 * * *" # 3:00 a. m. en Colombia (8:00 UTC)
+  workflow_dispatch: # para correrlo a mano desde la pestaña Actions
+
+# Lo mínimo: leer el código. Nada de escribir en el repositorio.
+permissions:
+  contents: read
+
+# Nunca dos respaldos a la vez.
+concurrency: respaldo
+
+jobs:
+  respaldo:
+    name: Respaldo cifrado y comprobado
+    runs-on: ubuntu-latest
+    # Una base vacía donde probar la restauración. Nunca se restaura en producción.
+    services:
+      prueba:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: prueba
+          POSTGRES_USER: prueba
+          POSTGRES_PASSWORD: prueba
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U prueba -d prueba"
+          --health-interval 5s
+          --health-retries 20
+    env:
+      GP_RESPALDO_DB_URL: ${{ secrets.GP_RESPALDO_DB_URL }}
+      GP_RESPALDO_CLAVE: ${{ secrets.GP_RESPALDO_CLAVE }}
+      GP_PRUEBA_DB_URL: postgresql://prueba:prueba@localhost:5432/prueba
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Revisar que están los secretos
+        run: |
+          if [ -z "$GP_RESPALDO_DB_URL" ] || [ -z "$GP_RESPALDO_CLAVE" ]; then
+            echo "::error title=Faltan secretos::Configura GP_RESPALDO_DB_URL y GP_RESPALDO_CLAVE (ver deploy/RESPALDO.md)."
+            exit 1
+          fi
+
+      - name: Volcar y cifrar
+        run: |
+          archivo="gymprogress-$(date -u +%Y-%m-%d).dump.gpg"
+          echo "ARCHIVO=$archivo" >> "$GITHUB_ENV"
+          bash deploy/respaldo.sh "$archivo"
+
+      - name: Comprobar que se restaura en limpio
+        run: bash deploy/comprobar-respaldo.sh "$ARCHIVO"
+
+      # Solo se guarda si se pudo restaurar. Va cifrado: sin la clave no sirve.
+      - name: Guardar 30 días
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARCHIVO }}
+          path: ${{ env.ARCHIVO }}
+          retention-days: 30
+          if-no-files-found: error

@@ -216,7 +216,7 @@ El detalle está en [`tasks.md`](tasks.md).
 | Entregar la pantalla | Caddy | Django + WhiteNoise: un solo sitio, la cookie de acceso y la protección CSRF funcionan igual |
 | Servidor de Python | — | gunicorn, 1 proceso con 4 hilos (menos memoria, que es lo que Railway cobra) |
 | Migraciones | A mano | Al arrancar cada versión (`Dockerfile`) |
-| Respaldo diario (T-006-35) | Volcado a la nube | Pendiente: revisar lo que ofrece Railway para PostgreSQL |
+| Respaldo diario (T-006-35) | Volcado a la nube | GitHub Actions cada madrugada: volcado cifrado con AES-256, comprobado restaurándolo en una base vacía y guardado 30 días como archivo de la ejecución ([`deploy/RESPALDO.md`](../../deploy/RESPALDO.md)). Los respaldos de Railway no se usan: no está claro que el plan Hobby los incluya y quedarían en el mismo proveedor que la base (2026-11-11) |
 | Desarrollo en el equipo | Docker Compose | Igual (`deploy/docker-compose.yml`), o SQLite con `settings_local` |
 
 **Lo que se pierde:** la práctica de administrar un servidor Linux expuesto a internet (T-006-06). Esa práctica queda para la rama de Linux del plan de estudio, en la máquina virtual.

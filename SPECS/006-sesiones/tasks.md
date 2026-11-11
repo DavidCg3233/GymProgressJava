@@ -162,6 +162,8 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 | 2026-11-10 | T-006-01 | `c570d5a` · v1.0 en `legacy/`, etiqueta `v1.0` | `[DAVID]` |
 | 2026-11-10 | T-006-02 | `98203b4` · 17 pruebas | `[DAVID]` |
 | 2026-11-10 | T-006-15 | 64 pruebas de reglas (se escribieron primero y fallaron; luego el código) | `[DAVID]` |
+| 2026-11-11 | T-006-34 | `d642ee5` · Playwright con WebKit corre CA-006-16a y 17a contra la imagen de producción en cada PR | `[DAVID]` |
+| 2026-11-11 | T-006-35 | Respaldo diario cifrado en GitHub Actions, comprobado restaurándolo en limpio; los mismos scripts se prueban en cada PR. Falta que configures los 2 secretos y restaures una copia en tu máquina virtual (`deploy/RESPALDO.md`) | `[DAVID]` |
 
 | 2026-11-10 | T-006-04 | `47ff882` · esqueleto Vue + Vite; página comprobada a 375 px sin desplazamiento horizontal | `[DAVID]` |
 | 2026-11-10 | T-006-16 | `47ff882` · 76 pruebas en JavaScript (mismas tablas que Python, más la precarga de una serie) | `[DAVID]` |
@@ -190,6 +192,18 @@ Una línea por tarea: fecha, qué entendí, dónde me trabé.
 - **Docker no corre en el equipo de David: falta WSL.** No bloquea el avance, porque GitHub Actions ejecuta lo mismo en cada PR, pero sin WSL no se puede levantar el servidor completo en local. Lo instala David, en una PowerShell **como administrador**: `wsl --install`, y reiniciar. Después: abrir Docker Desktop y, en `deploy/`, `docker compose up`.
 
 ### Notas técnicas
+
+#### Correr la prueba de flujo sin conexión (T-006-34) en tu equipo
+
+**Por qué apaga el servidor:** en WebKit, `setOffline` y `route` de Playwright cortan la navegación antes que el service worker, así que nunca probarían que la app abre sin señal. Apagar el servidor de verdad (`docker stop app` en la revisión automática) sí lo prueba.
+
+Necesita la pantalla construida (`npm run build`), el servidor local con `settings_local` en el puerto 8000 y una cuenta con contraseña temporal. Desde `frontend/`:
+
+```bash
+E2E_USUARIO=tu_cuenta_de_prueba E2E_CONTRASENA_TEMPORAL=su_temporal E2E_APAGAR="comando que apaga el servidor" E2E_ENCENDER="comando que lo enciende" npx playwright test
+```
+
+La prueba cambia la contraseña temporal, así que después hay que volver a ponerla. En Windows, apagar es matar el proceso que escucha en el puerto 8000 y encender es lanzar `runserver` en segundo plano. La primera vez: `npx playwright install webkit`.
 
 - **La revisión "Imagen de producción" atrapó un error antes de Railway:** la app corre con un usuario sin privilegios, pero `/app` era del administrador, así que no podía crear su carpeta de archivos al construir. Corregido. La revisión ahora publica las líneas del error como anotación, visible sin iniciar sesión en GitHub.
 - **Railway falló al primer intento** porque construyó `main`, que aún no tenía el `Dockerfile`. Se resuelve al fusionar el PR #10.
