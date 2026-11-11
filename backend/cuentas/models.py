@@ -1,9 +1,12 @@
 """Cuentas de GymProgress.
 
 De cada persona se guarda lo mínimo (RNF-ACC-10): nombre para mostrar, nombre
-de usuario, correo y contraseña. La contraseña la cifra Django con Argon2 y
+de usuario, correo y contraseña; y, solo si la persona los escribe, su estatura y
+su peso objetivo (spec 003). La contraseña la cifra Django con Argon2 y
 nunca queda legible (RNF-SEG-01).
 """
+
+from decimal import Decimal
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
@@ -69,6 +72,10 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     # RF-004-11 y RN-004-08: opcional, de 1 a 14 sesiones por semana.
     meta_semanal = models.PositiveSmallIntegerField("meta de sesiones por semana", null=True, blank=True)
 
+    # Spec 003, RF-003-12 y RN-003-04, 07: opcionales. Son datos de salud (plan 003, sección 7).
+    estatura_cm = models.PositiveSmallIntegerField("estatura en centímetros", null=True, blank=True)
+    peso_objetivo = models.DecimalField("peso objetivo", max_digits=4, decimal_places=1, null=True, blank=True)
+
     objects = GestorDeUsuarios()
 
     USERNAME_FIELD = "usuario"
@@ -86,6 +93,15 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
             models.CheckConstraint(
                 condition=models.Q(meta_semanal__isnull=True) | models.Q(meta_semanal__gte=1, meta_semanal__lte=14),
                 name="cuentas_meta_semanal_de_1_a_14",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(estatura_cm__isnull=True) | models.Q(estatura_cm__gte=100, estatura_cm__lte=250),
+                name="cuentas_estatura_de_100_a_250",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(peso_objetivo__isnull=True)
+                | models.Q(peso_objetivo__gte=Decimal("20.0"), peso_objetivo__lte=Decimal("300.0")),
+                name="cuentas_peso_objetivo_de_20_a_300",
             ),
         ]
 

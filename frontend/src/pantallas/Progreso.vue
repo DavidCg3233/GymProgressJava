@@ -8,8 +8,29 @@ import { cargarProgreso, fijarMeta, mensajeDeProgreso } from '../estado/progreso
 import { EXPLICACIONES } from '../progreso/explicaciones.js'
 import { META_MAXIMA, META_MINIMA } from '../reglas/progreso.js'
 import Evolucion from './Evolucion.vue'
+import PesoCorporal from './PesoCorporal.vue'
 
 const emit = defineEmits(['volver'])
+
+// T-003-10 y plan 003, 4.4: dos pestañas. La elegida se recuerda en el celular,
+// para que quien entra a pesarse vuelva directo a Peso. Es una preferencia, no un dato personal.
+const CLAVE_DE_PESTANA = 'gymprogress.pestana-de-progreso'
+function leerPestana() {
+  try {
+    return localStorage.getItem(CLAVE_DE_PESTANA) === 'peso' ? 'peso' : 'entrenamiento'
+  } catch {
+    return 'entrenamiento'
+  }
+}
+const pestana = ref(leerPestana())
+function elegirPestana(valor) {
+  pestana.value = valor
+  try {
+    localStorage.setItem(CLAVE_DE_PESTANA, valor)
+  } catch {
+    // Sin almacenamiento la pestaña simplemente no se recuerda.
+  }
+}
 
 const datos = ref(null)
 const error = ref('')
@@ -61,8 +82,28 @@ onMounted(cargar)
       <button class="boton boton--texto" type="button" @click="emit('volver')">Inicio</button>
     </header>
 
+    <div class="pestanas" role="tablist" aria-label="Qué progreso ver">
+      <button
+        v-for="opcion in [
+          { valor: 'entrenamiento', texto: 'Entrenamiento' },
+          { valor: 'peso', texto: 'Peso' },
+        ]"
+        :key="opcion.valor"
+        class="pestanas__pestana"
+        :class="{ 'pestanas__pestana--activa': pestana === opcion.valor }"
+        type="button"
+        role="tab"
+        :aria-selected="pestana === opcion.valor"
+        @click="elegirPestana(opcion.valor)"
+      >
+        {{ opcion.texto }}
+      </button>
+    </div>
+
+    <PesoCorporal v-if="pestana === 'peso'" />
+
     <!-- RNF-004-02 -->
-    <template v-if="error">
+    <template v-else-if="error">
       <p class="mensaje mensaje--error" role="alert">{{ error }}</p>
       <button class="boton boton--ancho" type="button" @click="cargar">Reintentar</button>
     </template>
@@ -156,6 +197,29 @@ onMounted(cargar)
 </template>
 
 <style scoped>
+.pestanas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  overflow: hidden;
+}
+
+.pestanas__pestana {
+  min-height: var(--tamano-toque);
+  border: 0;
+  background: var(--color-superficie);
+  color: var(--color-texto);
+  font: inherit;
+  cursor: pointer;
+}
+
+.pestanas__pestana--activa {
+  background: var(--color-acento);
+  color: var(--color-sobre-acento);
+  font-weight: 600;
+}
+
 /* La explicación de un indicador baja a su propia línea (RNF-004-03). */
 .tarjeta > header,
 .fila {

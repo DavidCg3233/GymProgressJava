@@ -44,3 +44,30 @@ describe('puntos de la gráfica', () => {
     }
   })
 })
+
+describe('línea de referencia: el peso objetivo (T-003-08 · RF-003-07)', () => {
+  it('sin referencia no hay línea', () => {
+    expect(puntosDeLaGrafica([80, 79], AREA).referencia).toBeNull()
+  })
+
+  it('una referencia dentro del rango cae entre los puntos', () => {
+    const { referencia, minimo, maximo } = puntosDeLaGrafica([80, 70], AREA, 75)
+
+    expect([minimo, maximo]).toEqual([70, 80])
+    expect(referencia).toBe(80)
+  })
+
+  it('una referencia por debajo de todos los pesos amplía el rango para que se vea', () => {
+    const { puntos, referencia, minimo } = puntosDeLaGrafica([80, 79], AREA, 75)
+
+    expect(minimo).toBe(75)
+    expect(referencia).toBe(140) // abajo del todo
+    expect(puntos[0].y).toBe(20) // 80 sigue arriba
+  })
+
+  it('un solo peso igual al objetivo deja ambos en el medio', () => {
+    const { puntos, referencia } = puntosDeLaGrafica([75], AREA, 75)
+
+    expect([puntos[0].y, referencia]).toEqual([80, 80])
+  })
+})

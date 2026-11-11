@@ -55,6 +55,8 @@ def test_la_cuenta_no_tiene_campos_personales_de_mas():
         "is_active",
         "creada",
         "meta_semanal",  # RF-004-11: una preferencia, no un dato personal.
+        "estatura_cm",  # RF-003-12: el único dato personal nuevo, lo pide el IMC.
+        "peso_objetivo",  # RF-003-08: una meta, como la semanal.
     }
 
 

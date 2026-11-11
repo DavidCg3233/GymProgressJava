@@ -16,5 +16,6 @@ urlpatterns = [
     path("api/", include("sesiones.urls")),
     path("api/", include("rutinas.urls")),
     path("api/progreso/", include("progreso.urls")),
+    path("api/peso/", include("cuerpo.urls")),
     path("panel/", admin.site.urls),
 ]
