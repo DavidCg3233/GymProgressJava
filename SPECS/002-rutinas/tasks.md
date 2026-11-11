@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-10) |
 | **Creado** | 2026-11-10 |
-| **Avance** | 0 de 20 cerradas · 18 con código (T-002-01 a 18). Faltan T-002-19 y 20, que son de David |
+| **Avance** | 0 de 20 cerradas · 18 con código (T-002-01 a 18). T-002-19 hecha por David. Falta T-002-20 |
 
 > Mismas reglas que en la spec 006:
 > - **Una tarea = un commit**, en orden, con TDD: primero la prueba, verla fallar, después el código.
@@ -74,7 +74,7 @@
 
 - [ ] **T-002-18** Recorrido completo en el navegador contra el servidor local.
   - Crear una rutina, empezarla, registrar series, terminar, empezarla otra vez y ver "la última vez"; modificar la rutina con una sesión en curso (CA-002-13a); eliminar un ejercicio usado en una rutina.
-- [ ] **T-002-19** `[D]` Probarlo en tu iPhone con la app publicada, incluida una sesión desde rutina en modo avión.
+- [x] **T-002-19** `[D]` Probarlo en tu iPhone con la app publicada, incluida una sesión desde rutina en modo avión.
 - [ ] **T-002-20** `[D]` Pasar las specs 002 y 006 a `Implementada` si todos sus criterios están marcados, y actualizar `SPECS/README.md`.
 
 ## Bitácora
@@ -90,6 +90,8 @@
 | 2026-11-10 | T-002-12 y 13 | Catálogo y rutinas guardados en el celular; empezar una sesión desde una rutina con y sin señal (cierra T-006-37). Una sesión de rutina conserva el nombre de la rutina al terminar | `[DAVID]` |
 | 2026-11-10 | T-002-14 a 17 | Pantallas: mis rutinas, editor, catálogo; "Hoy toca" en el inicio; la sesión toma grupos y sugerencias del catálogo | `[DAVID]` |
 | 2026-11-10 | T-002-18 | Recorrido en el navegador a 375 px con una cuenta de prueba nueva: crear rutina con un ejercicio del catálogo y uno nuevo, empezarla desde "Hoy toca", cambiar la rutina con la sesión en curso (la sesión no cambió: CA-002-13a), terminar, empezar otra vez (ya con el cambio), duplicar dos veces ("(copia)" y "(copia 2)"), eliminar un ejercicio usado en tres rutinas, intentar eliminar un grupo con ejercicios. Sin desplazamiento horizontal ni errores del servidor | `[DAVID]` |
+
+| 2026-11-11 | T-002-19 | David probó en su iPhone la app publicada, incluida una sesión desde rutina en modo avión: funciona. La primera apertura mostró la versión anterior (copia del service worker); al volver a abrir, tomó la nueva | `[DAVID]` |
 
 ### Notas técnicas
 
