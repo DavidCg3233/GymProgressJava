@@ -14,7 +14,8 @@ export default defineConfig({
   timeout: 90_000,
   expect: { timeout: 15_000 },
   retries: 0,
-  reporter: [['list']],
+  // En GitHub, los errores salen como anotaciones: se ven sin iniciar sesión.
+  reporter: process.env.CI ? [['github'], ['list']] : [['list']],
   use: {
     baseURL: process.env.E2E_URL ?? 'http://localhost:8000',
     trace: 'retain-on-failure',

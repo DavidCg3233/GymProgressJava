@@ -121,14 +121,25 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      #
+      # Corre en un segundo contenedor de la MISMA imagen, con su propia base y
+      # GP_DEBUG=1. Única diferencia con producción, y a propósito: sin DEBUG las
+      # cookies de acceso son "Secure" (solo HTTPS) y WebKit no las guarda en
+      # http://localhost, así que nunca podría entrar. Producción sí va por HTTPS.
+      # Las revisiones de seguridad de arriba siguen sobre "app", sin DEBUG.
+      - name: Levantar la copia para Playwright
+        run: |
+          docker exec db createdb -U gp gp_e2e
+          docker run -d --name e2e --network prueba -p 8001:8000             -e GP_DEBUG=1 -e GP_SECRET_KEY=$(openssl rand -hex 32) -e GP_ALLOWED_HOSTS=localhost             -e GP_DB_NAME=gp_e2e -e GP_DB_USER=gp -e GP_DB_PASSWORD=gp -e GP_DB_HOST=db -e GP_DUENO_USUARIO=dueno -e GP_DUENO_CORREO=dueno@ejemplo.com -e GP_DUENO_NOMBRE=Dueno -e GP_DUENO_CONTRASENA_TEMPORAL=Temporal-de-la-revision-7             gymprogress
+          for intento in $(seq 1 30); do curl -fsS http://localhost:8001/salud/ && break; sleep 2; done
       - name: Flujo completo sin conexión (Playwright + WebKit)
         working-directory: frontend
         env:
-          E2E_URL: http://localhost:8000
+          E2E_URL: http://localhost:8001
           E2E_USUARIO: dueno
           E2E_CONTRASENA_TEMPORAL: Temporal-de-la-revision-7
-          E2E_APAGAR: docker stop app
-          E2E_ENCENDER: docker start app
+          E2E_APAGAR: docker stop e2e
+          E2E_ENCENDER: docker start e2e
         run: |
           npm ci
           npx playwright install --with-deps webkit
@@ -137,7 +148,7 @@ jobs:
       # prueba anterior. Respalda, restaura en otra base vacía y cuenta las filas.
       - name: Respaldo cifrado y restauración en limpio
         env:
-          GP_RESPALDO_DB_URL: postgresql://gp:gp@localhost:5432/gp
+          GP_RESPALDO_DB_URL: postgresql://gp:gp@localhost:5432/gp_e2e
           GP_RESPALDO_CLAVE: clave-solo-para-la-revision
           GP_PRUEBA_DB_URL: postgresql://prueba:prueba@localhost:5433/prueba
         run: |
@@ -148,6 +159,16 @@ jobs:
           grep -qx "sesiones 1" restaurado.txt
           grep -qx "series 2" restaurado.txt
 
+      # Lo que había en pantalla al fallar, como anotación pública (sin datos reales:
+      # es la cuenta de prueba de la revisión).
+      - name: Pantalla al fallar
+        if: failure()
+        run: |
+          for archivo in frontend/test-results/*/error-context.md; do
+            [ -f "$archivo" ] || continue
+            resumen=$(grep -vE '^\s*$' "$archivo" | head -n 60 | tr '\n' ' ' | cut -c1-3500)
+            echo "::error title=Pantalla cuando falló Playwright::${resumen}"
+          done
       - name: Rastro de Playwright
         if: failure()
         uses: actions/upload-artifact@v4
@@ -159,7 +180,9 @@ jobs:
         # Si falla, que se vea por qué.
       - name: Registros del contenedor
         if: failure()
-        run: docker logs app || true
+        run: |
+          docker logs app || true
+          docker logs e2e || true
 
   secretos:
     name: Sin secretos en el código
