@@ -183,7 +183,8 @@ onMounted(cargar)
           </div>
           <div>
             <span class="suave">Cambio</span>
-            <strong>{{ textoDelCambio || '—' }}</strong>
+            <strong v-if="textoDelCambio">{{ textoDelCambio }}</strong>
+            <span v-else>Primer registro</span>
           </div>
           <div v-if="datos.resumen.imc">
             <span class="suave">IMC</span>

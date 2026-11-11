@@ -36,7 +36,8 @@ watch(
     <svg :viewBox="`0 0 ${AREA.ancho} ${AREA.alto}`" role="img" :aria-label="`Gráfica con ${valores.length} ${unidad}`">
       <g v-if="grafica.referencia !== null" class="grafica__referencia">
         <line :x1="0" :x2="AREA.ancho" :y1="grafica.referencia" :y2="grafica.referencia" />
-        <text :x="AREA.ancho - 4" :y="grafica.referencia - 5" text-anchor="end">{{ textoDeReferencia }}</text>
+        <!-- A la izquierda: el punto más reciente siempre queda a la derecha. -->
+        <text x="4" :y="grafica.referencia - 5" text-anchor="start">{{ textoDeReferencia }}</text>
       </g>
       <polyline v-if="grafica.puntos.length > 1" class="grafica__linea" :points="linea" />
       <circle
