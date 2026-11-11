@@ -14,6 +14,7 @@ import { pedir } from '../datos/api.js'
 import { crearCola } from '../datos/cola.js'
 import * as operaciones from '../datos/operaciones.js'
 import { claveDeEjercicio } from '../reglas/ejercicios.js'
+import { ErrorDeValidacion } from '../reglas/errores.js'
 import { debeCerrarse } from '../reglas/sesiones.js'
 import * as modelo from '../sesion/modelo.js'
 
@@ -23,6 +24,9 @@ export const estado = reactive({
   cargando: true,
   sesion: null,
   ultimaVez: {},
+  // Plan 002, 4.5: guardados en el celular para empezar una sesión de rutina sin señal.
+  catalogo: { grupos: [], ejercicios: [] },
+  rutinas: [],
   // La sesión que se acaba de terminar, para mostrar su resumen en el inicio (RF-006-07).
   resumen: null,
   // RF-006-18: cambios guardados en el celular que el servidor aún no tiene.
@@ -45,8 +49,16 @@ const nuevoId = () => crypto.randomUUID()
 // --- Guardar y enviar -------------------------------------------------------
 
 function guardarLocal() {
-  return almacen.guardar(CLAVE_DEL_ESTADO, { sesion: estado.sesion, ultimaVez: estado.ultimaVez })
+  return almacen.guardar(CLAVE_DEL_ESTADO, {
+    sesion: estado.sesion,
+    ultimaVez: estado.ultimaVez,
+    catalogo: estado.catalogo,
+    rutinas: estado.rutinas,
+  })
 }
+
+/** Lo usan las acciones de rutinas y catálogo para dejar sus cambios guardados en el celular. */
+export const guardarEstadoLocal = guardarLocal
 
 async function registrar(operacion) {
   await guardarLocal()
@@ -76,6 +88,8 @@ export async function cargarArranque() {
     const guardado = await almacen.leer(CLAVE_DEL_ESTADO)
     estado.sesion = guardado?.sesion ?? null
     estado.ultimaVez = guardado?.ultimaVez ?? {}
+    estado.catalogo = guardado?.catalogo ?? { grupos: [], ejercicios: [] }
+    estado.rutinas = guardado?.rutinas ?? []
     estado.pendientes = await cola.pendientes()
 
     await cerrarSiVencio()
@@ -98,6 +112,10 @@ async function traerDelServidor() {
     throw error
   }
   estado.sinConexion = false
+  // El catálogo y las rutinas solo se editan con conexión: el servidor siempre manda.
+  estado.catalogo = datos.catalogo ?? estado.catalogo
+  estado.rutinas = datos.rutinas ?? estado.rutinas
+  await guardarLocal()
 
   // Mientras queden cambios sin enviar, el celular sabe más que el servidor.
   if (estado.pendientes > 0) {
@@ -134,10 +152,39 @@ async function cerrarSiVencio() {
 // es válido, lanza el error en el momento. Luego devuelve una promesa que se
 // resuelve cuando el cambio quedó guardado en el celular.
 
+function exigirSinSesionEnCurso() {
+  // RF-006-02: una sola sesión en curso.
+  if (estado.sesion) {
+    throw new ErrorDeValidacion('sesion', 'Ya tienes una sesión en curso.')
+  }
+}
+
 export function empezarSesionLibre() {
+  exigirSinSesionEnCurso()
   estado.resumen = null
   estado.sesion = modelo.nuevaSesionLibre({ id: nuevoId(), ahora: new Date() })
   return registrar(operaciones.guardarSesion(estado.sesion))
+}
+
+/** RF-006-01 y plan 002, 4.5: empieza una sesión con la rutina guardada en el celular, con o sin señal. */
+export function empezarSesionDesdeRutina(rutina) {
+  // Como las demás acciones: la regla se aplica en el momento y lanza el error de inmediato.
+  exigirSinSesionEnCurso()
+  estado.resumen = null
+  const sesion = modelo.nuevaSesionDesdeRutina({ rutina, ahora: new Date(), ultimaVez: estado.ultimaVez, nuevoId })
+  estado.sesion = sesion
+  return registrarInicioDeRutina(sesion)
+}
+
+async function registrarInicioDeRutina(sesion) {
+  // La sesión primero, luego sus ejercicios en orden. Las series viajan al confirmarse.
+  const momento = new Date()
+  await guardarLocal()
+  await cola.agregar(operaciones.guardarSesion(sesion))
+  for (const ejercicio of sesion.ejercicios) {
+    await cola.agregar(operaciones.guardarEjercicio(sesion, ejercicio, momento))
+  }
+  await sincronizar()
 }
 
 export function agregarEjercicio(nombre, grupo) {
@@ -198,7 +245,16 @@ async function cerrar(sesion, descartada) {
 export async function olvidarDatosLocales() {
   await cola.vaciar()
   await almacen.borrarTodo()
-  Object.assign(estado, { sesion: null, ultimaVez: {}, resumen: null, pendientes: 0, sinConexion: false, aviso: '' })
+  Object.assign(estado, {
+    sesion: null,
+    ultimaVez: {},
+    catalogo: { grupos: [], ejercicios: [] },
+    rutinas: [],
+    resumen: null,
+    pendientes: 0,
+    sinConexion: false,
+    aviso: '',
+  })
 }
 
 /** Reintenta enviar al volver la señal, al volver a la app y cada 10 segundos si queda algo (RNF-006-07). */

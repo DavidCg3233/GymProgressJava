@@ -14,6 +14,8 @@ const servidor = {
   recibidas: [],
   sesionEnCurso: null,
   ultimaVez: {},
+  catalogo: { grupos: [], ejercicios: [] },
+  rutinas: [],
 }
 
 vi.mock('../datos/api.js', async (original) => {
@@ -23,7 +25,12 @@ vi.mock('../datos/api.js', async (original) => {
     pedir: vi.fn(async (metodo, url, cuerpo) => {
       if (!servidor.conectado) throw new real.ErrorDeApi(0, 'Sin conexión.')
       if (url === '/api/arranque/') {
-        return { sesion_en_curso: servidor.sesionEnCurso, ultima_vez: servidor.ultimaVez }
+        return {
+          sesion_en_curso: servidor.sesionEnCurso,
+          ultima_vez: servidor.ultimaVez,
+          catalogo: servidor.catalogo,
+          rutinas: servidor.rutinas,
+        }
       }
       servidor.recibidas.push({ metodo, url, cuerpo })
       return metodo === 'DELETE' ? null : {}
@@ -43,6 +50,24 @@ const ULTIMA_VEZ = {
   },
 }
 
+const CATALOGO = {
+  grupos: [
+    { id: 'g-pecho', nombre: 'Pecho' },
+    { id: 'g-pierna', nombre: 'Pierna' },
+  ],
+  ejercicios: [{ id: 'e-press', nombre: 'Press inclinado', grupo: 'g-pecho' }],
+}
+
+const PECHO = {
+  id: 'rutina-pecho',
+  nombre: 'Pecho',
+  dias: [1],
+  ejercicios: [
+    { ejercicio: 'e-press', nombre: 'Press inclinado', grupo: 'Pecho', series: 2, reps: 10, peso: 30 },
+    { ejercicio: 'e-aperturas', nombre: 'Aperturas', grupo: 'Pecho', series: 1, reps: 12, peso: 12 },
+  ],
+}
+
 /** Simula cerrar y volver a abrir la app: el código se carga de nuevo; el almacén sigue. */
 async function abrirApp() {
   vi.resetModules()
@@ -53,7 +78,14 @@ async function abrirApp() {
 
 beforeEach(() => {
   globalThis.indexedDB = new IDBFactory()
-  Object.assign(servidor, { conectado: true, recibidas: [], sesionEnCurso: null, ultimaVez: ULTIMA_VEZ })
+  Object.assign(servidor, {
+    conectado: true,
+    recibidas: [],
+    sesionEnCurso: null,
+    ultimaVez: ULTIMA_VEZ,
+    catalogo: CATALOGO,
+    rutinas: [PECHO],
+  })
 })
 
 describe('arrancar', () => {
@@ -174,5 +206,66 @@ describe('salir de la cuenta', () => {
     expect(app.estado.pendientes).toBe(0)
     const otra = await abrirApp()
     expect(otra.estado.sesion).toBeNull()
+  })
+})
+
+describe('T-002-12: catálogo y rutinas guardados en el celular', () => {
+  it('con conexión, el arranque trae el catálogo y las rutinas', async () => {
+    const { estado } = await abrirApp()
+
+    expect(estado.catalogo).toEqual(CATALOGO)
+    expect(estado.rutinas).toEqual([PECHO])
+  })
+
+  it('sin señal siguen disponibles los que trajo la última vez', async () => {
+    await abrirApp()
+
+    servidor.conectado = false
+    const { estado } = await abrirApp()
+
+    expect(estado.rutinas.map((r) => r.nombre)).toEqual(['Pecho'])
+    expect(estado.catalogo.grupos).toHaveLength(2)
+  })
+})
+
+describe('T-002-13: empezar una sesión desde una rutina, también sin señal', () => {
+  it('CA-006-17a: en modo avión se empieza con la rutina guardada y todo queda pendiente en orden', async () => {
+    await abrirApp() // ayer, con señal
+    servidor.conectado = false
+    const app = await abrirApp() // hoy, en modo avión
+
+    await app.empezarSesionDesdeRutina(app.estado.rutinas[0])
+
+    const sesion = app.estado.sesion
+    expect(sesion.nombre).toBe('Pecho')
+    expect(sesion.ejercicios.map((e) => e.series.length)).toEqual([2, 1])
+    expect(sesion.ejercicios[0].series[0]).toMatchObject({ peso: 30, reps: 10, origen: 'ultima-vez' })
+    expect(app.estado.pendientes).toBe(3) // la sesión y sus dos ejercicios
+
+    servidor.conectado = true
+    await app.sincronizar()
+
+    const [inicio, ...ejercicios] = servidor.recibidas
+    expect(inicio.cuerpo).toMatchObject({ nombre: 'Pecho', rutina: 'rutina-pecho', fin: null })
+    expect(ejercicios.map((o) => o.cuerpo.nombre)).toEqual(['Press inclinado', 'Aperturas'])
+  })
+
+  it('cerrar y abrir la app a mitad de una sesión de rutina la conserva', async () => {
+    await abrirApp()
+    servidor.conectado = false
+    const antes = await abrirApp()
+    await antes.empezarSesionDesdeRutina(PECHO)
+
+    const despues = await abrirApp()
+
+    expect(despues.estado.sesion?.rutina).toBe('rutina-pecho')
+    expect(despues.estado.sesion.ejercicios).toHaveLength(2)
+  })
+
+  it('no se puede empezar otra con una sesión en curso', async () => {
+    const app = await abrirApp()
+    await app.empezarSesionLibre()
+
+    expect(() => app.empezarSesionDesdeRutina(PECHO)).toThrow('Ya tienes una sesión en curso.')
   })
 })

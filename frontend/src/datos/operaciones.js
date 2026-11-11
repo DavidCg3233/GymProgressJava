@@ -8,7 +8,7 @@ export function guardarSesion(sesion) {
   return {
     metodo: 'PUT',
     url: `/api/sesiones/${sesion.id}/`,
-    cuerpo: { nombre: sesion.nombre, inicio: sesion.inicio, fin: sesion.fin, nota: sesion.nota },
+    cuerpo: { nombre: sesion.nombre, inicio: sesion.inicio, fin: sesion.fin, nota: sesion.nota, rutina: sesion.rutina ?? null },
   }
 }
 

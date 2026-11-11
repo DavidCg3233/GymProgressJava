@@ -20,7 +20,47 @@ import { nombreDeSesionLibre, validarNota } from '../reglas/textos.js'
 
 /** RF-006-20: una sesión sin rutina, a la que se le agregan ejercicios sobre la marcha. */
 export function nuevaSesionLibre({ id, ahora }) {
-  return { id, nombre: '', inicio: ahora.toISOString(), fin: null, nota: '', ejercicios: [] }
+  return { id, nombre: '', rutina: null, inicio: ahora.toISOString(), fin: null, nota: '', ejercicios: [] }
+}
+
+/**
+ * RF-006-01: una sesión que copia la rutina tal como está ahora (RF-002-13).
+ *
+ * Cada ejercicio trae tantas series como las previstas, precargadas con lo de la
+ * última vez o, si nunca se ha hecho, con lo previsto (RF-006-04, 05). Funciona
+ * sin señal: solo usa lo que el celular ya tiene guardado.
+ *
+ * @param {Function} nuevoId Genera un identificador nuevo para cada ejercicio y serie.
+ */
+export function nuevaSesionDesdeRutina({ rutina, ahora, ultimaVez, nuevoId }) {
+  const sesion = { ...nuevaSesionLibre({ id: nuevoId(), ahora }), nombre: rutina.nombre, rutina: rutina.id }
+
+  sesion.ejercicios = rutina.ejercicios.map((previsto, indice) => {
+    const anterior = ultimaVez?.[claveDeEjercicio(previsto.nombre)]
+    const historial = historialDesde(anterior)
+    const series = []
+    for (let numero = 1; numero <= previsto.series; numero += 1) {
+      const precarga = valoresParaSerie({ numero, historial, previsto, serieAnterior: series.at(-1) ?? null })
+      series.push({
+        id: nuevoId(),
+        numero,
+        peso: precarga?.peso ?? null,
+        reps: precarga?.reps ?? null,
+        origen: precarga?.origen ?? null,
+        confirmada: false,
+      })
+    }
+    return {
+      id: nuevoId(),
+      nombre: anterior?.nombre ?? previsto.nombre,
+      grupo: previsto.grupo,
+      orden: indice + 1,
+      nota: '',
+      notaAnterior: anterior?.nota ?? '',
+      series,
+    }
+  })
+  return sesion
 }
 
 /** RF-006-13 y RN-006-11: el ejercicio entra con una serie, precargada si ya se ha hecho. */
@@ -98,7 +138,8 @@ export function anotar(destino, nota) {
 
 /** RF-006-07, 19 y 21: termina la sesión. Devuelve si debe descartarse por no tener nada. */
 export function terminarSesion(sesion, { ahora, nombre, nota }) {
-  const nombreValido = nombreDeSesionLibre(nombre)
+  // Sin nombre escrito, una sesión de rutina conserva el de la rutina; una libre se llama "Sesión libre".
+  const nombreValido = nombreDeSesionLibre(nombre?.trim() ? nombre : sesion.nombre)
   const notaValida = validarNota(nota)
 
   // RN-006-12: aunque se termine tarde, ninguna sesión dura más de 2 horas.
