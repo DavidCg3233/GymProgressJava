@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "rutinas",
     "sesiones",
     "progreso",
+    "cuerpo",
 ]
 
 # --- API (T-006-13) --------------------------------------------------------
