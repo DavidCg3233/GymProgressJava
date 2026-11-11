@@ -25,8 +25,10 @@ WORKDIR /app
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
 
-# El servidor no corre como administrador dentro del contenedor.
-RUN useradd --create-home --uid 1000 gymprogress
+# El servidor no corre como administrador dentro del contenedor. La carpeta /app
+# la creó el administrador: se le entrega al usuario para que pueda escribir en
+# ella (collectstatic crea /app/staticfiles).
+RUN useradd --create-home --uid 1000 gymprogress     && chown gymprogress:gymprogress /app
 COPY --chown=gymprogress:gymprogress backend/ ./
 COPY --from=pantalla --chown=gymprogress:gymprogress /pantalla/dist /app/pantalla
 USER gymprogress

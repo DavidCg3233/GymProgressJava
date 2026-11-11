@@ -85,8 +85,17 @@ jobs:
       - uses: actions/checkout@v4
 
       # La misma imagen que construye Railway: si aquí no se construye, allá tampoco.
+      # Si falla, las líneas del error se publican como anotación: GitHub las
+      # muestra a cualquiera, aunque no haya iniciado sesión.
       - name: Construir
-        run: docker build --tag gymprogress .
+        run: |
+          set -o pipefail
+          if ! docker build --progress=plain --tag gymprogress . 2>&1 | tee construccion.log; then
+            resumen=$(grep -iE 'error|denied|not found|failed|no such' construccion.log | tail -n 15 | tr '
+' ' ' | cut -c1-3000)
+            echo "::error title=Falló la construcción de la imagen::${resumen}"
+            exit 1
+          fi
 
       # Arranca la imagen contra un PostgreSQL de prueba y comprueba que responde
       # y que entrega la pantalla con su política de contenido.
