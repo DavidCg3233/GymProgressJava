@@ -59,7 +59,7 @@ La app funciona, pero se ve genérica y todo pesa lo mismo. En el gimnasio, entr
 | RN-007-01 | La barra tiene siempre los mismos cuatro destinos, en este orden: Inicio, Rutinas, Progreso, Historial. Cada uno con ícono y nombre escrito. |
 | RN-007-02 | El tiempo de la franja se muestra en minutos ("35 min") y, desde la primera hora, en horas y minutos ("1 h 05 min"). Se actualiza al menos cada minuto. |
 | RN-007-03 | Los números de peso y reps usan cifras de ancho fijo, para que las columnas no se muevan al cambiar un valor. |
-| RN-007-04 | Un solo color de acento en toda la app. Solo aparece en lo que se puede tocar, en el destino actual y en lo hecho. Los errores y avisos tienen sus propios colores. |
+| RN-007-04 | Lo que se toca va en tinta (blanco y negro). Un solo color de realce, el dorado, y solo en lo hecho o logrado (serie confirmada, meta cumplida, récords). Los errores y avisos tienen sus propios colores. |
 
 ## 6. Requerimientos no funcionales — *Complementos*
 
@@ -136,7 +136,7 @@ La app funciona, pero se ve genérica y todo pesa lo mismo. En el gimnasio, entr
 | 4 | ¿Letra? | — | **La del iPhone** (2026-11-11). |
 | 5 | ¿Cambiar peso y reps? | — | **Botones +/−, como hoy** (2026-11-11). |
 | 6 | ¿Referencia? | — | **Hevy o Strong** (2026-11-11). |
-| 7 | ¿Color de acento? | Lo elige la IA y lo muestra | **Aprobado** (2026-11-11): verde pino (`#0B7A62` en claro, `#3CCFA8` en oscuro), en [`docs/diseno/muestra.html`](../../docs/diseno/muestra.html). |
+| 7 | ¿Color de acento? | Verde pino (aprobado y luego cambiado) | **Blanco y negro con toques dorados** (2026-11-11): el verde pino se veía chillón. Detalle en `DESIGN.md`, sección 2. |
 
 Reglas que definí yo y que puedes cambiar: la sesión oculta la barra y se minimiza a una franja (RF-007-02, 03, como en Hevy); la cuenta pasa a un botón del Inicio (RF-007-07); el formato del tiempo de la franja (RN-007-02). Y una que salió de medir la muestra: el número de la serie va dentro del círculo de confirmar, porque con +/− de 44 px no cabe una columna aparte en 375 px (ver `DESIGN.md`, Fila de serie).
 

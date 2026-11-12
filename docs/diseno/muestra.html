@@ -7,14 +7,14 @@
 <style>
 /* Muestra de la spec 007 y DESIGN.md. Estática: no es la app. */
 .claro {
-  --fondo:#F6F6F3; --superficie:#FFFFFF; --superficie-2:#EFEFEB; --linea:#E3E3DE;
-  --tinta:#16181A; --tinta-suave:#5E6368; --acento:#0B7A62; --sobre-acento:#FFFFFF;
-  --acento-tinte:#E2F2EC; --aviso:#8A5300; --velo:rgba(255,255,255,.85);
+  --fondo:#F7F6F2; --superficie:#FFFFFF; --superficie-2:#EFEEE9; --linea:#E4E2DC;
+  --tinta:#141414; --tinta-suave:#5F5E59; --acento:#141414; --sobre-acento:#FFFFFF;
+  --acento-tinte:#EFEEE9; --dorado:#836419; --sobre-dorado:#FFFFFF; --dorado-tinte:#F5EEDC; --aviso:#8A5300; --velo:rgba(255,255,255,.85);
 }
 .oscuro {
-  --fondo:#0B0C0D; --superficie:#161819; --superficie-2:#202224; --linea:#2A2D30;
-  --tinta:#F1F2F0; --tinta-suave:#9A9FA4; --acento:#3CCFA8; --sobre-acento:#06231B;
-  --acento-tinte:#12302A; --aviso:#F3C350; --velo:rgba(22,24,25,.85);
+  --fondo:#0A0A0A; --superficie:#161616; --superficie-2:#222222; --linea:#2C2C2C;
+  --tinta:#F2F1ED; --tinta-suave:#A09E98; --acento:#F2F1ED; --sobre-acento:#0A0A0A;
+  --acento-tinte:#222222; --dorado:#D4B062; --sobre-dorado:#0A0A0A; --dorado-tinte:#2A2418; --aviso:#F3C350; --velo:rgba(22,24,25,.85);
 }
 * { box-sizing: border-box; }
 body {
@@ -54,15 +54,15 @@ body {
 .contenido.densa { padding-left: 12px; padding-right: 12px; }
 .cols { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--tinta-suave); padding-bottom: 6px; text-align: center; }
 .serie { min-height: 64px; border-top: 1px solid var(--linea); }
-.serie.hecha { background: var(--acento-tinte); }
+.serie.hecha { background: var(--dorado-tinte); }
 .valor { display: flex; align-items: center; justify-content: space-between; gap: 2px; }
 .valor b { font-size: 24px; line-height: 28px; font-weight: 600; min-width: 2.4ch; text-align: center; display: block; }
 .valor em { font-style: normal; font-size: 11px; color: var(--tinta-suave); display: block; text-align: center; }
 .paso { width: 44px; height: 44px; flex: none; border-radius: 10px; border: 0; background: var(--superficie-2); color: var(--tinta); font-size: 18px; line-height: 1; padding: 0; }
 .hecha .paso { visibility: hidden; }
 .check { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--tinta-suave); background: none; display: grid; place-items: center; padding: 0; color: var(--tinta); font: 600 17px/1 inherit; font-family: inherit; }
-.hecha .check { border-color: var(--acento); background: var(--acento); }
-.check svg { width: 20px; height: 20px; stroke: var(--sobre-acento); }
+.hecha .check { border-color: var(--dorado); background: var(--dorado); }
+.check svg { width: 20px; height: 20px; stroke: var(--sobre-dorado); }
 .check:not(.lleno) svg { display: none; }
 
 .btn-sec { margin: 8px 12px 12px 16px; width: calc(100% - 28px); min-height: 44px; border: 0; border-radius: 10px; background: var(--acento-tinte); color: var(--acento); font: inherit; font-size: 17px; font-weight: 600; }
@@ -76,9 +76,9 @@ body {
 .hoy b { font-size: 24px; font-weight: 600; }
 .hoy span { font-size: 15px; color: var(--tinta-suave); }
 
-.franja { position: absolute; left: 8px; right: 8px; bottom: 92px; height: 48px; border-radius: 24px; background: var(--acento-tinte); display: flex; align-items: center; gap: 10px; padding: 0 16px; font-size: 15px; font-weight: 600; }
-.franja i { width: 8px; height: 8px; border-radius: 50%; background: var(--acento); }
-.franja span { margin-left: auto; color: var(--acento); font-size: 20px; }
+.franja { position: absolute; left: 8px; right: 8px; bottom: 92px; height: 48px; border-radius: 24px; background: var(--dorado-tinte); display: flex; align-items: center; gap: 10px; padding: 0 16px; font-size: 15px; font-weight: 600; }
+.franja i { width: 8px; height: 8px; border-radius: 50%; background: var(--dorado); }
+.franja span { margin-left: auto; color: var(--dorado); font-size: 20px; }
 .barra { position: absolute; left: 0; right: 0; bottom: 0; height: 83px; padding-bottom: 34px; background: var(--velo); border-top: 1px solid var(--linea); display: grid; grid-template-columns: repeat(4, 1fr); }
 .barra a { display: grid; justify-items: center; align-content: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--tinta-suave); text-decoration: none; }
 .barra a.actual { color: var(--acento); }
@@ -90,7 +90,7 @@ body {
 <body>
 <div class="titulo">
   <h1>Muestra del rediseño · spec 007</h1>
-  <p>Calmado en lo visual, denso en los datos. Acento verde pino. Letra del sistema. Izquierda: tema claro · derecha: tema oscuro.</p>
+  <p>Calmado en lo visual, denso en los datos. Blanco y negro con toques dorados. Letra del sistema. Izquierda: tema claro · derecha: tema oscuro.</p>
 </div>
 
 <div class="mesa" id="mesa"></div>
@@ -187,8 +187,8 @@ for (const [plantilla, nombre] of [['sesion', 'Sesión en curso'], ['inicio', 'I
   }
 }
 const colores = [
-  ['Acento', '#0B7A62', '#3CCFA8'], ['Acento tinte', '#E2F2EC', '#12302A'], ['Fondo', '#F6F6F3', '#0B0C0D'],
-  ['Superficie', '#FFFFFF', '#161819'], ['Tinta', '#16181A', '#F1F2F0'], ['Tinta suave', '#5E6368', '#9A9FA4'],
+  ['Acento (tinta)', '#141414', '#F2F1ED'], ['Dorado', '#836419', '#D4B062'], ['Dorado tinte', '#F5EEDC', '#2A2418'], ['Fondo', '#F7F6F2', '#0A0A0A'],
+  ['Superficie', '#FFFFFF', '#161616'], ['Tinta suave', '#5F5E59', '#A09E98'],
   ['Aviso', '#8A5300', '#F3C350'], ['Error', '#B42318', '#FF8B7B'],
 ]
 const paleta = document.getElementById('paleta')

@@ -142,7 +142,7 @@ function empezar() {
 .inicio__hecha {
   display: grid;
   gap: var(--espacio-1);
-  background: var(--acento-tinte);
+  background: var(--dorado-tinte);
 }
 
 .inicio__hecha small {

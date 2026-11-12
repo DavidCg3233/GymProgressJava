@@ -8,7 +8,7 @@
 
 ## 1. La idea
 
-**Calmado en lo visual, denso en los datos.** La pantalla casi no tiene color, ni sombras, ni cajas dentro de cajas. Lo que manda es el tamaño: el peso y las reps son lo más grande, el resto se aparta. Un solo color de acento marca lo que se toca y lo que ya está hecho, así que en una pantalla quieta lo importante salta solo.
+**Calmado en lo visual, denso en los datos.** La pantalla casi no tiene color, ni sombras, ni cajas dentro de cajas. Lo que manda es el tamaño: el peso y las reps son lo más grande, el resto se aparta. Las acciones van en tinta y un toque de dorado marca lo que ya está hecho o logrado, así que en una pantalla quieta lo importante salta solo.
 
 Referencias: la densidad de **Hevy** y **Strong** (series como filas de una tabla) con la calma y los patrones del **iPhone** (letra del sistema, barra de pestañas, listas agrupadas).
 
@@ -16,28 +16,34 @@ Referencias: la densidad de **Hevy** y **Strong** (series como filas de una tabl
 - Tarjetas con borde dentro de tarjetas con borde: la app de hoy.
 - Degradados, sombras marcadas y vidrio esmerilado decorativo.
 - Emojis como íconos.
-- Más de un color "de marca".
+- Más de un color "de marca", o dorado en todas partes (deja de ser especial).
 - Violeta.
 
 ## 2. Color
 
-Un solo acento: **verde pino**. Es tranquilo en claro y bien visible en oscuro. En la cabeza se asocia a "hecho" sin gritar como un verde lima, y es distinto del salvia de hoy.
+**Blanco y negro con toques dorados** (decidido por David el 2026-11-11, en lugar del verde pino, que se veía chillón). Premium y minimalista:
+- **Lo que se toca va en tinta:** botones principales negros en claro y blanco hueso en oscuro. Sin color de marca en las acciones.
+- **El dorado es escaso, y por eso pesa.** Solo en lo que celebra o marca estado: serie confirmada, "hecha hoy", meta cumplida, récords, la línea de las gráficas y el punto de la franja de sesión.
+- **Grises cálidos,** para que el blanco y negro se sienta cuidado y no frío.
 
 | Token | Claro | Oscuro | Uso |
 |---|---|---|---|
-| `--fondo` | `#F6F6F3` | `#0B0C0D` | Fondo de la pantalla (en oscuro, casi negro: ahorra batería en la pantalla OLED) |
-| `--superficie` | `#FFFFFF` | `#161819` | Grupos de filas, barra, hojas |
-| `--superficie-2` | `#EFEFEB` | `#202224` | Controles en reposo (los +/−), filas presionadas |
-| `--linea` | `#E3E3DE` | `#2A2D30` | Separadores de 1 px entre filas. Nunca como borde de tarjeta |
-| `--tinta` | `#16181A` | `#F1F2F0` | Texto y números |
-| `--tinta-suave` | `#5E6368` | `#9A9FA4` | Etiquetas, fechas, unidades ("kg", "reps") |
-| `--acento` | `#0B7A62` | `#3CCFA8` | Lo que se toca, el destino actual, lo hecho |
-| `--sobre-acento` | `#FFFFFF` | `#06231B` | Texto sobre el acento |
-| `--acento-tinte` | `#E2F2EC` | `#12302A` | Fondo de una serie confirmada, botón secundario |
+| `--fondo` | `#F7F6F2` | `#0A0A0A` | Fondo de la pantalla (en oscuro, casi negro: ahorra batería en OLED) |
+| `--superficie` | `#FFFFFF` | `#161616` | Grupos de filas, barra, menús |
+| `--superficie-2` | `#EFEEE9` | `#222222` | Controles en reposo (+/−, campos), botón secundario |
+| `--linea` | `#E4E2DC` | `#2C2C2C` | Separadores de 1 px. Nunca como borde de tarjeta |
+| `--tinta` | `#141414` | `#F2F1ED` | Texto y números |
+| `--tinta-suave` | `#5F5E59` | `#A09E98` | Etiquetas, fechas, unidades |
+| `--acento` | `#141414` | `#F2F1ED` | Lo que se toca: botón principal, destino actual, enlaces |
+| `--sobre-acento` | `#FFFFFF` | `#0A0A0A` | Texto sobre el acento |
+| `--acento-tinte` | `#EFEEE9` | `#222222` | Fondo del botón secundario |
+| `--dorado` | `#836419` | `#D4B062` | Toques dorados: lo hecho, lo logrado |
+| `--sobre-dorado` | `#FFFFFF` | `#0A0A0A` | Texto o palomita sobre el dorado |
+| `--dorado-tinte` | `#F5EEDC` | `#2A2418` | Fondo de una serie confirmada, "hecha hoy", la franja |
 | `--error` | `#B42318` | `#FF8B7B` | Errores y eliminar |
 | `--aviso` | `#8A5300` | `#F3C350` | "Sin conexión", pendientes |
 
-**Contraste medido** (WCAG): todo texto ≥ 4,5:1 en los dos temas. Los más justos son el acento sobre su tinte en claro (4,6:1) y la tinta suave sobre el fondo en claro (5,6:1).
+**Contraste medido** (WCAG, prueba automática de 22 pares por tema): todo texto ≥ 4,5:1. El dorado del tema claro es más oscuro (`#836419`, un dorado viejo) porque un dorado brillante sobre blanco no se lee (≈ 2:1). En oscuro brilla.
 
 El tema sigue al teléfono (`prefers-color-scheme`); la barra de estado del iPhone y `theme-color` cambian con él.
 
@@ -73,7 +79,7 @@ Todos los números llevan **`font-variant-numeric: tabular-nums`** (RN-007-03), 
 
 ### Franja de sesión (RF-007-03)
 - Va sobre la barra, con 8 de margen.
-- Una píldora en `--acento-tinte` con un punto de acento, "Pecho · 35 min" y un chevrón.
+- Una píldora en `--dorado-tinte` con un punto dorado, "Pecho · 35 min" y un chevrón.
 - Se toca entera.
 
 ### Encabezado
@@ -91,8 +97,8 @@ Rejilla de tres columnas: `peso 1,2fr | reps 1fr | ✓ 44 px`, con 8 entre colum
 - **Encabezado de columnas** en etiqueta: KG · REPS.
 - **Pendiente:** los +/− en `--superficie-2` y el círculo con contorno y el número de la serie adentro ("3").
 - **Confirmada:**
-  - la fila con fondo `--acento-tinte`;
-  - el círculo relleno en acento con la palomita en lugar del número;
+  - la fila con fondo `--dorado-tinte`;
+  - el círculo relleno en dorado con la palomita en lugar del número;
   - el texto "Hecha" para lectores de pantalla;
   - los +/− se ocultan y solo queda el número. Así se distingue en escala de grises (CA-007-06a).
 - **Origen del valor** ("última vez", "de la rutina"): etiqueta debajo del número, en tinta suave.
@@ -117,10 +123,10 @@ Al presionar, el botón se oscurece un 8 % y baja al 98 % de escala en 100 ms. S
 - **Errores:** texto en `--error` junto a lo que falló.
 
 ### Gráficas
-- Línea de 2 px en acento y puntos de 4 px; el elegido, de 6 px y relleno.
+- Línea de 2 px en dorado y puntos de 4 px; el elegido, de 6 px y relleno.
 - Rejilla con 3 líneas de `--linea`, sin ejes dibujados.
 - El objetivo va en línea discontinua en tinta suave.
-- Las barras de semanas: en `--superficie-2` y, si cumplen la meta, en acento.
+- Las barras de semanas: en `--superficie-2` y, si cumplen la meta, en dorado.
 
 ### Estado vacío
 Una frase y una acción principal, sin ilustraciones.

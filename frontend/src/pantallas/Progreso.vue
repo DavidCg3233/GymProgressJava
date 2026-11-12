@@ -227,7 +227,7 @@ onMounted(cargar)
 }
 
 .leyenda {
-  color: var(--acento);
+  color: var(--dorado);
 }
 
 .cifra {
@@ -273,7 +273,7 @@ onMounted(cargar)
 }
 
 .semanas__semana--cumple .semanas__barra {
-  background: var(--acento);
+  background: var(--dorado);
 }
 
 .semanas__semana:last-child .semanas__cifra {

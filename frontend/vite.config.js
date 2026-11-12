@@ -27,8 +27,8 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         // Fondo de la pantalla de carga al abrir la app instalada (fichas.css, tema claro).
-        background_color: '#F6F6F3',
-        theme_color: '#F6F6F3',
+        background_color: '#F7F6F2',
+        theme_color: '#F7F6F2',
         icons: [
           { src: 'icono-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icono-512.png', sizes: '512x512', type: 'image/png' },
