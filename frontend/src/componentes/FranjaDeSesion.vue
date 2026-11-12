@@ -46,7 +46,7 @@ const tiempo = computed(() => tiempoDeSesion(props.sesion.inicio, ahora.value))
   padding: 0 var(--espacio-3) 0 var(--espacio-4);
   border: 0;
   border-radius: calc(var(--alto-franja) / 2);
-  background: var(--acento-tinte);
+  background: var(--dorado-tinte);
   color: var(--tinta);
   font-size: 15px;
   font-weight: 600;
@@ -60,7 +60,7 @@ const tiempo = computed(() => tiempoDeSesion(props.sesion.inicio, ahora.value))
   height: 8px;
   flex: none;
   border-radius: 50%;
-  background: var(--acento);
+  background: var(--dorado);
 }
 
 .franja__texto {
@@ -72,6 +72,6 @@ const tiempo = computed(() => tiempoDeSesion(props.sesion.inicio, ahora.value))
 }
 
 .franja .icono {
-  color: var(--acento);
+  color: var(--dorado);
 }
 </style>

@@ -88,7 +88,7 @@ function confirmar() {
 }
 
 .serie--hecha {
-  background: var(--acento-tinte);
+  background: var(--dorado-tinte);
 }
 
 .serie__fila {
@@ -119,8 +119,9 @@ function confirmar() {
 }
 
 .serie--hecha .serie__confirmar {
-  background: var(--acento);
-  color: var(--sobre-acento);
+  border-color: var(--dorado);
+  background: var(--dorado);
+  color: var(--sobre-dorado);
 }
 
 .serie__pie {

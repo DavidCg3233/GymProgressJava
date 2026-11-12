@@ -80,7 +80,7 @@ watch(
 
 .grafica__linea {
   fill: none;
-  stroke: var(--acento);
+  stroke: var(--dorado);
   stroke-width: 2.5;
   stroke-linejoin: round;
 }
@@ -98,7 +98,7 @@ watch(
 
 .grafica__punto {
   fill: var(--superficie);
-  stroke: var(--acento);
+  stroke: var(--dorado);
   stroke-width: 2.5;
   cursor: pointer;
 }
@@ -113,7 +113,7 @@ watch(
 }
 
 .grafica__punto--elegido {
-  fill: var(--acento);
+  fill: var(--dorado);
 }
 
 .grafica__detalle {

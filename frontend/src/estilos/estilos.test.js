@@ -78,6 +78,13 @@ const PARES_DE_TEXTO = [
   ['error', 'superficie'],
   ['aviso', 'fondo'],
   ['aviso', 'superficie'],
+  // Toques dorados (paleta del 2026-11-11): lo que celebra o marca estado.
+  ['dorado', 'fondo'],
+  ['dorado', 'superficie'],
+  ['dorado', 'dorado-tinte'],
+  ['sobre-dorado', 'dorado'],
+  ['tinta', 'dorado-tinte'],
+  ['tinta-suave', 'dorado-tinte'],
 ]
 
 describe('contraste (RNF-007-01)', () => {
