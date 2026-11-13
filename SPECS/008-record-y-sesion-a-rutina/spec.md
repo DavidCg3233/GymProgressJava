@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | Borrador |
+| **Estado** | **Aprobada** por David el 2026-11-13 |
 | **Autor** | David Calambás |
 | **Creada** | 2026-11-13 |
 | **Requisitos de origen** | R-27, R-28, R-29 |
