@@ -124,7 +124,8 @@ describe('CA-006-17a: empezar y registrar sin conexión', () => {
     await app.agregarEjercicio('Press inclinado', 'Pecho')
 
     const serie = app.estado.sesion.ejercicios[0].series[0]
-    expect(serie).toMatchObject({ peso: 30, reps: 10, origen: 'ultima-vez' })
+    // RF-008-04: el récord (32,5 × 8, sale de la última vez guardada) y la última vez como pista.
+    expect(serie).toMatchObject({ peso: 32.5, reps: 8, origen: 'record', pista: { peso: 30, reps: 10 } })
   })
 })
 
@@ -246,7 +247,8 @@ describe('T-002-13: empezar una sesión desde una rutina, también sin señal', 
     const sesion = app.estado.sesion
     expect(sesion.nombre).toBe('Pecho')
     expect(sesion.ejercicios.map((e) => e.series.length)).toEqual([2, 1])
-    expect(sesion.ejercicios[0].series[0]).toMatchObject({ peso: 30, reps: 10, origen: 'ultima-vez' })
+    // RF-008-03: la referencia (el récord 32,5 × 8 supera lo previsto 30 × 10).
+    expect(sesion.ejercicios[0].series[0]).toMatchObject({ peso: 32.5, reps: 8, origen: 'record' })
     expect(app.estado.pendientes).toBe(3) // la sesión y sus dos ejercicios
 
     servidor.conectado = true

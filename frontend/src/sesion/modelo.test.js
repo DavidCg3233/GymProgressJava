@@ -12,6 +12,7 @@ import {
   nuevaSesionDesdeRutina,
   nuevaSesionLibre,
   quitarSerie,
+  restaurarSerie,
   seriesConfirmadas,
   terminarSesion,
 } from './modelo.js'
@@ -58,10 +59,26 @@ describe('RF-006-13: agregar un ejercicio', () => {
     expect(ejercicio.series[0].confirmada).toBe(false)
   })
 
-  it('RN-006-11: si ya lo hice antes, la serie trae lo de la última vez', () => {
+  it('RF-008-04 (cambia RN-006-11): si ya lo hice antes, la serie trae mi récord y la última vez como pista', () => {
     const { ejercicio } = sesionConPress()
 
-    expect(ejercicio.series[0]).toMatchObject({ numero: 1, peso: 30, reps: 10, origen: 'ultima-vez' })
+    // Sin récords del servidor, el récord sale de la última vez: 32,5 × 8 le gana a 30 × 10 y a 32,5 × 6.
+    expect(ejercicio.series[0]).toMatchObject({ numero: 1, peso: 32.5, reps: 8, origen: 'record', pista: { peso: 30, reps: 10 } })
+  })
+
+  it('CA-008-04a: el récord del celular manda, también en peso corporal', () => {
+    const sesion = nuevaSesionLibre({ id: id(), ahora: AHORA })
+
+    const ejercicio = agregarEjercicio(sesion, {
+      id: id(),
+      idSerie: id(),
+      nombre: 'Dominadas',
+      grupo: 'Espalda',
+      ultimaVez: {},
+      records: { dominadas: { peso: 0, reps: 12 } },
+    })
+
+    expect(ejercicio.series[0]).toMatchObject({ peso: 0, reps: 12, origen: 'record', pista: null })
   })
 
   it('RF-006-23: trae la nota que dejé la última vez', () => {
@@ -76,7 +93,7 @@ describe('RF-006-13: agregar un ejercicio', () => {
 
     const ejercicio = agregarEjercicio(sesion, { id: id(), idSerie: id(), nombre: ' PRESS inclinádo', grupo: 'Pecho', ultimaVez: ULTIMA_VEZ })
 
-    expect(ejercicio.series[0].peso).toBe(30)
+    expect(ejercicio.series[0].peso).toBe(32.5)
   })
 
   it('si ya lo conoce, usa el nombre con que lo registré antes, pero respeta el grupo que elijo', () => {
@@ -93,7 +110,7 @@ describe('RF-006-13: agregar un ejercicio', () => {
 
     const ejercicio = agregarEjercicio(sesion, { id: id(), idSerie: id(), nombre: 'Dominadas', grupo: 'Espalda', ultimaVez: ULTIMA_VEZ })
 
-    expect(ejercicio.series[0]).toMatchObject({ numero: 1, peso: null, reps: null, origen: null })
+    expect(ejercicio.series[0]).toMatchObject({ numero: 1, peso: null, reps: null, origen: null, pista: null })
     expect(ejercicio.notaAnterior).toBe('')
   })
 
@@ -159,16 +176,45 @@ describe('RF-006-12: agregar y quitar series', () => {
     expect(ejercicio.series.map((s) => s.numero)).toEqual([1])
   })
 
-  it('tras quitar la del medio, la siguiente que se agrega no repite número', () => {
+  it('CA-008-08a (cambia RF-006-12): al quitar la del medio, las demás se numeran seguidas', () => {
     const { ejercicio } = sesionConPress()
     const segunda = agregarSerie(ejercicio, { id: id(), ultimaVez: {} })
-    agregarSerie(ejercicio, { id: id(), ultimaVez: {} })
-    quitarSerie(ejercicio, segunda.id)
+    const tercera = agregarSerie(ejercicio, { id: id(), ultimaVez: {} })
 
+    const quitada = quitarSerie(ejercicio, segunda.id)
     const nueva = agregarSerie(ejercicio, { id: id(), ultimaVez: {} })
 
-    expect(ejercicio.series.map((s) => s.numero)).toEqual([1, 3, 4])
-    expect(nueva.numero).toBe(4)
+    expect(ejercicio.series.map((s) => [s.id, s.numero])).toEqual([
+      [ejercicio.series[0].id, 1],
+      [tercera.id, 2],
+      [nueva.id, 3],
+    ])
+    expect(quitada).toMatchObject({ serie: segunda, indice: 1, renumeradas: [tercera] })
+  })
+
+  it('CA-008-09a: deshacer devuelve la serie a su lugar, con su número y sus valores', () => {
+    const { ejercicio } = sesionConPress()
+    const segunda = agregarSerie(ejercicio, { id: id(), ultimaVez: {} })
+    confirmarSerie(segunda, { peso: 32.5, reps: 8 })
+    const tercera = agregarSerie(ejercicio, { id: id(), ultimaVez: {} })
+    const quitada = quitarSerie(ejercicio, segunda.id)
+
+    const renumeradas = restaurarSerie(ejercicio, quitada)
+
+    expect(ejercicio.series.map((s) => [s.id, s.numero])).toEqual([
+      [ejercicio.series[0].id, 1],
+      [segunda.id, 2],
+      [tercera.id, 3],
+    ])
+    expect(segunda).toMatchObject({ peso: 32.5, reps: 8, confirmada: true })
+    expect(renumeradas).toEqual([tercera])
+  })
+
+  it('quitar una serie que no existe no cambia nada', () => {
+    const { ejercicio } = sesionConPress()
+
+    expect(quitarSerie(ejercicio, 'otra')).toBeNull()
+    expect(ejercicio.series).toHaveLength(1)
   })
 })
 
@@ -179,7 +225,8 @@ describe('RF-006-03 y RF-006-24: confirmar una serie', () => {
 
     confirmarSerie(serie, { peso: serie.peso, reps: serie.reps })
 
-    expect(serie).toMatchObject({ peso: 30, reps: 10, confirmada: true })
+    // Precargada con el récord (RF-008-04): 32,5 × 8.
+    expect(serie).toMatchObject({ peso: 32.5, reps: 8, confirmada: true })
   })
 
   it('CA-006-14a: se puede corregir una serie ya confirmada', () => {
@@ -203,7 +250,7 @@ describe('RF-006-03 y RF-006-24: confirmar una serie', () => {
     const serie = ejercicio.series[0]
 
     expect(() => confirmarSerie(serie, valores)).toThrow(mensaje)
-    expect(serie).toMatchObject({ peso: 30, reps: 10, confirmada: false })
+    expect(serie).toMatchObject({ peso: 32.5, reps: 8, confirmada: false })
   })
 })
 
@@ -334,24 +381,54 @@ describe('RF-006-01: empezar una sesión desde una rutina', () => {
     ])
   })
 
-  it('CA-006-04a: cada serie trae lo de la última vez', () => {
+  it('CA-008-03a (reemplaza CA-006-04a): cada serie trae la referencia y su última vez como pista', () => {
     const press = empezar().ejercicios[0]
 
+    // Previsto 30 × 10; récord 32,5 × 8 (sale de la última vez): el récord lo supera.
     expect(press.series.map((s) => [s.peso, s.reps, s.origen])).toEqual([
-      [30, 10, 'ultima-vez'],
-      [32.5, 8, 'ultima-vez'],
-      [32.5, 6, 'ultima-vez'],
+      [32.5, 8, 'record'],
+      [32.5, 8, 'record'],
+      [32.5, 8, 'record'],
+    ])
+    expect(press.series.map((s) => s.pista)).toEqual([
+      { peso: 30, reps: 10 },
+      { peso: 32.5, reps: 8 },
+      { peso: 32.5, reps: 6 },
     ])
     expect(press.notaAnterior).toBe('subir a 35')
   })
 
-  it('CA-006-05a: si nunca lo he hecho, trae lo previsto en la rutina', () => {
+  it('CA-008-03b (reemplaza CA-006-05a): si nunca lo he hecho, trae lo previsto, sin pista', () => {
     const aperturas = empezar().ejercicios[1]
 
-    expect(aperturas.series.map((s) => [s.peso, s.reps, s.origen])).toEqual([
-      [12, 12, 'rutina'],
-      [12, 12, 'rutina'],
+    expect(aperturas.series.map((s) => [s.peso, s.reps, s.origen, s.pista])).toEqual([
+      [12, 12, 'rutina', null],
+      [12, 12, 'rutina', null],
     ])
+  })
+
+  it('CA-008-02c: un récord que no supera lo previsto deja lo previsto', () => {
+    const sesion = nuevaSesionDesdeRutina({
+      rutina: PECHO,
+      ahora: AHORA,
+      ultimaVez: ULTIMA_VEZ,
+      records: { 'press inclinado': { peso: 25, reps: 20 } },
+      nuevoId: id,
+    })
+
+    expect(sesion.ejercicios[0].series[0]).toMatchObject({ peso: 30, reps: 10, origen: 'rutina' })
+  })
+
+  it('el récord que trae el celular manda sobre el que sale de la última vez', () => {
+    const sesion = nuevaSesionDesdeRutina({
+      rutina: PECHO,
+      ahora: AHORA,
+      ultimaVez: ULTIMA_VEZ,
+      records: { 'press inclinado': { peso: 35, reps: 5 } },
+      nuevoId: id,
+    })
+
+    expect(sesion.ejercicios[0].series[0]).toMatchObject({ peso: 35, reps: 5, origen: 'record' })
   })
 
   it('ninguna serie empieza confirmada y cada una tiene su propio identificador', () => {
