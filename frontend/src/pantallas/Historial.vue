@@ -2,6 +2,7 @@
 // Historial de sesiones terminadas, y el detalle de una (T-006-29 · RF-006-09, 10, 15).
 import { onMounted, ref } from 'vue'
 
+import GuardarComoRutina from '../componentes/GuardarComoRutina.vue'
 import { cargarHistorial, cargarSesion, eliminarSesion } from '../estado/sesion.js'
 
 const emit = defineEmits(['volver'])
@@ -13,6 +14,8 @@ const cargando = ref(true)
 const error = ref('')
 
 const abierta = ref(null)
+// RF-008-06, 07: guardar la sesión abierta como rutina.
+const guardandoComoRutina = ref(false)
 const confirmandoEliminar = ref(false)
 
 const formatoDeFecha = new Intl.DateTimeFormat('es-CO', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
@@ -68,7 +71,7 @@ onMounted(() => cargar(1))
         <h1>{{ abierta.nombre }}</h1>
         <p class="suave">{{ fecha(abierta.inicio) }} · {{ hora(abierta.inicio) }} a {{ hora(abierta.fin) }}</p>
       </div>
-      <button class="boton boton--texto" type="button" @click="abierta = null">Volver</button>
+      <button class="boton boton--texto" type="button" @click="abierta = null; guardandoComoRutina = false">Volver</button>
     </header>
 
     <p v-if="abierta.nota" class="mensaje mensaje--aviso">“{{ abierta.nota }}”</p>
@@ -87,6 +90,16 @@ onMounted(() => cargar(1))
     </section>
 
     <p v-if="error" class="mensaje mensaje--error" role="alert">{{ error }}</p>
+
+    <GuardarComoRutina
+      v-if="guardandoComoRutina"
+      :id-sesion="abierta.id"
+      :nombre-sugerido="abierta.nombre"
+      @cerrar="guardandoComoRutina = false"
+    />
+    <button v-else class="boton boton--secundario boton--ancho" type="button" @click="guardandoComoRutina = true">
+      Guardar como rutina
+    </button>
 
     <!-- RNF-USA-04: eliminar no se puede deshacer, así que se confirma. -->
     <section v-if="confirmandoEliminar" class="tarjeta">

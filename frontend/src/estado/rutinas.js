@@ -4,8 +4,8 @@
 // cada acción le pide el cambio al servidor y, solo si lo acepta, lo refleja en
 // el celular. Sin señal, el error llega a la pantalla y no se cambia nada.
 
-import { pedir } from '../datos/api.js'
-import { estado, guardarEstadoLocal } from './sesion.js'
+import { ErrorDeApi, pedir } from '../datos/api.js'
+import { estado, guardarEstadoLocal, sincronizar } from './sesion.js'
 
 const nuevoId = () => crypto.randomUUID()
 const porNombre = (a, b) => a.nombre.localeCompare(b.nombre, 'es')
@@ -87,4 +87,28 @@ async function refrescarRutinas() {
   if (datos?.rutinas) {
     estado.rutinas = datos.rutinas
   }
+}
+
+// --- Sesión → rutina (spec 008 · RF-008-06, 07) ---------------------------------
+
+/**
+ * Guarda una sesión terminada como rutina nueva o actualizando otra.
+ * Con `confirmar: false` solo trae la vista previa de los cambios.
+ *
+ * La sesión tiene que estar en el servidor: primero se envía lo pendiente. Sin
+ * señal se lanza el error de siempre (RNF-008-03) y no cambia nada.
+ */
+export async function sesionARutina(idSesion, datos) {
+  await sincronizar()
+  if (estado.pendientes > 0) {
+    throw new ErrorDeApi(0, 'Sin conexión.')
+  }
+  const respuesta = await pedir('POST', `/api/sesiones/${idSesion}/a-rutina/`, datos)
+  if (respuesta.rutina) {
+    estado.rutinas = reemplazar(estado.rutinas, respuesta.rutina)
+    // Un ejercicio que ya no estaba en el catálogo vuelve a él (plan 008, 4.5).
+    estado.catalogo = await pedir('GET', '/api/catalogo/')
+    await guardarEstadoLocal()
+  }
+  return respuesta
 }

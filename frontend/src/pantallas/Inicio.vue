@@ -6,6 +6,7 @@ import { computed, ref } from 'vue'
 
 import Encabezado from '../componentes/Encabezado.vue'
 import EstadoDeSincronizacion from '../componentes/EstadoDeSincronizacion.vue'
+import GuardarComoRutina from '../componentes/GuardarComoRutina.vue'
 import MenuDeCuenta from '../componentes/MenuDeCuenta.vue'
 import { acceso } from '../estado/acceso.js'
 import { empezarSesionDesdeRutina, empezarSesionLibre, estado } from '../estado/sesion.js'
@@ -35,6 +36,8 @@ function empezarRutina(rutina) {
 }
 
 const error = ref('')
+// RF-008-06, 07: guardar la sesión que se acaba de terminar como rutina.
+const guardandoComoRutina = ref(false)
 
 const formatoDeHoy = new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })
 const textoDeHoy = (() => {
@@ -77,7 +80,17 @@ function empezar() {
           </span>
         </li>
       </ul>
+      <button v-if="!guardandoComoRutina" class="boton boton--secundario boton--ancho" type="button" @click="guardandoComoRutina = true">
+        Guardar como rutina
+      </button>
     </section>
+
+    <GuardarComoRutina
+      v-if="estado.resumen && guardandoComoRutina"
+      :id-sesion="estado.resumen.id"
+      :nombre-sugerido="estado.resumen.nombre"
+      @cerrar="guardandoComoRutina = false"
+    />
 
     <EstadoDeSincronizacion />
     <p v-if="error" class="mensaje mensaje--error" role="alert">{{ error }}</p>

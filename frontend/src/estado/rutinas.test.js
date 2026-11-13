@@ -26,6 +26,13 @@ vi.mock('../datos/api.js', async (original) => {
         return { rutinas_eliminadas: [{ id: 'r-solo', nombre: 'Solo' }] }
       }
       if (url.startsWith('/api/catalogo/grupos/') && metodo === 'PUT') return { grupo: { id, ...cuerpo } }
+      // Spec 008: sesión → rutina, con vista previa.
+      if (url.endsWith('/a-rutina/')) {
+        const cambios = [{ tipo: 'agrega', nombre: 'Sentadilla', series: 3, antes: null, despues: { peso: 70, reps: 6 } }]
+        const rutina = cuerpo.confirmar ? { id: cuerpo.id_rutina, nombre: cuerpo.nombre, dias: cuerpo.dias, ejercicios: [] } : null
+        return { cambios, rutina }
+      }
+      if (url === '/api/catalogo/') return { grupos: [{ id: 'g-pierna', nombre: 'Pierna' }], ejercicios: [{ id: 'e-sen', nombre: 'Sentadilla', grupo: 'g-pierna' }] }
       return null
     }),
   }
@@ -132,5 +139,35 @@ describe('catálogo', () => {
 
     expect(app.estado.catalogo.ejercicios).toEqual([])
     expect(app.estado.rutinas.map((r) => r.id)).toEqual(['r-otra'])
+  })
+})
+
+describe('guardar una sesión como rutina (T-008-14 · RF-008-06, 07 · RNF-008-03)', () => {
+  it('la vista previa trae los cambios y no toca las rutinas del celular', async () => {
+    const app = await abrirApp()
+
+    const { cambios, rutina } = await app.sesionARutina('s-1', { modo: 'nueva', confirmar: false })
+
+    expect(cambios.map((c) => c.nombre)).toEqual(['Sentadilla'])
+    expect(rutina).toBeNull()
+    expect(app.estado.rutinas).toEqual([])
+    expect(servidor.recibidas.at(-1)).toMatchObject({ metodo: 'POST', url: '/api/sesiones/s-1/a-rutina/' })
+  })
+
+  it('al confirmar, la rutina y el catálogo quedan en el celular', async () => {
+    const app = await abrirApp()
+
+    await app.sesionARutina('s-1', { modo: 'nueva', id_rutina: 'r-nueva', nombre: 'Pierna B', dias: [6], confirmar: true })
+
+    expect(app.estado.rutinas.map((r) => r.nombre)).toEqual(['Pierna B'])
+    expect(app.estado.catalogo.ejercicios.map((e) => e.nombre)).toEqual(['Sentadilla'])
+  })
+
+  it('sin señal avisa y no cambia nada', async () => {
+    const app = await abrirApp()
+    servidor.conectado = false
+
+    await expect(app.sesionARutina('s-1', { modo: 'nueva', confirmar: true })).rejects.toMatchObject({ sinConexion: true })
+    expect(app.estado.rutinas).toEqual([])
   })
 })
