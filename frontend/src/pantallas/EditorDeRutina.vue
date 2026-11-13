@@ -2,6 +2,7 @@
 // Editor de rutina (T-002-15 · RF-002-03, 04, 08, 09, 20 · RNF-002-01).
 import { computed, reactive, ref } from 'vue'
 
+import BuscadorDeEjercicio from '../componentes/BuscadorDeEjercicio.vue'
 import PasoNumerico from '../componentes/PasoNumerico.vue'
 import { guardarEjercicio, guardarRutina } from '../estado/rutinas.js'
 import { estado } from '../estado/sesion.js'
@@ -42,6 +43,10 @@ function alternarDia(dia) {
 const nombreNuevo = ref('')
 const grupoNuevo = ref('')
 const nombreDeGrupo = (id) => estado.catalogo.grupos.find((grupo) => grupo.id === id)?.nombre ?? ''
+// RF-008-10: sugerencias propias, con el grupo de cada ejercicio a la derecha.
+const opcionesDelCatalogo = computed(() =>
+  estado.catalogo.ejercicios.map((ejercicio) => ({ ...ejercicio, detalle: nombreDeGrupo(ejercicio.grupo) })),
+)
 const delCatalogo = computed(() =>
   estado.catalogo.ejercicios.find((ejercicio) => claveDeEjercicio(ejercicio.nombre) === claveDeEjercicio(nombreNuevo.value)),
 )
@@ -184,15 +189,7 @@ async function guardar() {
       </section>
 
       <div class="tarjeta">
-        <label class="campo">
-          <span>Agregar ejercicio</span>
-          <input v-model="nombreNuevo" type="text" list="catalogo-editor" maxlength="50" autocomplete="off" placeholder="Busca en tu catálogo" />
-          <datalist id="catalogo-editor">
-            <option v-for="ejercicio in estado.catalogo.ejercicios" :key="ejercicio.id" :value="ejercicio.nombre">
-              {{ nombreDeGrupo(ejercicio.grupo) }}
-            </option>
-          </datalist>
-        </label>
+        <BuscadorDeEjercicio v-model="nombreNuevo" :opciones="opcionesDelCatalogo" etiqueta="Agregar ejercicio" placeholder="Busca en tu catálogo" />
         <label v-if="nombreNuevo.trim() && !delCatalogo" class="campo">
           <span>Es nuevo: elige su grupo muscular</span>
           <select v-model="grupoNuevo">
