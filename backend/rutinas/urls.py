@@ -12,4 +12,5 @@ urlpatterns = [
     path("rutinas/", vistas.Rutinas.as_view(), name="rutinas"),
     path("rutinas/<uuid:id>/", vistas.DetalleDeRutina.as_view(), name="rutina"),
     path("rutinas/<uuid:id>/duplicar/", vistas.DuplicarRutina.as_view(), name="duplicar_rutina"),
+    path("sesiones/<uuid:id>/a-rutina/", vistas.SesionARutina.as_view(), name="sesion_a_rutina"),
 ]

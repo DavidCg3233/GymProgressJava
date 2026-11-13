@@ -7,13 +7,17 @@ ajeno se trata como si no existiera (RNF-ACC-06).
 import uuid
 
 from django.db import transaction
+from django.utils import timezone
 
 from reglas import ejercicios as reglas_de_ejercicios
 from reglas import rutinas as reglas_de_rutinas
 from reglas import series as reglas_de_series
+from reglas import sesion_a_rutina as reglas_de_sesion_a_rutina
+from reglas.progreso import SerieHecha
 from reglas.errores import ErrorDeValidacion
 from sesiones.servicios import Conflicto, NoEncontrado
 
+from . import catalogo_inicial
 from .models import Ejercicio, GrupoMuscular, Rutina, RutinaEjercicio
 
 MENSAJE_FUERA_DEL_CATALOGO = "Ese ejercicio no está en tu catálogo."
@@ -203,3 +207,99 @@ def _exigir_nombre_libre(Modelo, usuario, nombre, propio, mensaje) -> None:
     clave = reglas_de_ejercicios.clave_de_ejercicio(nombre)
     if Modelo.objects.filter(usuario=usuario, clave=clave).exclude(pk=propio.pk).exists():
         raise ErrorDeValidacion("nombre", mensaje)
+
+
+# --- Sesión → rutina (spec 008 · plan 008, sección 4.5) -----------------------
+
+
+@transaction.atomic
+def sesion_a_rutina(usuario, id_sesion, datos: dict) -> tuple[list, Rutina | None]:
+    """RF-008-06, 07: arma una rutina con una sesión terminada, nueva o actualizando otra.
+
+    Con `confirmar` falso solo calcula la lista de cambios (vista previa) y no guarda.
+    Al confirmar, guarda con `guardar_rutina`: la misma validación y la misma
+    transacción que el editor. Devuelve (cambios con sus previstos, rutina o None).
+    """
+    from sesiones.models import Sesion
+    from sesiones.servicios import poner_al_dia
+
+    # Una sesión olvidada de más de 2 horas cuenta como terminada (RN-006-11).
+    poner_al_dia(usuario, timezone.now())
+    sesion = Sesion.objects.filter(pk=_uuid(id_sesion), usuario=usuario).first() if _uuid(id_sesion) else None
+    if sesion is None:
+        raise NoEncontrado()
+    if sesion.fin is None:
+        raise Conflicto("Termina la sesión antes de guardarla como rutina.")
+
+    modo = datos.get("modo")
+    confirmar = datos.get("confirmar", False)
+    if not isinstance(confirmar, bool):
+        raise ErrorDeValidacion("confirmar", "No pudimos entender la petición.")
+    de_la_sesion = reglas_de_sesion_a_rutina.ejercicios_de_sesion(_ejercicios_de(sesion))
+
+    if modo == "nueva":
+        previstos = reglas_de_sesion_a_rutina.rutina_nueva(de_la_sesion)
+        cambios = [reglas_de_sesion_a_rutina.Cambio("agrega", p.nombre, None, (p.peso, p.reps)) for p in previstos]
+        destino = None
+    elif modo == "actualizar":
+        destino = _propio(Rutina, usuario, datos.get("rutina"))
+        previstos, cambios = reglas_de_sesion_a_rutina.actualizar_rutina(_previstos_de(destino), de_la_sesion)
+    else:
+        raise ErrorDeValidacion("modo", "Elige si es una rutina nueva o si actualizas una.")
+
+    con_series = list(zip(cambios, previstos))
+    if not confirmar:
+        return con_series, None
+
+    ejercicios = [
+        {
+            "ejercicio": str(catalogo_inicial.asegurar_ejercicio(usuario, p.nombre, p.grupo, GrupoMuscular, Ejercicio).pk),
+            "series": p.series,
+            "reps": p.reps,
+            "peso": p.peso,
+        }
+        for p in previstos
+    ]
+    if destino is None:
+        rutina = guardar_rutina(usuario, _uuid(datos.get("id_rutina")), datos.get("nombre"), datos.get("dias"), ejercicios)
+    else:
+        dias = reglas_de_rutinas.bits_a_dias(destino.dias)
+        rutina = guardar_rutina(usuario, destino.pk, destino.nombre, dias, ejercicios)
+    return con_series, rutina
+
+
+def _ejercicios_de(sesion) -> list[dict]:
+    """Los ejercicios de la sesión, en orden, con sus series confirmadas (RN-006-09).
+
+    Si el ejercicio sigue en el catálogo, manda su nombre y su grupo de hoy.
+    """
+    ejercicios = []
+    for ejercicio in sesion.ejercicios.select_related("ejercicio__grupo").order_by("orden"):
+        del_catalogo = ejercicio.ejercicio
+        series = [
+            SerieHecha(serie.peso, serie.reps, serie.numero)
+            for serie in ejercicio.series.filter(confirmada=True).order_by("numero")
+        ]
+        ejercicios.append(
+            {
+                "clave": del_catalogo.clave if del_catalogo else ejercicio.clave,
+                "nombre": del_catalogo.nombre if del_catalogo else ejercicio.nombre,
+                "grupo": del_catalogo.grupo.nombre if del_catalogo else ejercicio.grupo,
+                "series": series,
+            }
+        )
+    return ejercicios
+
+
+def _previstos_de(rutina) -> list:
+    return [
+        reglas_de_sesion_a_rutina.Previsto(
+            clave=p.ejercicio.clave,
+            nombre=p.ejercicio.nombre,
+            grupo=p.ejercicio.grupo.nombre,
+            series=p.series,
+            peso=p.peso,
+            reps=p.reps,
+        )
+        for p in rutina.ejercicios.select_related("ejercicio__grupo").order_by("orden")
+    ]

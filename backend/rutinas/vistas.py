@@ -109,3 +109,29 @@ def rutina_json(rutina: Rutina) -> dict:
             for previsto in rutina.ejercicios.select_related("ejercicio__grupo")
         ],
     }
+
+
+class SesionARutina(VistaConDatos):
+    """POST /api/sesiones/{id}/a-rutina/ (spec 008, RF-008-06, 07)."""
+
+    def post(self, request, id):
+        cambios, rutina = servicios.sesion_a_rutina(request.user, id, self.datos())
+        return Response(
+            {
+                "cambios": [_cambio_json(cambio, previsto) for cambio, previsto in cambios],
+                "rutina": rutina_json(rutina) if rutina else None,
+            }
+        )
+
+
+def _cambio_json(cambio, previsto) -> dict:
+    def valores(par):
+        return {"peso": float(par[0]), "reps": par[1]} if par else None
+
+    return {
+        "tipo": cambio.tipo,
+        "nombre": cambio.nombre,
+        "series": previsto.series,
+        "antes": valores(cambio.antes),
+        "despues": valores(cambio.despues),
+    }
