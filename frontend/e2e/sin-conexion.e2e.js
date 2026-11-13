@@ -42,9 +42,10 @@ async function confirmarSerie(pagina, numero, peso, reps) {
  * objetivos vecinos en la misma fila quedan a 8 px o más.
  * Devuelve la lista de problemas: vacía si todo cumple.
  */
-async function objetivosPequenos(pagina) {
-  return pagina.evaluate(() => {
-    const visibles = [...document.querySelectorAll('button, a[href], input, select, textarea, [role="button"]')].filter(
+async function objetivosPequenos(pagina, { conCampos = true } = {}) {
+  return pagina.evaluate((conCampos) => {
+    const selector = conCampos ? 'button, a[href], input, select, textarea, [role="button"]' : 'button, a[href], [role="button"]'
+    const visibles = [...document.querySelectorAll(selector)].filter(
       (el) => el.offsetParent !== null || getComputedStyle(el).position === 'fixed',
     )
     const cajas = visibles.map((el) => ({
@@ -70,7 +71,7 @@ async function objetivosPequenos(pagina) {
       }
     }
     return problemas
-  })
+  }, conCampos)
 }
 
 const saludo = (pagina) => pagina.getByRole('heading', { name: /^Hola/ })
@@ -120,6 +121,11 @@ test('CA-006-16a y 17a: en modo avión se registra, se cierra, se abre y todo ll
 
   // Un ejercicio sin "última vez" llega vacío: se escribe peso y reps.
   await confirmarSerie(page, 1, 60, 8)
+
+  // RNF-007-02 y RNF-008-05 en la sesión: botones de 44 px, 8 de aire y "Quitar" lejos de
+  // "Confirmar". Los campos del número (kg, reps) aún miden 25 × 24: los agranda el
+  // rediseño de la fila de serie (T-007-10), y entonces se miden aquí también.
+  expect(await objetivosPequenos(page, { conCampos: false })).toEqual([])
   await expect(page.getByText(/guardados en el celular/)).toBeVisible()
 
   // --- CA-006-16a: cerrar la app y volver a abrirla, todavía sin señal --------
