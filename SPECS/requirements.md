@@ -34,6 +34,9 @@
 | R-24 | *(¿qué necesitas ver para decidir sobre tus rutinas?)* "Evolución por ejercicio, Récords por ejercicio, Sesiones por semana, Por grupo muscular" | RF | Progreso | [004](004-panel-y-estadisticas/spec.md) |
 | R-25 | *(sesión libre, notas por sesión y por ejercicio, corregir y eliminar)* respuestas del 2026-11-09 | RF | Sesiones | [006](006-sesiones/spec.md), sección 9 |
 | R-26 | "necesito que cambies el diseño del frontend" · *(respuestas del 2026-11-11)* "Minimal y calmado", "Seguir al iPhone", "Barra inferior fija", "La del iPhone", "Botones +/− (como hoy)", referencia "Hevy o Strong", en todas las pantallas | RF | Diseño | [007](007-rediseno-visual/spec.md) |
+| R-27 | "Lo que debe mandar son los ejercicios, las rutinas son las agrupaciones de los ejercicios" · "apenas ponga ese ejercicio en la nueva rutina debe aparecer que récord tengo" · "debe actualizarse con las últimas modificaciones del récord" · "se le da mas prioridad al peso que a las repeticiones" · *(2026-11-13: precargar la sesión con el récord; la rutina toma el récord solo si supera lo previsto)* | RF | Rutinas | [008](008-record-y-sesion-a-rutina/spec.md) |
+| R-28 | "cuando hago una sesion libre [...] me gustaria poder agregarla como rutina, o actualizar una ya existente con los ejercicios que ya puse" · *(2026-11-13: al terminar y desde el historial; actualizar suma y mejora, sin borrar)* | RF | Rutinas | [008](008-record-y-sesion-a-rutina/spec.md) |
+| R-29 | "cuando eliminas una serie [...] ya no aparece con el número siguiente" · "el botón está muy cerca de confirmar serie" · "cuando escribo los ejercicios para buscarlos, en iPhone, da un tirón" | RF | Sesiones | [008](008-record-y-sesion-a-rutina/spec.md) |
 
 *Entre paréntesis y en cursiva: la pregunta o propuesta del analista a la que el usuario respondió.*
 
