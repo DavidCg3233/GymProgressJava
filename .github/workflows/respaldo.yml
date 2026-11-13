@@ -21,7 +21,8 @@ concurrency: respaldo
 jobs:
   respaldo:
     name: Respaldo cifrado y comprobado
-    runs-on: ubuntu-latest
+    # Fijo, no ubuntu-latest: en nov. 2026 pasó a Ubuntu 26.04 y Playwright 1.56 no instala WebKit ahí.
+    runs-on: ubuntu-24.04
     # Una base vacía donde probar la restauración. Nunca se restaura en producción.
     services:
       prueba:

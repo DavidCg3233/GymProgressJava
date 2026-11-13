@@ -18,7 +18,8 @@ concurrency:
 jobs:
   servidor:
     name: Servidor (Docker + PostgreSQL)
-    runs-on: ubuntu-latest
+    # Fijo, no ubuntu-latest: en nov. 2026 pasó a Ubuntu 26.04 y Playwright 1.56 no instala WebKit ahí.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -52,7 +53,8 @@ jobs:
 
   pantalla:
     name: Pantalla (Vitest + compilación)
-    runs-on: ubuntu-latest
+    # Fijo, no ubuntu-latest: en nov. 2026 pasó a Ubuntu 26.04 y Playwright 1.56 no instala WebKit ahí.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: frontend
@@ -80,7 +82,8 @@ jobs:
 
   imagen:
     name: Imagen de producción
-    runs-on: ubuntu-latest
+    # Fijo, no ubuntu-latest: en nov. 2026 pasó a Ubuntu 26.04 y Playwright 1.56 no instala WebKit ahí.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -140,10 +143,15 @@ jobs:
           E2E_CONTRASENA_TEMPORAL: Temporal-de-la-revision-7
           E2E_APAGAR: docker stop e2e
           E2E_ENCENDER: docker start e2e
+        # Si algo falla antes de que Playwright pueda reportar (instalar, arrancar),
+        # las últimas líneas salen como anotación pública: se ven sin iniciar sesión.
         run: |
-          npm ci
-          npx playwright install --with-deps webkit
-          npx playwright test
+          set -o pipefail
+          if ! { npm ci && npx playwright install --with-deps webkit && npx playwright test; } 2>&1 | tee e2e.log; then
+            resumen=$(grep -vE '^\s*$' e2e.log | tail -n 40 | tr '\n' ' ' | cut -c1-3500)
+            echo "::error title=Falló el paso de Playwright::${resumen}"
+            exit 1
+          fi
       # T-006-35: los scripts del respaldo diario, sobre esta base con datos de la
       # prueba anterior. Respalda, restaura en otra base vacía y cuenta las filas.
       - name: Respaldo cifrado y restauración en limpio
@@ -186,7 +194,8 @@ jobs:
 
   secretos:
     name: Sin secretos en el código
-    runs-on: ubuntu-latest
+    # Fijo, no ubuntu-latest: en nov. 2026 pasó a Ubuntu 26.04 y Playwright 1.56 no instala WebKit ahí.
+    runs-on: ubuntu-24.04
     steps:
       # Historial completo de la rama: un secreto borrado en un commit posterior sigue ahí.
       - uses: actions/checkout@v4
