@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Estado** | **Borrador**, esperando la aprobación de David |
+| **Estado** | **Aprobado** por David el 2026-11-13 |
 | **Spec** | [spec.md](spec.md) (Aprobada el 2026-11-13) |
 | **Stack** | El de siempre. Sin librerías nuevas y **sin cambios en la base de datos** |
 | **Creado** | 2026-11-13 |
