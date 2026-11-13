@@ -104,3 +104,43 @@ def test_las_recientes_de_otra_cuenta_no_aparecen(api, otra, martes_10):
     otra.sesion_terminada([(30, 10)], inicio=hora(9), nombre="Ajena")
 
     assert arranque(api)["recientes"] == []
+
+
+# --- Récords en el arranque (spec 008 · T-008-04 · RF-008-05, RNF-008-02) ----
+
+
+def test_el_arranque_trae_el_record_de_cada_ejercicio(api, martes_10):
+    api.sesion_terminada([(30, 10), (32.5, 8)], inicio=hora(5))
+    api.sesion_terminada([(35, 5), (32.5, 9)], inicio=hora(7))
+    api.sesion_terminada([(0, 8), (0, 12)], inicio=hora(8), ejercicio="Dominadas", grupo="Espalda")
+
+    assert arranque(api)["records"] == {
+        "press inclinado": {"peso": 35.0, "reps": 5},
+        "dominadas": {"peso": 0.0, "reps": 12},
+    }
+
+
+def test_sin_sesiones_no_hay_records(api, martes_10):
+    assert arranque(api)["records"] == {}
+
+
+def test_una_serie_sin_confirmar_o_en_curso_no_es_record(api, martes_10):
+    api.sesion_terminada([(30, 10)], inicio=hora(5))
+    en_curso = api.sesion(inicio=hora(10, 19))
+    api.serie(api.ejercicio(en_curso, momento=hora(10, 19)), peso=100, reps=1, momento=hora(10, 19))
+
+    assert arranque(api)["records"] == {"press inclinado": {"peso": 30.0, "reps": 10}}
+
+
+def test_un_ejercicio_eliminado_del_catalogo_conserva_su_record(api, martes_10):
+    api.sesion_terminada([(30, 10)], inicio=hora(5))
+    press = Ejercicio.objects.get(usuario=api.cuenta, clave="press inclinado")
+    api.delete(f"/api/catalogo/ejercicios/{press.pk}/")
+
+    assert arranque(api)["records"] == {"press inclinado": {"peso": 30.0, "reps": 10}}
+
+
+def test_los_records_de_otra_cuenta_no_llegan(api, otra, martes_10):
+    otra.sesion_terminada([(100, 5)], inicio=hora(9))
+
+    assert arranque(api)["records"] == {}

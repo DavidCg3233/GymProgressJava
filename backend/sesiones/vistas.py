@@ -48,6 +48,8 @@ class Arranque(VistaDeSesiones):
                 # Plan 004, 4.5: el inicio funciona sin señal (RNF-004-01).
                 "recientes": servicios_de_progreso.recientes(request.user),
                 "hechas_hoy": servicios_de_progreso.hechas_hoy(request.user, self.ahora),
+                # Spec 008, 4.2: la referencia de rutinas y sesiones, también sin señal.
+                "records": servicios_de_progreso.records_por_clave(request.user),
                 "ultima_vez": {
                     clave: {
                         "nombre": resumen["nombre"],

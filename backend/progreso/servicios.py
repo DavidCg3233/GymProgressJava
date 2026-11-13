@@ -205,3 +205,19 @@ def hechas_hoy(usuario, ahora) -> dict:
         .values_list("rutina_id", flat=True)
     )
     return {"fecha": hoy.isoformat(), "rutinas": list(dict.fromkeys(str(id) for id in ids))}
+
+
+# --- Récords para el celular (spec 008 · plan 008, sección 4.2) ---------------
+
+
+def records_por_clave(usuario) -> dict[str, dict]:
+    """RF-008-05: el récord de cada ejercicio (RN-008-01), por su clave.
+
+    El celular lo guarda para precargar sesiones y mostrar la referencia de las
+    rutinas sin señal (RNF-008-02). Quien llama ya puso al día las sesiones.
+    """
+    return {
+        clave: {"peso": float(mejor.peso), "reps": mejor.reps}
+        for clave, suyas in _por_ejercicio(_filas(usuario)).items()
+        if (mejor := reglas.mejor_serie([fila.serie for fila in suyas])) is not None
+    }
