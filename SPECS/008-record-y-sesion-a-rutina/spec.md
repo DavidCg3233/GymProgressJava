@@ -199,13 +199,13 @@
 | 2 | ¿La rutina toma el récord siempre? | — | **Solo si supera lo previsto** (2026-11-13). |
 | 3 | ¿Desde dónde se guarda una sesión como rutina? | — | **Al terminar y desde el historial** (2026-11-13). |
 | 4 | ¿Actualizar una rutina reemplaza o suma? | — | **Suma y mejora, sin borrar** (2026-11-13). |
-| 5 | **Serie pesada de prueba.** Con la regla del peso, una serie de 80 kg × 2 **supera** a 70 kg × 10 previsto, así que la rutina pasaría a 80 × 2. La respuesta 2 no lo evita (corrección de la IA del 2026-11-13). ¿Qué hacemos? | **a)** Aceptarlo y corregir a mano en el editor cuando pase · **b)** Para la referencia de una rutina, el récord solo cuenta series con al menos las reps previstas menos 3 (70 × 10 previsto: solo cuentan series de 7 reps o más) · **c)** Otra regla que propongas | **Pendiente.** Recomendación de la IA: **a)**, porque es tu regla tal cual, es simple y la corrección a mano ya existe. La b) protege mejor, pero agrega una regla que hay que recordar. |
+| 5 | **Serie pesada de prueba.** Con la regla del peso, una serie de 80 kg × 2 **supera** a 70 kg × 10 previsto, así que la rutina pasaría a 80 × 2. La respuesta 2 no lo evita (corrección de la IA del 2026-11-13). ¿Qué hacemos? | **a)** Aceptarlo y corregir a mano en el editor cuando pase · **b)** Para la referencia de una rutina, el récord solo cuenta series con al menos las reps previstas menos 3 (70 × 10 previsto: solo cuentan series de 7 reps o más) · **c)** Otra regla que propongas | **a) Aceptarlo:** si pasa, se corrige a mano en el editor (2026-11-13). |
 
 Reglas que definí yo y que puedes cambiar: "Deshacer" dura 5 segundos (RN-008-09); máximo 6 sugerencias (RN-008-10); si un ejercicio sale dos veces en una sesión, sus series se suman (RN-008-05); al actualizar, los ejercicios nuevos van al final (RN-008-07).
 
 ## 11. Checklist antes de aprobar
 
-- [ ] Respondí la pregunta 5.
+- [x] Respondí la pregunta 5.
 - [ ] Revisé a mano CA-008-06a: la mejor serie de Sentadilla es 70 × 6 (70 le gana a 60; entre los de 70, 6 reps le gana a 5).
 - [ ] No se menciona ninguna tecnología.
 - [ ] Cada RF tiene al menos un CA con datos concretos.
