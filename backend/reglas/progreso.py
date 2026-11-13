@@ -46,6 +46,17 @@ def mejor_serie(series: Iterable[SerieHecha]) -> SerieHecha | None:
     return max(sorted(series, key=lambda serie: serie.cuando), key=lambda serie: (serie.peso, serie.reps), default=None)
 
 
+def supera(nueva, anterior) -> bool:
+    """RN-008-02: más peso supera, sin importar las reps; con el mismo peso, más reps.
+
+    Empatar no es superar. Sin récord anterior, cualquier serie lo supera.
+    Sirve para series y para lo previsto en una rutina: solo mira `peso` y `reps`.
+    """
+    if anterior is None:
+        return True
+    return (nueva.peso, nueva.reps) > (anterior.peso, anterior.reps)
+
+
 def volumen(series: Iterable[SerieHecha], peso_corporal: bool) -> Decimal | int:
     """RN-004-06: suma de peso × reps; en peso corporal, suma de reps."""
     if peso_corporal:

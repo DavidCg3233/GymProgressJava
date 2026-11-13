@@ -43,3 +43,32 @@ export function validarMeta(valor) {
 export function rutinasHechasHoy(hechas, hoy) {
   return hechas?.fecha === hoy ? hechas.rutinas : []
 }
+
+// --- Spec 008: el récord manda ------------------------------------------------
+
+/**
+ * RN-008-02: más peso supera, sin importar las reps; con el mismo peso, más reps.
+ * Empatar no es superar. Sin récord anterior, cualquier serie lo supera.
+ */
+export function supera(nueva, anterior) {
+  if (!anterior) {
+    return true
+  }
+  return nueva.peso > anterior.peso || (nueva.peso === anterior.peso && nueva.reps > anterior.reps)
+}
+
+/** RN-004-03 y RN-008-01: la serie que supera a todas; en empate, la primera (la más antigua). */
+export function mejorSerie(series) {
+  return series.reduce((mejor, serie) => (supera(serie, mejor) ? serie : mejor), null)
+}
+
+/**
+ * RN-008-03: lo previsto en la rutina, reemplazado por el récord solo si lo supera.
+ * No cambia lo guardado: se calcula al mostrar (RN-008-04).
+ */
+export function referencia(previsto, record) {
+  if (record && supera(record, previsto)) {
+    return { peso: record.peso, reps: record.reps, delRecord: true }
+  }
+  return { peso: previsto.peso, reps: previsto.reps, delRecord: false }
+}
