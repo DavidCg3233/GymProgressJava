@@ -18,6 +18,7 @@ from reglas.progreso import (
     mejor_serie,
     ordenar_grupos,
     sesiones_por_semana,
+    supera,
     validar_meta,
     volumen,
 )
@@ -161,3 +162,26 @@ def test_ca_004_06a_grupos_de_mayor_a_menor_con_ceros():
 
 def test_empates_por_nombre_sin_mayusculas_ni_tildes():
     assert ordenar_grupos({"pierna": 3, "Abdomen": 3, "Bíceps": 3}) == [("Abdomen", 3), ("Bíceps", 3), ("pierna", 3)]
+
+
+# --- "Supera" (spec 008 · RN-008-02 · T-008-01) ------------------------------
+# La misma tabla está en frontend/src/reglas/progreso.test.js.
+
+SUPERA = [
+    pytest.param(("2", 18), ("1", 20), True, id="el peso manda: 2 x 18 supera a 1 x 20"),
+    pytest.param(("10", 20), ("10", 18), True, id="mismo peso, mas reps: 10 x 20 supera a 10 x 18"),
+    pytest.param(("10", 18), ("10", 20), False, id="10 x 18 no supera a 10 x 20"),
+    pytest.param(("10", 18), ("10", 18), False, id="empatar no es superar"),
+    pytest.param(("80", 2), ("70", 10), True, id="la serie pesada de prueba supera (pregunta 5, opcion a)"),
+    pytest.param(("0", 12), ("0", 10), True, id="peso corporal: mas reps supera"),
+    pytest.param(("32.5", 6), ("30", 12), True, id="medio kilo de mas basta"),
+]
+
+
+@pytest.mark.parametrize(("nueva", "anterior", "esperado"), SUPERA)
+def test_supera(nueva, anterior, esperado):
+    assert supera(serie(*nueva), serie(*anterior)) is esperado
+
+
+def test_cualquier_serie_supera_a_no_tener_record():
+    assert supera(serie("20", 5), None) is True

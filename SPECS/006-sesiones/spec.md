@@ -65,15 +65,15 @@ Hoy la app solo guarda el plan (la rutina). No sabe qué se hizo en el gimnasio,
 | RF-006-01 | Cuando el usuario empieza una sesión a partir de una rutina, el sistema debe crear una sesión con la fecha y hora actuales y con los ejercicios y series previstos en esa rutina. | HU-006-01 |
 | RF-006-02 | Mientras el usuario tenga una sesión en curso, el sistema no debe permitir empezar otra y debe llevarlo a la que está en curso. | HU-006-01 |
 | RF-006-03 | Cuando el usuario confirma una serie, el sistema debe guardar de inmediato el peso y las repeticiones de esa serie. | HU-006-02 |
-| RF-006-04 | El sistema debe presentar cada serie con el peso y las repeticiones que el usuario registró en esa misma serie de ese ejercicio en su sesión más reciente. | HU-006-03 |
-| RF-006-05 | Si el usuario nunca ha registrado ese ejercicio, entonces el sistema debe presentar la serie con el peso y las repeticiones previstos en la rutina. | HU-006-03 |
+| RF-006-04 | El sistema debe presentar cada serie con el peso y las repeticiones que el usuario registró en esa misma serie de ese ejercicio en su sesión más reciente. **Cambiado por la [spec 008](../008-record-y-sesion-a-rutina/spec.md): cada serie viene con la referencia del ejercicio y la última vez queda como pista (RF-008-03).** | HU-006-03 |
+| RF-006-05 | Si el usuario nunca ha registrado ese ejercicio, entonces el sistema debe presentar la serie con el peso y las repeticiones previstos en la rutina. **Cambiado por la [spec 008](../008-record-y-sesion-a-rutina/spec.md): viene con la referencia, que sin récord es lo previsto (RF-008-03).** | HU-006-03 |
 | RF-006-06 | El sistema debe distinguir a la vista las series confirmadas de las pendientes. | HU-006-02 |
 | RF-006-07 | Cuando el usuario termina la sesión, el sistema debe marcarla como terminada, guardar la hora y mostrar un resumen de ejercicios y series hechas. | HU-006-01 |
 | RF-006-08 | Cuando pasan 2 horas desde el inicio de una sesión en curso, el sistema debe terminarla conservando las series confirmadas. | HU-006-05 |
 | RF-006-09 | El sistema debe mostrar al usuario la lista de sus sesiones terminadas, de la más reciente a la más antigua, con fecha y nombre de la rutina. | HU-006-04 |
 | RF-006-10 | Cuando el usuario abre una sesión terminada, el sistema debe mostrar cada ejercicio con sus series, y el peso y las repeticiones de cada una. | HU-006-04 |
 | RF-006-11 | El sistema debe conservar las sesiones terminadas tal como se registraron, aunque después la rutina se modifique o se elimine. | HU-006-04 |
-| RF-006-12 | Mientras la sesión esté en curso, el usuario debe poder agregar o quitar series de un ejercicio, sin que cambie la rutina. | HU-006-02 |
+| RF-006-12 | Mientras la sesión esté en curso, el usuario debe poder agregar o quitar series de un ejercicio, sin que cambie la rutina. **Cambiado por la [spec 008](../008-record-y-sesion-a-rutina/spec.md): al quitar, las series se numeran seguidas y hay Deshacer (RF-008-08, 09).** | HU-006-02 |
 | RF-006-13 | Mientras la sesión esté en curso, el usuario debe poder agregar un ejercicio que no estaba en la rutina; queda en esa sesión y la rutina no cambia. | HU-006-01 |
 | RF-006-14 | Mientras la sesión esté en curso, el usuario debe poder corregir el peso y las repeticiones de una serie ya confirmada. Si la sesión está terminada, entonces el sistema no debe permitir cambiar sus series. | HU-006-02 |
 | RF-006-15 | Cuando el usuario confirma eliminar una sesión terminada, el sistema debe eliminarla con todas sus series. | HU-006-04 |
@@ -102,7 +102,7 @@ Hoy la app solo guarda el plan (la rutina). No sabe qué se hizo en el gimnasio,
 | RN-006-07 | Sesiones por día | Varias; solo una en curso a la vez. Decidido 2026-11-09. |
 | RN-006-08 | "Última vez" (para RF-006-04) | La sesión terminada más reciente en la que ese ejercicio tiene esa serie confirmada, **sin importar de qué rutina era**. |
 | RN-006-10 | Serie agregada sin antecedente (la 4.ª cuando siempre hice 3) | Viene con los valores de la serie anterior de esa misma sesión |
-| RN-006-11 | Ejercicio agregado en vivo | Empieza con 1 serie; si ya lo he hecho antes, con los valores de la última vez |
+| RN-006-11 | Ejercicio agregado en vivo | Empieza con 1 serie; si ya lo he hecho antes, con los valores de la última vez. **Cambiado por la [spec 008](../008-record-y-sesion-a-rutina/spec.md): con el récord (RF-008-04).** |
 | RN-006-12 | Cierre a las 2 horas sin conexión | Se aplica en el dispositivo; la hora de cierre es inicio + 2 horas |
 | RN-006-13 | Dispositivos | Una sesión en curso se registra desde un solo dispositivo. No se resuelven ediciones simultáneas desde dos. Decidido 2026-11-09. |
 | RN-006-17 | Hora de cada acción | Cada serie o ejercicio se registra con la hora en que el usuario lo hizo en su celular. Una acción se acepta si ocurrió antes del cierre de la sesión, **aunque llegue al servidor horas después**. Una acción posterior al cierre se rechaza. *(Agregada el 2026-11-10 al construir: sin ella, lo registrado sin señal durante más de 2 horas se perdía al sincronizar.)* |
@@ -159,12 +159,12 @@ Datos base: rutina "Pecho" asignada al lunes, con "Press inclinado" (grupo Pecho
 - **When** cierro la app y la abro otra vez 10 minutos después
 - **Then** la sesión sigue en curso, las series 1 y 2 están confirmadas y la 3 pendiente.
 
-**CA-006-04a** (RF-006-04) — el caso de R-02 y R-05
+**CA-006-04a** (RF-006-04) — el caso de R-02 y R-05 · **Reemplazado por CA-008-03a**
 - **Given** el lunes pasado registré en "Press inclinado": 30 × 10, 32,5 × 8 y 32,5 × 6
 - **When** empiezo hoy la sesión de "Pecho"
 - **Then** las tres series vienen con 30 × 10, 32,5 × 8 y 32,5 × 6.
 
-**CA-006-05a** (RF-006-05)
+**CA-006-05a** (RF-006-05) · **Reemplazado por CA-008-03b**
 - **Given** nunca he registrado "Press inclinado"
 - **When** empiezo la sesión de "Pecho"
 - **Then** las tres series vienen con 30 × 10.

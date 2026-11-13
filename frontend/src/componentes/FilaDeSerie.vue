@@ -3,13 +3,15 @@
 // Confirmar sin cambios es 1 toque; cambiando un valor, 2 (RNF-006-01, RNF-006-02).
 import { computed, ref, watch } from 'vue'
 
-import { confirmarSerie, quitarSerie } from '../estado/sesion.js'
+import { confirmarSerie } from '../estado/sesion.js'
 import PasoNumerico from './PasoNumerico.vue'
 
 const props = defineProps({
   ejercicio: { type: Object, required: true },
   serie: { type: Object, required: true },
 })
+// Quitar lo maneja la tarjeta del ejercicio, que ofrece "Deshacer" (RF-008-09).
+const emit = defineEmits(['quitar'])
 
 // Lo que se ve en pantalla mientras se edita. Solo pasa a la serie al confirmar.
 const peso = ref(props.serie.peso)
@@ -31,11 +33,23 @@ const cambiada = computed(() => aNumero(peso.value) !== props.serie.peso || aNum
 const hecha = computed(() => props.serie.confirmada && !cambiada.value)
 
 const ORIGENES = {
+  record: 'tu récord',
   'ultima-vez': 'última vez',
   'serie-anterior': 'igual a la anterior',
   rutina: 'de la rutina',
 }
-const origen = computed(() => (props.serie.confirmada ? '' : (ORIGENES[props.serie.origen] ?? '')))
+const kg = (peso) => (peso === 0 ? 'peso corporal' : `${String(peso).replace('.', ',')} kg`)
+
+// RF-008-03: de dónde sale el valor y, si existe, lo que hice la última vez en esta serie.
+const origen = computed(() => {
+  if (props.serie.confirmada) {
+    return ''
+  }
+  const de = ORIGENES[props.serie.origen] ?? ''
+  const pista = props.serie.pista
+  const ultimaVez = pista && props.serie.origen !== 'ultima-vez' ? `última vez: ${kg(pista.peso)} × ${pista.reps}` : ''
+  return [de, ultimaVez].filter(Boolean).join(' · ')
+})
 
 function confirmar() {
   error.value = ''
@@ -67,11 +81,17 @@ function confirmar() {
       </button>
     </div>
 
+    <!-- RNF-008-05: "Quitar" a la izquierda, lejos de "Confirmar" (arriba a la derecha). -->
     <div class="serie__pie">
-      <span class="suave">{{ hecha ? 'Confirmada' : props.serie.confirmada ? 'Cambiada: confirma de nuevo' : origen }}</span>
-      <button class="boton boton--texto serie__quitar" type="button" @click="quitarSerie(props.ejercicio, props.serie)">
+      <button
+        class="boton boton--texto serie__quitar"
+        type="button"
+        :aria-label="`Quitar serie ${props.serie.numero}`"
+        @click="emit('quitar', props.serie)"
+      >
         Quitar
       </button>
+      <span class="suave serie__origen">{{ hecha ? 'Confirmada' : props.serie.confirmada ? 'Cambiada: confirma de nuevo' : origen }}</span>
     </div>
 
     <p v-if="error" class="mensaje mensaje--error" role="alert">{{ error }}</p>
@@ -128,13 +148,22 @@ function confirmar() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-left: calc(1.25rem + var(--espacio-2));
-  min-height: 1.75rem;
+  gap: var(--espacio-3);
 }
 
+/* 44 px de alto (RNF-007-02) y lejos del círculo de confirmar (RNF-008-05). */
 .serie__quitar {
-  min-height: 1.75rem;
+  flex: none;
+  min-height: var(--tamano-toque);
+  padding: 0 var(--espacio-2);
   font-size: 0.875rem;
+  font-weight: 500;
   color: var(--tinta-suave);
+}
+
+.serie__origen {
+  min-width: 0;
+  text-align: right;
+  font-size: 13px;
 }
 </style>

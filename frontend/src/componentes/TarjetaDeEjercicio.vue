@@ -1,8 +1,8 @@
 <script setup>
 // Un ejercicio de la sesión en curso, con sus series y su nota.
-import { ref } from 'vue'
+import { onUnmounted, ref } from 'vue'
 
-import { agregarSerie, anotarEjercicio } from '../estado/sesion.js'
+import { agregarSerie, anotarEjercicio, deshacerQuitarSerie, quitarSerie } from '../estado/sesion.js'
 import { LARGO_MAXIMO_NOTA } from '../reglas/textos.js'
 import FilaDeSerie from './FilaDeSerie.vue'
 
@@ -20,6 +20,36 @@ function agregar() {
     error.value = fallo.mensaje
   }
 }
+
+// --- Quitar y deshacer (RF-008-08, 09) -----------------------------------------
+
+const DURACION_DE_DESHACER = 5_000 // RN-008-09
+const quitada = ref(null) // { quitada, numero }
+let temporizador = null
+
+function olvidarQuitada() {
+  clearTimeout(temporizador)
+  quitada.value = null
+}
+
+async function quitar(serie) {
+  error.value = ''
+  olvidarQuitada()
+  const numero = serie.numero
+  const resultado = await quitarSerie(props.ejercicio, serie)
+  if (resultado) {
+    quitada.value = { quitada: resultado, numero }
+    temporizador = setTimeout(olvidarQuitada, DURACION_DE_DESHACER)
+  }
+}
+
+async function deshacer() {
+  const { quitada: resultado } = quitada.value
+  olvidarQuitada()
+  await deshacerQuitarSerie(props.ejercicio, resultado)
+}
+
+onUnmounted(olvidarQuitada)
 
 function guardarNota() {
   error.value = ''
@@ -50,7 +80,14 @@ function guardarNota() {
         :key="serie.id"
         :ejercicio="props.ejercicio"
         :serie="serie"
+        @quitar="quitar"
       />
+    </div>
+
+    <!-- RF-008-09: un toque de más no borra nada para siempre. -->
+    <div v-if="quitada" class="deshacer" role="status">
+      <span>Serie {{ quitada.numero }} quitada</span>
+      <button class="boton boton--texto" type="button" @click="deshacer">Deshacer</button>
     </div>
 
     <p v-if="error" class="mensaje mensaje--error" role="alert">{{ error }}</p>
@@ -75,6 +112,16 @@ function guardarNota() {
 </template>
 
 <style scoped>
+.deshacer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: var(--espacio-3);
+  border-radius: var(--radio);
+  background: var(--superficie-2);
+  font-size: 15px;
+}
+
 .ejercicio__series {
   display: grid;
   gap: var(--espacio-1);

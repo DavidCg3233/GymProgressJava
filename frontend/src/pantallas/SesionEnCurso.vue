@@ -1,7 +1,8 @@
 <script setup>
 // La sesión de entrenamiento en curso (T-006-23 a T-006-28).
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
+import BuscadorDeEjercicio from '../componentes/BuscadorDeEjercicio.vue'
 import EstadoDeSincronizacion from '../componentes/EstadoDeSincronizacion.vue'
 import TarjetaDeEjercicio from '../componentes/TarjetaDeEjercicio.vue'
 import { agregarEjercicio, estado, terminarSesion } from '../estado/sesion.js'
@@ -25,10 +26,16 @@ const nombre = ref('')
 const grupo = ref('')
 const errorDeEjercicio = ref('')
 
-// Ejercicios que ya he hecho: se sugieren al escribir y traen su grupo.
+// Ejercicios del catálogo: se sugieren al escribir y traen su grupo (RF-008-10).
 const conocidos = computed(() =>
-  estado.catalogo.ejercicios.map((ejercicio) => ({ nombre: ejercicio.nombre, grupo: nombreDeGrupo(ejercicio.grupo) })),
+  estado.catalogo.ejercicios.map((ejercicio) => {
+    const nombreDelGrupo = nombreDeGrupo(ejercicio.grupo)
+    return { nombre: ejercicio.nombre, grupo: nombreDelGrupo, detalle: nombreDelGrupo }
+  }),
 )
+
+// Si lo escrito ya es un ejercicio conocido, se pone su grupo.
+watch(nombre, alEscribirNombre)
 
 function alEscribirNombre() {
   const clave = claveDeEjercicio(nombre.value)
@@ -91,21 +98,7 @@ async function terminar() {
 
     <form v-if="agregando" class="tarjeta" @submit.prevent="guardarEjercicio">
       <h2>Nuevo ejercicio</h2>
-      <label class="campo">
-        <span>Nombre</span>
-        <input
-          v-model="nombre"
-          type="text"
-          list="ejercicios-conocidos"
-          maxlength="50"
-          autocomplete="off"
-          placeholder="Ej.: Press inclinado"
-          @input="alEscribirNombre"
-        />
-        <datalist id="ejercicios-conocidos">
-          <option v-for="conocido in conocidos" :key="conocido.nombre" :value="conocido.nombre">{{ conocido.grupo }}</option>
-        </datalist>
-      </label>
+      <BuscadorDeEjercicio v-model="nombre" :opciones="conocidos" @elegir="(conocido) => (grupo = conocido.grupo)" />
       <label class="campo">
         <span>Grupo muscular</span>
         <select v-model="grupo">

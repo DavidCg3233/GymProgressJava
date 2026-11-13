@@ -43,7 +43,7 @@
 ## Fase 3 — Pantallas
 
 - [ ] **T-007-10** Sesión en curso: fila de serie, paso numérico y ejercicio.
-  - Cumple: RF-007-05, 06, RN-007-03. Hecho cuando: CA-007-05a y 06a se ven en el navegador, y la prueba de Playwright mide también la sesión (objetivos de 44 y 8 de separación).
+  - Cumple: RF-007-05, 06, RN-007-03. Hecho cuando: CA-007-05a y 06a se ven en el navegador, y la prueba de Playwright mide también la sesión **con los campos del número** (hoy miden 25 × 24 y recortan "38,5"; la spec 008 dejó la medida solo para botones con `conCampos: false`).
 - [ ] **T-007-11** Inicio.
   - Hoy toca, esta semana, últimas sesiones y el resumen al terminar.
   - Cumple: RF-004-01 a 10 con el diseño nuevo. Hecho cuando: CA-004-01a, 02a y 03a siguen cumpliéndose.

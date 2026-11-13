@@ -63,7 +63,7 @@ Cada usuario tiene su propio catálogo de ejercicios y grupos musculares. Arranc
 | RF-002-05 | Cuando el usuario guarda cambios en una rutina, el sistema debe conservar el resultado completo o no cambiar nada. | AS-IS | HU-002-03 |
 | RF-002-06 | Cuando el usuario confirma eliminar una rutina, el sistema debe eliminarla junto con sus ejercicios previstos, sin tocar las sesiones ya registradas (RF-006-11). | CAMBIA | HU-002-04 |
 | ~~RF-002-07~~ | ~~Rechazar cambios a rutinas ajenas.~~ Es RNF: RNF-ACC-06 y RNF-SEG-06. | — | — |
-| RF-002-08 | Mientras el usuario escribe el nombre de un ejercicio, el sistema debe sugerir los de su catálogo que coincidan. | AS-IS | HU-002-05 |
+| RF-002-08 | Mientras el usuario escribe el nombre de un ejercicio, el sistema debe sugerir los de su catálogo que coincidan. **Cambiado por la [spec 008](../008-record-y-sesion-a-rutina/spec.md): las sugerencias son una lista propia, sin tirones en el iPhone (RF-008-10).** | AS-IS | HU-002-05 |
 | RF-002-09 | Cuando el usuario usa un ejercicio que no está en su catálogo, el sistema debe pedirle el grupo muscular y crearlo en su catálogo. | CAMBIA | HU-002-05 |
 | RF-002-10 | El sistema debe mantener un catálogo de ejercicios y grupos musculares propio de cada usuario; los cambios de un usuario no deben afectar a otro. | CAMBIA (H-10) | HU-002-06 |
 | ~~RF-002-11~~ | ~~Conservar el valor anterior al editar cargas.~~ Resuelto: el historial son las sesiones (spec 006). | — | — |

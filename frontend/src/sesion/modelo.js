@@ -14,39 +14,62 @@ import {
 } from '../reglas/ejercicios.js'
 import { ErrorDeValidacion } from '../reglas/errores.js'
 import { valoresParaSerie } from '../reglas/precarga.js'
+import { mejorSerie, referencia } from '../reglas/progreso.js'
 import { validarPeso, validarRepeticiones } from '../reglas/series.js'
 import { debeDescartarse, horaDeCierreAutomatico } from '../reglas/sesiones.js'
 import { nombreDeSesionLibre, validarNota } from '../reglas/textos.js'
+import { renumerar } from './series.js'
 
 /** RF-006-20: una sesión sin rutina, a la que se le agregan ejercicios sobre la marcha. */
 export function nuevaSesionLibre({ id, ahora }) {
   return { id, nombre: '', rutina: null, inicio: ahora.toISOString(), fin: null, nota: '', ejercicios: [] }
 }
 
+// --- Spec 008: el récord manda -------------------------------------------------
+
 /**
- * RF-006-01: una sesión que copia la rutina tal como está ahora (RF-002-13).
+ * RN-008-01: el récord del ejercicio. El que trae el celular (arranque) manda;
+ * si no lo tiene (datos guardados antes de la spec 008), sale de la última vez.
+ */
+function recordDe(clave, records, ultimaVez) {
+  if (records?.[clave]) {
+    return records[clave]
+  }
+  const mejor = mejorSerie(ultimaVez?.[clave]?.series ?? [])
+  return mejor ? { peso: mejor.peso, reps: mejor.reps } : null
+}
+
+/** RF-008-03: lo que hice en esa serie la última vez, como pista debajo del número. */
+function pistaDe(clave, numero, ultimaVez) {
+  const serie = ultimaVez?.[clave]?.series.find((anterior) => anterior.numero === numero)
+  return serie ? { peso: serie.peso, reps: serie.reps } : null
+}
+
+/**
+ * RF-006-01 y RF-008-03: una sesión que copia la rutina tal como está ahora (RF-002-13).
  *
- * Cada ejercicio trae tantas series como las previstas, precargadas con lo de la
- * última vez o, si nunca se ha hecho, con lo previsto (RF-006-04, 05). Funciona
- * sin señal: solo usa lo que el celular ya tiene guardado.
+ * Cada ejercicio trae tantas series como las previstas, precargadas con su
+ * referencia: lo previsto, o el récord si lo supera (RN-008-03). La última vez de
+ * cada serie queda como pista. Funciona sin señal: solo usa lo guardado en el celular.
  *
  * @param {Function} nuevoId Genera un identificador nuevo para cada ejercicio y serie.
  */
-export function nuevaSesionDesdeRutina({ rutina, ahora, ultimaVez, nuevoId }) {
+export function nuevaSesionDesdeRutina({ rutina, ahora, ultimaVez, records, nuevoId }) {
   const sesion = { ...nuevaSesionLibre({ id: nuevoId(), ahora }), nombre: rutina.nombre, rutina: rutina.id }
 
   sesion.ejercicios = rutina.ejercicios.map((previsto, indice) => {
-    const anterior = ultimaVez?.[claveDeEjercicio(previsto.nombre)]
-    const historial = historialDesde(anterior)
+    const clave = claveDeEjercicio(previsto.nombre)
+    const anterior = ultimaVez?.[clave]
+    const valores = referencia(previsto, recordDe(clave, records, ultimaVez))
     const series = []
     for (let numero = 1; numero <= previsto.series; numero += 1) {
-      const precarga = valoresParaSerie({ numero, historial, previsto, serieAnterior: series.at(-1) ?? null })
       series.push({
         id: nuevoId(),
         numero,
-        peso: precarga?.peso ?? null,
-        reps: precarga?.reps ?? null,
-        origen: precarga?.origen ?? null,
+        peso: valores.peso,
+        reps: valores.reps,
+        origen: valores.delRecord ? 'record' : 'rutina',
+        pista: pistaDe(clave, numero, ultimaVez),
         confirmada: false,
       })
     }
@@ -63,8 +86,8 @@ export function nuevaSesionDesdeRutina({ rutina, ahora, ultimaVez, nuevoId }) {
   return sesion
 }
 
-/** RF-006-13 y RN-006-11: el ejercicio entra con una serie, precargada si ya se ha hecho. */
-export function agregarEjercicio(sesion, { id, idSerie, nombre, grupo, ultimaVez }) {
+/** RF-006-13 y RF-008-04: el ejercicio entra con una serie, precargada con su récord si lo tiene. */
+export function agregarEjercicio(sesion, { id, idSerie, nombre, grupo, ultimaVez, records }) {
   const nombreValido = validarNombreDeEjercicio(nombre)
   const grupoValido = validarGrupoMuscular(grupo)
   const clave = claveDeEjercicio(nombreValido)
@@ -83,7 +106,11 @@ export function agregarEjercicio(sesion, { id, idSerie, nombre, grupo, ultimaVez
     notaAnterior: ultimaVez?.[clave]?.nota ?? '',
     series: [],
   }
-  agregarSerie(ejercicio, { id: idSerie, ultimaVez })
+  const primera = agregarSerie(ejercicio, { id: idSerie, ultimaVez })
+  const record = recordDe(clave, records, ultimaVez)
+  if (record) {
+    Object.assign(primera, { peso: record.peso, reps: record.reps, origen: 'record' })
+  }
   sesion.ejercicios.push(ejercicio)
   return ejercicio
 }
@@ -108,15 +135,34 @@ export function agregarSerie(ejercicio, { id, ultimaVez }) {
     peso: precarga?.peso ?? null,
     reps: precarga?.reps ?? null,
     origen: precarga?.origen ?? null,
+    pista: pistaDe(claveDeEjercicio(ejercicio.nombre), numero, ultimaVez),
     confirmada: false,
   }
   ejercicio.series.push(serie)
   return serie
 }
 
-/** RF-006-12: quita una serie. Las demás conservan su número. */
+/**
+ * RF-008-08: quita una serie y numera las demás seguidas (RN-008-08).
+ * Devuelve lo necesario para deshacer: la serie, su lugar y las que cambiaron
+ * de número; o null si no estaba.
+ */
 export function quitarSerie(ejercicio, idSerie) {
-  ejercicio.series = ejercicio.series.filter((serie) => serie.id !== idSerie)
+  const indice = ejercicio.series.findIndex((serie) => serie.id === idSerie)
+  if (indice === -1) {
+    return null
+  }
+  const [serie] = ejercicio.series.splice(indice, 1)
+  return { serie, indice, renumeradas: renumerar(ejercicio.series) }
+}
+
+/**
+ * RF-008-09 y RN-008-09: devuelve una serie quitada a su lugar, con su número y
+ * sus valores. Devuelve las demás series que cambiaron de número.
+ */
+export function restaurarSerie(ejercicio, { serie, indice }) {
+  ejercicio.series.splice(Math.min(indice, ejercicio.series.length), 0, serie)
+  return renumerar(ejercicio.series).filter((otra) => otra !== serie)
 }
 
 /** RF-006-03, 14 y 24: confirma (o corrige) una serie con valores válidos. */

@@ -15,7 +15,7 @@ import { crearCola } from '../datos/cola.js'
 import * as operaciones from '../datos/operaciones.js'
 import { claveDeEjercicio } from '../reglas/ejercicios.js'
 import { ErrorDeValidacion } from '../reglas/errores.js'
-import { fechaLocal } from '../reglas/progreso.js'
+import { fechaLocal, mejorSerie, supera } from '../reglas/progreso.js'
 import { debeCerrarse } from '../reglas/sesiones.js'
 import * as modelo from '../sesion/modelo.js'
 
@@ -31,6 +31,8 @@ export const estado = reactive({
   // Plan 004, 4.5: el inicio funciona sin señal (RNF-004-01).
   recientes: [], // RF-004-07: las 3 últimas sesiones terminadas
   hechasHoy: null, // RF-004-10: { fecha, rutinas }
+  // Spec 008, 4.2: el récord de cada ejercicio, por su clave, para trabajar sin señal.
+  records: {},
   // La sesión que se acaba de terminar, para mostrar su resumen en el inicio (RF-006-07).
   resumen: null,
   // RF-006-18: cambios guardados en el celular que el servidor aún no tiene.
@@ -60,6 +62,7 @@ function guardarLocal() {
     rutinas: estado.rutinas,
     recientes: estado.recientes,
     hechasHoy: estado.hechasHoy,
+    records: estado.records,
   })
 }
 
@@ -98,6 +101,7 @@ export async function cargarArranque() {
     estado.rutinas = guardado?.rutinas ?? []
     estado.recientes = guardado?.recientes ?? []
     estado.hechasHoy = guardado?.hechasHoy ?? null
+    estado.records = guardado?.records ?? {}
     estado.pendientes = await cola.pendientes()
 
     await cerrarSiVencio()
@@ -132,6 +136,7 @@ async function traerDelServidor() {
   estado.ultimaVez = datos.ultima_vez
   estado.recientes = datos.recientes ?? estado.recientes
   estado.hechasHoy = datos.hechas_hoy ?? estado.hechasHoy
+  estado.records = datos.records ?? estado.records
   // La sesión en curso del celular manda; la del servidor solo se adopta si aquí no hay ninguna.
   if (!estado.sesion && datos.sesion_en_curso) {
     estado.sesion = conNotasAnteriores(datos.sesion_en_curso, datos.ultima_vez)
@@ -181,7 +186,13 @@ export function empezarSesionDesdeRutina(rutina) {
   // Como las demás acciones: la regla se aplica en el momento y lanza el error de inmediato.
   exigirSinSesionEnCurso()
   estado.resumen = null
-  const sesion = modelo.nuevaSesionDesdeRutina({ rutina, ahora: new Date(), ultimaVez: estado.ultimaVez, nuevoId })
+  const sesion = modelo.nuevaSesionDesdeRutina({
+    rutina,
+    ahora: new Date(),
+    ultimaVez: estado.ultimaVez,
+    records: estado.records,
+    nuevoId,
+  })
   estado.sesion = sesion
   return registrarInicioDeRutina(sesion)
 }
@@ -205,6 +216,7 @@ export function agregarEjercicio(nombre, grupo) {
     nombre,
     grupo,
     ultimaVez: estado.ultimaVez,
+    records: estado.records,
   })
   return registrar(operaciones.guardarEjercicio(sesion, ejercicio, new Date()))
 }
@@ -217,13 +229,73 @@ export function agregarSerie(ejercicio) {
 
 export function confirmarSerie(ejercicio, serie, valores) {
   modelo.confirmarSerie(serie, valores)
+  subirRecordSiSupera(ejercicio, serie)
   return registrar(operaciones.guardarSerie(ejercicio, serie, new Date()))
 }
 
-export function quitarSerie(ejercicio, serie) {
-  modelo.quitarSerie(ejercicio, serie.id)
-  // Una serie que nunca se confirmó no existe en el servidor: no hay nada que quitar allá.
-  return serie.confirmada ? registrar(operaciones.quitarSerie(serie, new Date())) : guardarLocal()
+/**
+ * RF-008-05: una serie que supera el récord lo reemplaza al instante, también sin
+ * señal. Al volver la señal, el arranque trae el del servidor, que ya la incluye.
+ */
+function subirRecordSiSupera(ejercicio, serie) {
+  const clave = claveDeEjercicio(ejercicio.nombre)
+  const mejorDeAntes = mejorSerie(estado.ultimaVez[clave]?.series ?? [])
+  const actual = estado.records[clave] ?? mejorDeAntes
+  if (supera(serie, actual)) {
+    estado.records = { ...estado.records, [clave]: { peso: serie.peso, reps: serie.reps } }
+  }
+}
+
+/**
+ * RF-008-08: quita la serie y numera las demás seguidas. Devuelve lo necesario
+ * para deshacer (RF-008-09).
+ *
+ * El servidor no admite dos series con el mismo número, así que el orden importa:
+ * primero se borra la quitada y luego bajan las de atrás, de la primera a la última.
+ * Solo viajan las confirmadas: las pendientes viven solo en el celular.
+ */
+export async function quitarSerie(ejercicio, serie) {
+  const quitada = modelo.quitarSerie(ejercicio, serie.id)
+  if (!quitada) {
+    return null
+  }
+  const momento = new Date()
+  const envios = []
+  if (quitada.serie.confirmada) {
+    envios.push(operaciones.quitarSerie(quitada.serie, momento))
+  }
+  for (const renumerada of quitada.renumeradas.filter((otra) => otra.confirmada)) {
+    envios.push(operaciones.guardarSerie(ejercicio, renumerada, momento))
+  }
+  await registrarEnOrden(envios)
+  return quitada
+}
+
+/**
+ * RF-008-09: devuelve la serie quitada a su lugar. Al revés que al quitar: primero
+ * suben las de atrás, de la última a la primera, y al final vuelve la quitada.
+ */
+export async function deshacerQuitarSerie(ejercicio, quitada) {
+  const renumeradas = modelo.restaurarSerie(ejercicio, quitada)
+  const momento = new Date()
+  const envios = renumeradas
+    .filter((otra) => otra.confirmada)
+    .sort((a, b) => b.numero - a.numero)
+    .map((otra) => operaciones.guardarSerie(ejercicio, otra, momento))
+  if (quitada.serie.confirmada) {
+    envios.push(operaciones.guardarSerie(ejercicio, quitada.serie, momento))
+  }
+  await registrarEnOrden(envios)
+}
+
+async function registrarEnOrden(envios) {
+  await guardarLocal()
+  for (const envio of envios) {
+    await cola.agregar(envio)
+  }
+  if (envios.length > 0) {
+    await sincronizar()
+  }
 }
 
 export function anotarEjercicio(ejercicio, nota) {
@@ -278,6 +350,7 @@ export async function olvidarDatosLocales() {
     rutinas: [],
     recientes: [],
     hechasHoy: null,
+    records: {},
     resumen: null,
     pendientes: 0,
     sinConexion: false,

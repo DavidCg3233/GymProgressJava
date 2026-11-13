@@ -19,6 +19,7 @@ const servidor = {
   rutinas: [],
   recientes: [],
   hechasHoy: null,
+  records: {},
 }
 
 vi.mock('../datos/api.js', async (original) => {
@@ -35,6 +36,7 @@ vi.mock('../datos/api.js', async (original) => {
           rutinas: servidor.rutinas,
           recientes: servidor.recientes,
           hechas_hoy: servidor.hechasHoy,
+          records: servidor.records,
         }
       }
       servidor.recibidas.push({ metodo, url, cuerpo })
@@ -92,6 +94,7 @@ beforeEach(() => {
     rutinas: [PECHO],
     recientes: [],
     hechasHoy: null,
+    records: {},
   })
 })
 
@@ -124,7 +127,8 @@ describe('CA-006-17a: empezar y registrar sin conexión', () => {
     await app.agregarEjercicio('Press inclinado', 'Pecho')
 
     const serie = app.estado.sesion.ejercicios[0].series[0]
-    expect(serie).toMatchObject({ peso: 30, reps: 10, origen: 'ultima-vez' })
+    // RF-008-04: el récord (32,5 × 8, sale de la última vez guardada) y la última vez como pista.
+    expect(serie).toMatchObject({ peso: 32.5, reps: 8, origen: 'record', pista: { peso: 30, reps: 10 } })
   })
 })
 
@@ -246,7 +250,8 @@ describe('T-002-13: empezar una sesión desde una rutina, también sin señal', 
     const sesion = app.estado.sesion
     expect(sesion.nombre).toBe('Pecho')
     expect(sesion.ejercicios.map((e) => e.series.length)).toEqual([2, 1])
-    expect(sesion.ejercicios[0].series[0]).toMatchObject({ peso: 30, reps: 10, origen: 'ultima-vez' })
+    // RF-008-03: la referencia (el récord 32,5 × 8 supera lo previsto 30 × 10).
+    expect(sesion.ejercicios[0].series[0]).toMatchObject({ peso: 32.5, reps: 8, origen: 'record' })
     expect(app.estado.pendientes).toBe(3) // la sesión y sus dos ejercicios
 
     servidor.conectado = true
@@ -357,5 +362,162 @@ describe('T-004-11: recientes y rutinas hechas hoy, también sin señal (RF-004-
 
     expect(app.estado.recientes).toEqual([])
     expect(app.estado.hechasHoy).toBeNull()
+  })
+})
+
+describe('T-008-08: récords en el celular, también sin señal (RF-008-05, RNF-008-02)', () => {
+  async function sesionConSentadilla(app) {
+    app.empezarSesionLibre()
+    await app.agregarEjercicio('Sentadilla', 'Pierna')
+    return app.estado.sesion.ejercicios[0]
+  }
+
+  it('el arranque trae los récords y se quedan en el celular sin señal', async () => {
+    servidor.records = { sentadilla: { peso: 60, reps: 6 } }
+    await abrirApp()
+    servidor.conectado = false
+
+    const app = await abrirApp()
+
+    expect(app.estado.records).toEqual({ sentadilla: { peso: 60, reps: 6 } })
+  })
+
+  it('CA-008-05a: en modo avión, una serie mejor sube el récord al instante y se conserva', async () => {
+    servidor.records = { sentadilla: { peso: 60, reps: 6 } }
+    await abrirApp()
+    servidor.conectado = false
+    const app = await abrirApp()
+    const sentadilla = await sesionConSentadilla(app)
+
+    await app.confirmarSerie(sentadilla, sentadilla.series[0], { peso: 62.5, reps: 6 })
+
+    expect(app.estado.records.sentadilla).toEqual({ peso: 62.5, reps: 6 })
+    const reabierta = await abrirApp()
+    expect(reabierta.estado.records.sentadilla).toEqual({ peso: 62.5, reps: 6 })
+  })
+
+  it('una serie que no supera no cambia el récord', async () => {
+    servidor.records = { sentadilla: { peso: 60, reps: 6 } }
+    const app = await abrirApp()
+    const sentadilla = await sesionConSentadilla(app)
+
+    await app.confirmarSerie(sentadilla, sentadilla.series[0], { peso: 55, reps: 12 })
+
+    expect(app.estado.records.sentadilla).toEqual({ peso: 60, reps: 6 })
+  })
+
+  it('la sesión de rutina se precarga con el récord del celular', async () => {
+    servidor.records = { 'press inclinado': { peso: 35, reps: 5 } }
+    const app = await abrirApp()
+
+    await app.empezarSesionDesdeRutina(PECHO)
+
+    expect(app.estado.sesion.ejercicios[0].series[0]).toMatchObject({ peso: 35, reps: 5, origen: 'record' })
+  })
+
+  it('al salir de la cuenta se olvidan', async () => {
+    servidor.records = { sentadilla: { peso: 60, reps: 6 } }
+    const app = await abrirApp()
+
+    await app.olvidarDatosLocales()
+
+    expect(app.estado.records).toEqual({})
+  })
+})
+
+describe('T-008-10: quitar y deshacer viajan en un orden que el servidor acepta (plan 008, 4.4)', () => {
+  /**
+   * Un servidor de juguete con la regla real: dos series del mismo ejercicio no
+   * pueden tener el mismo número. Reproduce los envíos en orden y falla si chocan.
+   */
+  function reproducir(recibidas) {
+    const series = new Map()
+    for (const { metodo, url, cuerpo } of recibidas.filter((o) => o.url.startsWith('/api/series/'))) {
+      const id = url.split('/')[3]
+      if (metodo === 'DELETE') {
+        series.delete(id)
+        continue
+      }
+      for (const [otra, datos] of series) {
+        if (otra !== id && datos.ejercicio === cuerpo.ejercicio && datos.numero === cuerpo.numero) {
+          throw new Error(`Choque: la serie ${id} pide el número ${cuerpo.numero}, que ya tiene ${otra}`)
+        }
+      }
+      series.set(id, { ejercicio: cuerpo.ejercicio, numero: cuerpo.numero, peso: cuerpo.peso })
+    }
+    return [...series.entries()].sort((a, b) => a[1].numero - b[1].numero).map(([id, datos]) => [id, datos.numero])
+  }
+
+  async function tresConfirmadas() {
+    const app = await abrirApp()
+    app.empezarSesionLibre()
+    await app.agregarEjercicio('Sentadilla', 'Pierna')
+    const ejercicio = app.estado.sesion.ejercicios[0]
+    await app.confirmarSerie(ejercicio, ejercicio.series[0], { peso: 60, reps: 8 })
+    for (const peso of [65, 70]) {
+      await app.agregarSerie(ejercicio)
+      await app.confirmarSerie(ejercicio, ejercicio.series.at(-1), { peso, reps: 6 })
+    }
+    return { app, ejercicio, ids: ejercicio.series.map((serie) => serie.id) }
+  }
+
+  it('CA-008-08a: al quitar la 2, el servidor queda con 1 y 2 sin choques', async () => {
+    const { app, ejercicio, ids } = await tresConfirmadas()
+
+    await app.quitarSerie(ejercicio, ejercicio.series[1])
+
+    expect(reproducir(servidor.recibidas)).toEqual([
+      [ids[0], 1],
+      [ids[2], 2],
+    ])
+    expect(app.estado.pendientes).toBe(0)
+  })
+
+  it('CA-008-09a: deshacer devuelve la 2, también en el servidor, sin choques', async () => {
+    const { app, ejercicio, ids } = await tresConfirmadas()
+    const quitada = await app.quitarSerie(ejercicio, ejercicio.series[1])
+
+    await app.deshacerQuitarSerie(ejercicio, quitada)
+
+    expect(ejercicio.series.map((serie) => [serie.id, serie.numero, serie.confirmada])).toEqual([
+      [ids[0], 1, true],
+      [ids[1], 2, true],
+      [ids[2], 3, true],
+    ])
+    expect(reproducir(servidor.recibidas)).toEqual([
+      [ids[0], 1],
+      [ids[1], 2],
+      [ids[2], 3],
+    ])
+  })
+
+  it('sin señal, quitar y deshacer quedan en la cola y llegan en orden', async () => {
+    const { app, ejercicio, ids } = await tresConfirmadas()
+    servidor.conectado = false
+    const quitada = await app.quitarSerie(ejercicio, ejercicio.series[0])
+    await app.deshacerQuitarSerie(ejercicio, quitada)
+    await app.quitarSerie(ejercicio, ejercicio.series[2])
+
+    servidor.conectado = true
+    await app.sincronizar()
+
+    expect(reproducir(servidor.recibidas)).toEqual([
+      [ids[0], 1],
+      [ids[1], 2],
+    ])
+  })
+
+  it('quitar una serie sin confirmar no envía nada', async () => {
+    const app = await abrirApp()
+    app.empezarSesionLibre()
+    await app.agregarEjercicio('Sentadilla', 'Pierna')
+    const ejercicio = app.estado.sesion.ejercicios[0]
+    await app.agregarSerie(ejercicio)
+    const antes = servidor.recibidas.length
+
+    await app.quitarSerie(ejercicio, ejercicio.series[1])
+
+    expect(servidor.recibidas.length).toBe(antes)
+    expect(ejercicio.series.map((serie) => serie.numero)).toEqual([1])
   })
 })
