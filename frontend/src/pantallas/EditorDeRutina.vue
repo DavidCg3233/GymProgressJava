@@ -7,6 +7,7 @@ import PasoNumerico from '../componentes/PasoNumerico.vue'
 import { guardarEjercicio, guardarRutina } from '../estado/rutinas.js'
 import { estado } from '../estado/sesion.js'
 import { claveDeEjercicio } from '../reglas/ejercicios.js'
+import { referencia } from '../reglas/progreso.js'
 import {
   DIAS_DE_LA_SEMANA,
   NOMBRES_DE_LOS_DIAS,
@@ -22,11 +23,23 @@ const emit = defineEmits(['listo', 'cancelar'])
 
 const original = estado.rutinas.find((rutina) => rutina.id === props.rutinaId)
 
+// RN-008-01: el récord de un ejercicio, el mismo en todas las rutinas.
+const recordDe = (nombre) => estado.records[claveDeEjercicio(nombre)] ?? null
+const kg = (peso) => (peso === 0 ? 'peso corporal' : `${String(peso).replace('.', ',')} kg`)
+const textoDeRecord = (record) => `Récord: ${kg(record.peso)} × ${record.reps}`
+
+// RF-008-02 y RN-008-03: cada ejercicio muestra su referencia (el récord si supera
+// lo previsto). Lo guardado no cambia hasta que se guarde la rutina (RN-008-04).
+function conReferencia(previsto) {
+  const valores = referencia(previsto, recordDe(previsto.nombre))
+  return { ...previsto, peso: valores.peso, reps: valores.reps, subioConRecord: valores.delRecord }
+}
+
 // Copia de trabajo: nada cambia en la rutina guardada hasta que el servidor acepte.
 const formulario = reactive({
   nombre: original?.nombre ?? '',
   dias: [...(original?.dias ?? [])],
-  ejercicios: (original?.ejercicios ?? []).map((previsto) => ({ ...previsto })),
+  ejercicios: (original?.ejercicios ?? []).map(conReferencia),
 })
 
 const error = ref('')
@@ -67,13 +80,16 @@ async function agregarEjercicio() {
       error.value = 'Ese ejercicio ya está en la rutina.'
       return
     }
+    // RF-008-01: con récord, se proponen su peso y sus reps.
+    const record = recordDe(ejercicio.nombre)
     formulario.ejercicios.push({
       ejercicio: ejercicio.id,
       nombre: ejercicio.nombre,
       grupo: nombreDeGrupo(ejercicio.grupo),
       series: 3,
-      reps: 10,
-      peso: 0,
+      reps: record?.reps ?? 10,
+      peso: record?.peso ?? 0,
+      subioConRecord: false,
     })
     nombreNuevo.value = ''
     grupoNuevo.value = ''
@@ -166,6 +182,10 @@ async function guardar() {
           <div>
             <strong>{{ indice + 1 }}. {{ previsto.nombre }}</strong>
             <p class="suave">{{ previsto.grupo }}</p>
+            <!-- RF-008-01, 02: el récord a la vista, y si la referencia ya subió con él. -->
+            <p v-if="recordDe(previsto.nombre)" class="previsto__record">
+              {{ textoDeRecord(recordDe(previsto.nombre)) }}<span v-if="previsto.subioConRecord"> · subió con tu récord</span>
+            </p>
           </div>
           <div class="fila">
             <button class="boton boton--texto" type="button" :aria-label="`Subir ${previsto.nombre}`" :disabled="indice === 0" @click="mover(indice, -1)">↑</button>
@@ -244,6 +264,13 @@ async function guardar() {
   gap: var(--espacio-2);
   padding-bottom: var(--espacio-3);
   border-bottom: 1px solid var(--linea);
+}
+
+.previsto__record {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dorado);
 }
 
 .previsto__valores {
