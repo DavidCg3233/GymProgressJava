@@ -18,7 +18,8 @@ concurrency:
 jobs:
   servidor:
     name: Servidor (Docker + PostgreSQL)
-    runs-on: ubuntu-latest
+    # Fijo, no ubuntu-latest: en nov. 2026 pasó a Ubuntu 26.04 y Playwright 1.56 no instala WebKit ahí.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -52,7 +53,8 @@ jobs:
 
   pantalla:
     name: Pantalla (Vitest + compilación)
-    runs-on: ubuntu-latest
+    # Fijo, no ubuntu-latest: en nov. 2026 pasó a Ubuntu 26.04 y Playwright 1.56 no instala WebKit ahí.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: frontend
@@ -80,7 +82,8 @@ jobs:
 
   imagen:
     name: Imagen de producción
-    runs-on: ubuntu-latest
+    # Fijo, no ubuntu-latest: en nov. 2026 pasó a Ubuntu 26.04 y Playwright 1.56 no instala WebKit ahí.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -191,7 +194,8 @@ jobs:
 
   secretos:
     name: Sin secretos en el código
-    runs-on: ubuntu-latest
+    # Fijo, no ubuntu-latest: en nov. 2026 pasó a Ubuntu 26.04 y Playwright 1.56 no instala WebKit ahí.
+    runs-on: ubuntu-24.04
     steps:
       # Historial completo de la rama: un secreto borrado en un commit posterior sigue ahí.
       - uses: actions/checkout@v4
