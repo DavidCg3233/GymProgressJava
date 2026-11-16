@@ -2,10 +2,13 @@
 // Historial de sesiones terminadas, y el detalle de una (T-006-29 · RF-006-09, 10, 15).
 import { onMounted, ref } from 'vue'
 
+import Encabezado from '../componentes/Encabezado.vue'
 import GuardarComoRutina from '../componentes/GuardarComoRutina.vue'
 import { cargarHistorial, cargarSesion, eliminarSesion } from '../estado/sesion.js'
+import { NOMBRE_SESION_LIBRE } from '../reglas/textos.js'
 
-const emit = defineEmits(['volver'])
+// "volver" ya no se usa aquí (la barra inferior navega), pero App lo sigue escuchando.
+defineEmits(['volver'])
 
 const sesiones = ref([])
 const pagina = ref(1)
@@ -66,13 +69,12 @@ onMounted(() => cargar(1))
 <template>
   <!-- Detalle de una sesión: solo lectura (RF-006-14). -->
   <main v-if="abierta" class="pantalla">
-    <header class="fila fila--separada">
-      <div>
-        <h1>{{ abierta.nombre }}</h1>
-        <p class="suave">{{ fecha(abierta.inicio) }} · {{ hora(abierta.inicio) }} a {{ hora(abierta.fin) }}</p>
-      </div>
-      <button class="boton boton--texto" type="button" @click="abierta = null; guardandoComoRutina = false">Volver</button>
-    </header>
+    <Encabezado
+      :titulo="abierta.nombre || NOMBRE_SESION_LIBRE"
+      :subtitulo="`${fecha(abierta.inicio)} · ${hora(abierta.inicio)} a ${hora(abierta.fin)}`"
+      atras="Historial"
+      @atras="abierta = null; guardandoComoRutina = false"
+    />
 
     <p v-if="abierta.nota" class="mensaje mensaje--aviso">“{{ abierta.nota }}”</p>
 
@@ -94,7 +96,7 @@ onMounted(() => cargar(1))
     <GuardarComoRutina
       v-if="guardandoComoRutina"
       :id-sesion="abierta.id"
-      :nombre-sugerido="abierta.nombre"
+      :nombre-sugerido="abierta.nombre || NOMBRE_SESION_LIBRE"
       @cerrar="guardandoComoRutina = false"
     />
     <button v-else class="boton boton--secundario boton--ancho" type="button" @click="guardandoComoRutina = true">
@@ -115,23 +117,29 @@ onMounted(() => cargar(1))
   </main>
 
   <main v-else class="pantalla">
-    <header class="fila fila--separada">
-      <h1>Historial</h1>
-      <button class="boton boton--texto" type="button" @click="emit('volver')">Inicio</button>
-    </header>
+    <!-- T-007-14: sin botón "Inicio": la barra de abajo lleva a todas partes. -->
+    <Encabezado titulo="Historial" />
 
     <p v-if="error" class="mensaje mensaje--error" role="alert">{{ error }}</p>
     <p v-else-if="!cargando && sesiones.length === 0" class="suave">
       Aún no tienes sesiones terminadas. La primera aparecerá aquí.
     </p>
 
-    <button v-for="sesion in sesiones" :key="sesion.id" class="tarjeta registro" type="button" @click="abrir(sesion.id)">
-      <strong>{{ sesion.nombre }}</strong>
-      <span class="suave">
-        {{ fecha(sesion.inicio) }} · {{ sesion.ejercicios }} {{ sesion.ejercicios === 1 ? 'ejercicio' : 'ejercicios' }} ·
-        {{ sesion.series }} {{ sesion.series === 1 ? 'serie' : 'series' }}
-      </span>
-    </button>
+    <!-- T-007-14: la lista es un grupo de filas, como en Ajustes del iPhone. -->
+    <ul v-if="sesiones.length" class="grupo">
+      <li v-for="sesion in sesiones" :key="sesion.id">
+        <button class="grupo__fila registro" type="button" @click="abrir(sesion.id)">
+          <span class="grupo__texto">
+            <strong>{{ sesion.nombre || NOMBRE_SESION_LIBRE }}</strong>
+            <span class="suave">
+              {{ fecha(sesion.inicio) }} · {{ sesion.ejercicios }} {{ sesion.ejercicios === 1 ? 'ejercicio' : 'ejercicios' }} ·
+              {{ sesion.series }} {{ sesion.series === 1 ? 'serie' : 'series' }}
+            </span>
+          </span>
+          <span class="registro__ir" aria-hidden="true">›</span>
+        </button>
+      </li>
+    </ul>
 
     <button v-if="hayMas" class="boton boton--ancho" type="button" :disabled="cargando" @click="cargar(pagina + 1)">
       Ver más
@@ -140,11 +148,9 @@ onMounted(() => cargar(1))
 </template>
 
 <style scoped>
-.registro {
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  gap: var(--espacio-1);
+.registro__ir {
+  font-size: 22px;
+  color: var(--tinta-suave);
 }
 
 .series {
