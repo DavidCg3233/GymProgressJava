@@ -3,6 +3,7 @@
 // Lo calcula el servidor: sin conexión se avisa y se puede reintentar.
 import { computed, onMounted, ref } from 'vue'
 
+import Encabezado from '../componentes/Encabezado.vue'
 import Explicacion from '../componentes/Explicacion.vue'
 import { cargarProgreso, fijarMeta, mensajeDeProgreso } from '../estado/progreso.js'
 import { EXPLICACIONES } from '../progreso/explicaciones.js'
@@ -77,10 +78,8 @@ onMounted(cargar)
   <Evolucion v-if="ejercicio" :clave="ejercicio.clave" :nombre="ejercicio.nombre" @volver="ejercicio = null" />
 
   <main v-else class="pantalla">
-    <header class="fila fila--separada">
-      <h1>Progreso</h1>
-      <button class="boton boton--texto" type="button" @click="emit('volver')">Inicio</button>
-    </header>
+    <!-- T-007-12: sin botón "Inicio": la barra de abajo lleva a todas partes. -->
+    <Encabezado titulo="Progreso" />
 
     <div class="pestanas" role="tablist" aria-label="Qué progreso ver">
       <button
