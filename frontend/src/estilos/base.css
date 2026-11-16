@@ -81,6 +81,12 @@ input,
   gap: var(--espacio-6);
 }
 
+/* La sesión en curso: 12 de aire a los lados para que la fila de serie quepa en 375 px. */
+.pantalla--densa {
+  padding-left: var(--espacio-3);
+  padding-right: var(--espacio-3);
+}
+
 /* Grupo de filas: superficie sin borde (DESIGN.md, sección 5). */
 .tarjeta {
   background: var(--superficie);

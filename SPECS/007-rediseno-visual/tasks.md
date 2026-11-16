@@ -42,7 +42,7 @@
 
 ## Fase 3 — Pantallas
 
-- [ ] **T-007-10** Sesión en curso: fila de serie, paso numérico y ejercicio.
+- [x] **T-007-10** Sesión en curso: fila de serie, paso numérico y ejercicio.
   - Cumple: RF-007-05, 06, RN-007-03. Hecho cuando: CA-007-05a y 06a se ven en el navegador, y la prueba de Playwright mide también la sesión **con los campos del número** (hoy miden 25 × 24 y recortan "38,5"; la spec 008 dejó la medida solo para botones con `conCampos: false`).
 - [ ] **T-007-11** Inicio.
   - Hoy toca, esta semana, últimas sesiones y el resumen al terminar.
@@ -66,6 +66,7 @@
 
 | Fecha | Tarea | Qué entendí / qué cambió | Quién |
 |---|---|---|---|
+| 2026-11-16 | T-007-10 | Prueba primero (Playwright, rojo): campos de 25 × 24 y pegados a sus botones. Cuenta a 375 px: dos controles de 44 + 8 + 44 + 8 + 44 más el círculo suman 356 px y solo hay 335. **David eligió el control unido** (como el de +/− del iPhone): sus partes se tocan por dentro y los 8 px van entre controles (RNF-007-02 actualizado). Resultado a 375 px: número de 48 × 44, "472,5" sin recorte (baja a 16 px), sin desplazamiento horizontal; número de serie dentro del círculo. Al medir apareció una regresión en el editor de rutina (el "+" quedaba en 9 px): sus tres controles pasan a dos renglones. El peso se muestra con coma ("38,5") | IA |
 | 2026-11-11 | T-007-01 a 04 | Fichas en `fichas.css` (el único archivo con colores) y `base.css` rehecho sobre ellas: todas las pantallas cambian de color ya, antes de rehacerlas. 32 pares de contraste medidos por una prueba. Dos tropiezos de Vue resueltos en T-007-06: `<script setup>` no admite `export` ni que `defineProps` use una variable local (los trazos pasaron a `iconos.js`) | IA |
 | 2026-11-11 | T-007-07 | **Choque entre specs, resuelto así (pendiente de tu visto bueno):** la franja no se muestra en el Inicio, porque ahí CA-004-02a ya pone "Continuar sesión" primero y serían dos botones iguales. Regla `muestraFranja` con su prueba | IA |
 | 2026-11-11 | T-007-09 | La prueba de Playwright mide en el Inicio que todo objetivo mida 44 × 44 y que dos pequeños vecinos queden a 8 px o más. Las pestañas de la barra (≈ 94 px cada una) se tocan, como en el iPhone: la regla de 8 px se aplica cuando al menos uno mide menos de 60 px. La medida de la sesión entra con T-007-10, porque hoy su "Quitar" mide 28 px de alto. Pasó en WebKit en mi equipo | IA |

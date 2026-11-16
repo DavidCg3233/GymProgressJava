@@ -275,7 +275,9 @@ async function guardar() {
 
 .previsto__valores {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Cada control unido necesita 132 px (tres partes de 44): si no caben tres en
+     una fila, pasan a dos renglones en vez de recortar el "+" (RNF-007-02). */
+  grid-template-columns: repeat(auto-fit, minmax(calc(3 * var(--tamano-toque)), 1fr));
   gap: var(--espacio-2);
 }
 </style>

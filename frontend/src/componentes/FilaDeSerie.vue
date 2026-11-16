@@ -4,6 +4,7 @@
 import { computed, ref, watch } from 'vue'
 
 import { confirmarSerie } from '../estado/sesion.js'
+import Icono from './Icono.vue'
 import PasoNumerico from './PasoNumerico.vue'
 
 const props = defineProps({
@@ -64,9 +65,8 @@ function confirmar() {
 
 <template>
   <div class="serie" :class="{ 'serie--hecha': hecha }">
+    <!-- T-007-10: tres columnas; el número de la serie va dentro del círculo de confirmar. -->
     <div class="serie__fila">
-      <span class="serie__numero" aria-hidden="true">{{ props.serie.numero }}</span>
-
       <PasoNumerico v-model="peso" etiqueta="kg" :paso="0.5" :minimo="0" :maximo="500" decimales />
       <PasoNumerico v-model="reps" etiqueta="reps" :paso="1" :minimo="1" :maximo="100" />
 
@@ -77,7 +77,9 @@ function confirmar() {
         :aria-pressed="hecha"
         @click="confirmar"
       >
-        ✓
+        <!-- Pendiente: el número de la serie. Hecha: la palomita (RF-007-06, sin depender del color). -->
+        <Icono v-if="hecha" nombre="palomita" :tamano="22" :grosor="2.5" />
+        <span v-else class="numeros">{{ props.serie.numero }}</span>
       </button>
     </div>
 
@@ -101,10 +103,9 @@ function confirmar() {
 <style scoped>
 .serie {
   display: grid;
-  gap: var(--espacio-1);
-  padding: var(--espacio-2);
+  gap: 2px;
+  padding: var(--espacio-1);
   border-radius: var(--radio);
-  border: 1px solid transparent;
 }
 
 .serie--hecha {
@@ -113,26 +114,23 @@ function confirmar() {
 
 .serie__fila {
   display: grid;
-  grid-template-columns: 1.25rem minmax(0, 1fr) minmax(0, 1fr) var(--tamano-toque);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--tamano-toque);
   gap: var(--espacio-2);
   align-items: center;
-}
-
-.serie__numero {
-  text-align: center;
-  font-weight: 600;
-  color: var(--tinta-suave);
 }
 
 .serie__confirmar {
   width: var(--tamano-toque);
   height: var(--tamano-toque);
+  display: grid;
+  place-items: center;
+  padding: 0;
   border-radius: 50%;
-  border: 2px solid var(--acento);
+  border: 2px solid var(--tinta-suave);
   background: transparent;
-  color: var(--acento);
-  font-size: 1.25rem;
-  font-weight: 700;
+  color: var(--tinta);
+  font-size: 17px;
+  font-weight: 600;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;

@@ -39,7 +39,8 @@ async function confirmarSerie(pagina, numero, peso, reps) {
 
 /**
  * RNF-007-02 (T-007-09): todo lo que se toca mide al menos 44 × 44, y dos
- * objetivos vecinos en la misma fila quedan a 8 px o más.
+ * objetivos vecinos en la misma fila quedan a 8 px o más. Las partes de un control
+ * unido (`data-control-unido`) se tocan por dentro: los 8 px van entre controles.
  * Devuelve la lista de problemas: vacía si todo cumple.
  */
 async function objetivosPequenos(pagina, { conCampos = true } = {}) {
@@ -51,6 +52,8 @@ async function objetivosPequenos(pagina, { conCampos = true } = {}) {
     const cajas = visibles.map((el) => ({
       nombre: (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().slice(0, 40),
       caja: el.getBoundingClientRect(),
+      // Un control unido ("− número +", como el del iPhone) cuenta como uno (RNF-007-02).
+      control: el.closest('[data-control-unido]'),
     }))
     const problemas = []
     for (const { nombre, caja } of cajas) {
@@ -65,7 +68,8 @@ async function objetivosPequenos(pagina, { conCampos = true } = {}) {
         // La separación cuida a los botones pequeños vecinos (como los +/−). Las áreas
         // grandes contiguas, como las pestañas de la barra (≈ 94 px), no cuentan.
         const pequeno = Math.min(a.caja.width, b.caja.width) < 60
-        if (pequeno && mismaFila && separacion >= 0 && separacion < 8 - 0.5) {
+        const mismoControl = a.control && a.control === b.control
+        if (!mismoControl && pequeno && mismaFila && separacion >= 0 && separacion < 8 - 0.5) {
           problemas.push(`"${a.nombre}" y "${b.nombre}" quedan a ${separacion.toFixed(1)} px`)
         }
       }
@@ -122,10 +126,15 @@ test('CA-006-16a y 17a: en modo avión se registra, se cierra, se abre y todo ll
   // Un ejercicio sin "última vez" llega vacío: se escribe peso y reps.
   await confirmarSerie(page, 1, 60, 8)
 
-  // RNF-007-02 y RNF-008-05 en la sesión: botones de 44 px, 8 de aire y "Quitar" lejos de
-  // "Confirmar". Los campos del número (kg, reps) aún miden 25 × 24: los agranda el
-  // rediseño de la fila de serie (T-007-10), y entonces se miden aquí también.
-  expect(await objetivosPequenos(page, { conCampos: false })).toEqual([])
+  // RNF-007-02 y RNF-008-05 en la sesión (T-007-10): botones y campos de 44 px, 8 de aire
+  // entre objetivos pequeños, y "Quitar" lejos de "Confirmar".
+  expect(await objetivosPequenos(page)).toEqual([])
+  // CA-007-05a: el peso se ve completo, sin recortar ("62,5" no puede quedar en "62").
+  await page.getByRole('textbox', { name: 'kg' }).first().fill('472,5')
+  expect(
+    await page.getByRole('textbox', { name: 'kg' }).first().evaluate((campo) => campo.scrollWidth <= campo.clientWidth),
+  ).toBe(true)
+  await page.getByRole('textbox', { name: 'kg' }).first().fill('60')
   await expect(page.getByText(/guardados en el celular/)).toBeVisible()
 
   // --- CA-006-16a: cerrar la app y volver a abrirla, todavía sin señal --------

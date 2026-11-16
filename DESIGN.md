@@ -67,7 +67,7 @@ Todos los números llevan **`font-variant-numeric: tabular-nums`** (RN-007-03), 
 - **Rejilla de 4 pt:** 4, 8, 12, 16, 20, 24, 32. El margen lateral es de 16 (12 en la sesión en curso, ver Fila de serie); entre grupos van 24.
 - **Radios:** 10 para controles y 14 para grupos. Nada es una píldora, salvo la franja de sesión.
 - **Profundidad sin sombras:** la superficie se separa del fondo solo por el color. La barra y la franja llevan un velo de fondo al 85 % con desenfoque, como en iOS, y una línea de 1 px arriba.
-- **Objetivos táctiles:** mínimo 44 × 44, con 8 de separación (RNF-007-02).
+- **Objetivos táctiles:** mínimo 44 × 44, con 8 de separación (RNF-007-02). Un control unido `− número +` cuenta como uno: sus tres partes miden 44 de alto, se tocan por dentro y llevan 8 de aire hacia afuera.
 
 ## 5. Componentes
 
@@ -96,6 +96,7 @@ Rejilla de tres columnas: `peso 1,2fr | reps 1fr | ✓ 44 px`, con 8 entre colum
 - **El número de la serie va dentro del círculo de confirmar:** no hay columna aparte. Con 44 px por botón no caben cinco columnas en 375 px, y así el círculo dice a la vez qué serie es y si está hecha.
 - **Encabezado de columnas** en etiqueta: KG · REPS.
 - **Pendiente:** los +/− en `--superficie-2` y el círculo con contorno y el número de la serie adentro ("3").
+- **Control unido** `− número +` (decidido el 2026-11-16): los +/− de 44 × 44 y, entre ellos, el número de al menos 44 × 44 que se toca para escribirlo. Cifras de 20 px; con 5 caracteres ("472,5") bajan a 16 px para no recortarse (nunca menos: con menos de 16 px Safari hace zoom).
 - **Confirmada:**
   - la fila con fondo `--dorado-tinte`;
   - el círculo relleno en dorado con la palomita en lugar del número;

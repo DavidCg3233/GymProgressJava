@@ -78,7 +78,7 @@ async function terminar() {
 </script>
 
 <template>
-  <main v-if="sesion" class="pantalla">
+  <main v-if="sesion" class="pantalla pantalla--densa">
     <header class="fila fila--separada">
       <div>
         <h1>Sesión en curso</h1>
