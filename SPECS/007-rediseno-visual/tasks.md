@@ -4,7 +4,7 @@
 |---|---|
 | **Plan** | [plan.md](plan.md) (Aprobado el 2026-11-11) |
 | **Creado** | 2026-11-11 |
-| **Avance** | 9 de 18 con código (fases 1 y 2). Ninguna cerrada hasta que David escriba su línea en la bitácora |
+| **Avance** | 15 de 18 con código (fases 1, 2 y 3). Ninguna cerrada hasta que David escriba su línea en la bitácora |
 
 > Mismas reglas que en las demás specs:
 > - **Una tarea = un commit**, en orden, con TDD donde hay lógica: primero la prueba, verla fallar, después el código.
@@ -44,16 +44,16 @@
 
 - [x] **T-007-10** Sesión en curso: fila de serie, paso numérico y ejercicio.
   - Cumple: RF-007-05, 06, RN-007-03. Hecho cuando: CA-007-05a y 06a se ven en el navegador, y la prueba de Playwright mide también la sesión **con los campos del número** (hoy miden 25 × 24 y recortan "38,5"; la spec 008 dejó la medida solo para botones con `conCampos: false`).
-- [ ] **T-007-11** Inicio.
+- [x] **T-007-11** Inicio.
   - Hoy toca, esta semana, últimas sesiones y el resumen al terminar.
   - Cumple: RF-004-01 a 10 con el diseño nuevo. Hecho cuando: CA-004-01a, 02a y 03a siguen cumpliéndose.
-- [ ] **T-007-12** Progreso, evolución y peso.
+- [x] **T-007-12** Progreso, evolución y peso.
   - Cumple: el diseño de gráficas de `DESIGN.md`. Hecho cuando: CA-004-05a, 09a y CA-003-01a se ven en los dos temas.
-- [ ] **T-007-13** Rutinas, editor y catálogo.
+- [x] **T-007-13** Rutinas, editor y catálogo.
   - Hecho cuando: crear, editar, duplicar y eliminar una rutina, y renombrar un ejercicio, se ven y funcionan en los dos temas.
-- [ ] **T-007-14** Historial y detalle.
+- [x] **T-007-14** Historial y detalle.
   - Hecho cuando: la lista y el detalle se ven en los dos temas, con eliminar y su confirmación.
-- [ ] **T-007-15** Acceso y cambiar contraseña.
+- [x] **T-007-15** Acceso y cambiar contraseña.
   - Hecho cuando: entrar y el cambio obligatorio de contraseña se ven en los dos temas. **Fin de la fase: se fusiona.**
 
 ## Fase 4 — Cierre
@@ -66,6 +66,8 @@
 
 | Fecha | Tarea | Qué entendí / qué cambió | Quién |
 |---|---|---|---|
+| 2026-11-17 | Dependencias | `npm audit`: 9 avisos, todos en herramientas de desarrollo. Las 2 críticas (tinypool, que llega con Vitest 3) se corrigen subiendo a Vitest 4.1.12, sin tocar ninguna prueba. Quedan 6 (2 bajas, 4 moderadas) en `workbox-build`, que solo corre al compilar: npm propone *bajar* vite-plugin-pwa a 1.1.0, un cambio mayor; se dejan anotadas. `npm audit --omit=dev` (lo que llega al usuario) sigue en 0 | IA |
+| 2026-11-17 | T-007-11 a 15 | Todas las pantallas usan `Encabezado`. Se quita el botón "Inicio" de Progreso, Rutinas e Historial: la barra inferior ya lleva a todas partes. Lo que está dentro de una sección vuelve con "atrás" (Evolución → Progreso; editor y catálogo → Rutinas; detalle → Historial; cambiar contraseña → Inicio). Inicio e Historial usan grupos de filas (`.grupo`, como Ajustes del iPhone). Al medir a 375 px aparecieron dos objetivos pequeños que ya existían: el "?" de las explicaciones (30 × 30: ahora se ve de 28 pero se toca en 44 × 44) y los días del editor (40 × 44: ahora van 4 + 3 con 8 px de aire). Las sesiones libres sin nombre salían en blanco en el Historial: ahora dicen "Sesión libre". Comprobado: Vitest 437, servidor 724, compilación, Playwright WebKit (entrar, cambio obligatorio de contraseña, sesión sin conexión) y cada pantalla a 375 px sin objetivos de menos de 44 ni desplazamiento horizontal; Historial, Rutinas y Progreso vistos también en oscuro. **No** recorrí a mano crear, duplicar y eliminar rutinas en los dos temas: eso queda para T-007-16 | IA |
 | 2026-11-16 | T-007-10 | Prueba primero (Playwright, rojo): campos de 25 × 24 y pegados a sus botones. Cuenta a 375 px: dos controles de 44 + 8 + 44 + 8 + 44 más el círculo suman 356 px y solo hay 335. **David eligió el control unido** (como el de +/− del iPhone): sus partes se tocan por dentro y los 8 px van entre controles (RNF-007-02 actualizado). Resultado a 375 px: número de 48 × 44, "472,5" sin recorte (baja a 16 px), sin desplazamiento horizontal; número de serie dentro del círculo. Al medir apareció una regresión en el editor de rutina (el "+" quedaba en 9 px): sus tres controles pasan a dos renglones. El peso se muestra con coma ("38,5") | IA |
 | 2026-11-11 | T-007-01 a 04 | Fichas en `fichas.css` (el único archivo con colores) y `base.css` rehecho sobre ellas: todas las pantallas cambian de color ya, antes de rehacerlas. 32 pares de contraste medidos por una prueba. Dos tropiezos de Vue resueltos en T-007-06: `<script setup>` no admite `export` ni que `defineProps` use una variable local (los trazos pasaron a `iconos.js`) | IA |
 | 2026-11-11 | T-007-07 | **Choque entre specs, resuelto así (pendiente de tu visto bueno):** la franja no se muestra en el Inicio, porque ahí CA-004-02a ya pone "Continuar sesión" primero y serían dos botones iguales. Regla `muestraFranja` con su prueba | IA |
