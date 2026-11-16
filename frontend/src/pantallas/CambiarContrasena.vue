@@ -2,6 +2,7 @@
 // Cambio de contraseña. Obligatorio si se entró con una temporal (RNF-ACC-08, RNF-ACC-09).
 import { computed, ref } from 'vue'
 
+import Encabezado from '../componentes/Encabezado.vue'
 import { cambiarContrasena, salir } from '../estado/acceso.js'
 
 const props = defineProps({ obligatorio: { type: Boolean, default: false } })
@@ -35,7 +36,9 @@ async function enviar() {
 
 <template>
   <main class="pantalla">
-    <h1>{{ props.obligatorio ? 'Crea tu contraseña' : 'Cambiar contraseña' }}</h1>
+    <!-- T-007-15: cambiarla por gusto se puede abandonar con "atrás"; la obligatoria, no. -->
+    <Encabezado v-if="props.obligatorio" titulo="Crea tu contraseña" />
+    <Encabezado v-else titulo="Cambiar contraseña" atras="Inicio" @atras="emit('cancelar')" />
     <p v-if="props.obligatorio" class="mensaje mensaje--aviso">
       Entraste con una contraseña temporal. Cámbiala por una tuya para continuar.
     </p>
@@ -65,6 +68,5 @@ async function enviar() {
     </form>
 
     <button v-if="props.obligatorio" class="boton boton--texto" type="button" @click="salir">Salir</button>
-    <button v-else class="boton boton--texto" type="button" @click="emit('cancelar')">Volver</button>
   </main>
 </template>
