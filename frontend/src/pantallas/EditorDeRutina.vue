@@ -2,6 +2,7 @@
 // Editor de rutina (T-002-15 · RF-002-03, 04, 08, 09, 20 · RNF-002-01).
 import { computed, reactive, ref } from 'vue'
 
+import Encabezado from '../componentes/Encabezado.vue'
 import BuscadorDeEjercicio from '../componentes/BuscadorDeEjercicio.vue'
 import PasoNumerico from '../componentes/PasoNumerico.vue'
 import { guardarEjercicio, guardarRutina } from '../estado/rutinas.js'
@@ -150,10 +151,8 @@ async function guardar() {
 
 <template>
   <main class="pantalla">
-    <header class="fila fila--separada">
-      <h1>{{ props.rutinaId ? 'Editar rutina' : 'Nueva rutina' }}</h1>
-      <button class="boton boton--texto" type="button" @click="emit('cancelar')">Cancelar</button>
-    </header>
+    <!-- "Atrás" descarta lo no guardado, como el antiguo "Cancelar". -->
+    <Encabezado :titulo="props.rutinaId ? 'Editar rutina' : 'Nueva rutina'" atras="Rutinas" @atras="emit('cancelar')" />
 
     <form class="tarjeta" @submit.prevent="guardar">
       <label class="campo">
@@ -235,8 +234,9 @@ async function guardar() {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--espacio-1);
+  /* RNF-007-02: 7 botones de 44 con 8 de aire no caben en 375 px: van en 4 + 3. */
+  grid-template-columns: repeat(4, minmax(var(--tamano-toque), 1fr));
+  gap: var(--espacio-2);
 }
 
 .dias legend {

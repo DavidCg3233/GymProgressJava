@@ -2,6 +2,7 @@
 // Mi catálogo de ejercicios (T-002-16 · RF-002-15 a 19 · RNF-USA-04).
 import { computed, ref } from 'vue'
 
+import Encabezado from '../componentes/Encabezado.vue'
 import { eliminarEjercicio, eliminarGrupo, guardarEjercicio, guardarGrupo, usoDeEjercicio } from '../estado/rutinas.js'
 import { estado } from '../estado/sesion.js'
 
@@ -89,10 +90,7 @@ function renombrarGrupo(grupo) {
 
 <template>
   <main class="pantalla">
-    <header class="fila fila--separada">
-      <h1>Mi catálogo</h1>
-      <button class="boton boton--texto" type="button" @click="emit('volver')">Volver</button>
-    </header>
+    <Encabezado titulo="Mi catálogo" atras="Rutinas" @atras="emit('volver')" />
 
     <p v-if="error" class="mensaje mensaje--error" role="alert">{{ error }}</p>
     <p v-if="aviso" class="mensaje mensaje--aviso" role="status">{{ aviso }}</p>

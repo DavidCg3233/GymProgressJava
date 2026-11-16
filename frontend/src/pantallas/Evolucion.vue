@@ -2,6 +2,7 @@
 // Evolución de un ejercicio (T-004-15 · RF-004-09 · RN-004-05, 06).
 import { computed, onMounted, ref } from 'vue'
 
+import Encabezado from '../componentes/Encabezado.vue'
 import Explicacion from '../componentes/Explicacion.vue'
 import GraficaDeLinea from '../componentes/GraficaDeLinea.vue'
 import { cargarEvolucion, mensajeDeProgreso } from '../estado/progreso.js'
@@ -50,10 +51,7 @@ onMounted(cargar)
 
 <template>
   <main class="pantalla">
-    <header class="fila fila--separada">
-      <h1>{{ datos?.nombre ?? nombre }}</h1>
-      <button class="boton boton--texto" type="button" @click="emit('volver')">Progreso</button>
-    </header>
+    <Encabezado :titulo="datos?.nombre ?? nombre" atras="Progreso" @atras="emit('volver')" />
 
     <template v-if="error">
       <p class="mensaje mensaje--error" role="alert">{{ error }}</p>

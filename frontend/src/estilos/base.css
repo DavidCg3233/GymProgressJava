@@ -118,6 +118,78 @@ input,
   font-size: 15px;
 }
 
+/* --- Secciones y grupos de filas (DESIGN.md, sección 5) ----------------------
+ * Una sección es su etiqueta y su grupo. El grupo es una superficie sin borde con
+ * filas separadas por una línea: reemplaza a las tarjetas sueltas. */
+.seccion {
+  display: grid;
+  gap: var(--espacio-2);
+}
+
+.seccion > .etiqueta {
+  margin-left: var(--espacio-1);
+}
+
+.grupo {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--radio-grupo);
+  background: var(--superficie);
+  overflow: hidden;
+}
+
+.grupo__fila {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  padding: var(--espacio-2) var(--espacio-4);
+  border-top: 1px solid var(--linea);
+}
+
+.grupo__fila:first-child {
+  border-top: 0;
+}
+
+/* Una fila que se toca entera (un botón con el aspecto de fila). */
+button.grupo__fila {
+  width: 100%;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  background: none;
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.grupo__fila:active {
+  background: var(--superficie-2);
+}
+
+.grupo__texto {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.grupo__detalle {
+  font-size: 15px;
+  color: var(--tinta-suave);
+  text-align: right;
+}
+
+/* Lo hecho o logrado: el toque dorado (DESIGN.md, sección 2). */
+.logrado {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dorado);
+}
+
 /* Encabezado de un grupo o de una columna. */
 .etiqueta {
   font-size: 13px;

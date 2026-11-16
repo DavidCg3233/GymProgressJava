@@ -26,7 +26,12 @@ async function enviar() {
 
 <template>
   <main class="pantalla acceso">
-    <h1>GymProgress</h1>
+    <!-- T-007-15: la marca arriba, el formulario como un grupo. -->
+    <header class="acceso__marca">
+      <span class="acceso__raya" aria-hidden="true"></span>
+      <h1>GymProgress</h1>
+      <p class="suave">Tus series, con o sin señal.</p>
+    </header>
 
     <form class="tarjeta" @submit.prevent="enviar">
       <label class="campo">
@@ -62,5 +67,21 @@ async function enviar() {
 .acceso {
   min-height: 90dvh;
   align-content: center;
+}
+
+.acceso__marca {
+  display: grid;
+  gap: var(--espacio-1);
+}
+
+.acceso__raya {
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--dorado);
+}
+
+.acceso__marca h1 {
+  font-size: 34px;
 }
 </style>
