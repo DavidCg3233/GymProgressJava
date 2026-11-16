@@ -66,7 +66,7 @@ La app funciona, pero se ve genérica y todo pesa lo mismo. En el gimnasio, entr
 | ID | Requerimiento |
 |---|---|
 | RNF-007-01 | Contraste mínimo de 4,5:1 para todo texto y de 3:1 para íconos y bordes que comunican estado, en los dos temas. |
-| RNF-007-02 | Todo lo que se toca mide al menos 44 × 44 puntos, con al menos 8 puntos de separación entre dos objetivos. |
+| RNF-007-02 | Todo lo que se toca mide al menos 44 × 44 puntos, con al menos 8 puntos de separación entre dos objetivos. Un **control unido** ("− número +", como el control de +/− nativo del iPhone) cuenta como uno solo: sus partes se tocan por dentro y los 8 puntos van entre controles (decidido por David el 2026-11-16: en 375 px no caben 44 + 8 + 44 + 8 + 44 dos veces en una fila). |
 | RNF-007-03 | El rediseño no agrega toques: siguen valiendo RNF-006-01 (1 toque para confirmar sin cambios), RNF-006-02 (máximo 3 con cambios) y RNF-006-03 (máximo 2 hasta la primera serie de hoy). |
 | RNF-007-04 | Si el teléfono tiene activado "Reducir movimiento", ninguna transición se anima. |
 | RNF-007-05 | El rediseño no agrega descargas externas (letras, íconos ni imágenes de otros sitios): la app sigue abriendo sin señal. |
