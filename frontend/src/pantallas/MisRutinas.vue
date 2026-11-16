@@ -2,6 +2,7 @@
 // Mis rutinas (T-002-14 · RF-002-01, 06, 21 · RNF-USA-04).
 import { ref } from 'vue'
 
+import Encabezado from '../componentes/Encabezado.vue'
 import EstadoDeSincronizacion from '../componentes/EstadoDeSincronizacion.vue'
 import { duplicarRutina, eliminarRutina } from '../estado/rutinas.js'
 import { empezarSesionDesdeRutina, estado } from '../estado/sesion.js'
@@ -53,10 +54,12 @@ function eliminar(rutina) {
 
 <template>
   <main class="pantalla">
-    <header class="fila fila--separada">
-      <h1>Mis rutinas</h1>
-      <button class="boton boton--texto" type="button" @click="emit('volver')">Inicio</button>
-    </header>
+    <!-- T-007-13: sin botón "Inicio": la barra de abajo lleva a todas partes. -->
+    <Encabezado titulo="Mis rutinas">
+      <template #accion>
+        <button class="boton boton--texto" type="button" @click="emit('catalogo')">Catálogo</button>
+      </template>
+    </Encabezado>
 
     <EstadoDeSincronizacion />
     <p v-if="error" class="mensaje mensaje--error" role="alert">{{ error }}</p>
@@ -102,6 +105,5 @@ function eliminar(rutina) {
     <p v-if="estado.sesion" class="suave">Tienes una sesión en curso: termínala para empezar otra.</p>
 
     <button class="boton boton--ancho" type="button" @click="emit('editar', null)">+ Nueva rutina</button>
-    <button class="boton boton--texto" type="button" @click="emit('catalogo')">Mi catálogo de ejercicios</button>
   </main>
 </template>
