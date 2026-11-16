@@ -122,6 +122,11 @@ function guardarNota() {
   font-size: 15px;
 }
 
+.ejercicio {
+  /* La sesión es la pantalla más densa (DESIGN.md, Fila de serie): 12 de aire a los lados. */
+  padding: var(--espacio-3);
+}
+
 .ejercicio__series {
   display: grid;
   gap: var(--espacio-1);
